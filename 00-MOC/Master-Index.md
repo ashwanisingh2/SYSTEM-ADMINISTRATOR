@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [#desktop-support, #moc, #index, #L1, #L2, #L3]
 aliases: [master-index, map-of-content]
 created: 2026-06-25
@@ -96,6 +96,9 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-11 File Systems and Storage in Linux|L-11 File Systems and Storage in Linux]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-12 Network Configuration in Linux|L-12 Network Configuration in Linux]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-13 Bash Scripting for Sysadmins|L-13 Bash Scripting for Sysadmins]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-14 Linux Security Hardening|L-14 Linux Security Hardening]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-15 LVM — Logical Volume Manager|L-15 LVM — Logical Volume Manager]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-16 Cron Jobs and Task Scheduling|L-16 Cron Jobs and Task Scheduling]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/Permissions|Permissions]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl]]
 
