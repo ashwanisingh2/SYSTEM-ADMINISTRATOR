@@ -38,20 +38,12 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[01-Foundations/01-Hardware/H-04 Laptop Hardware Complete Guide|H-04 Laptop Hardware Complete Guide]]
 - [ ] [[01-Foundations/01-Hardware/H-05 PC Assembly and BIOS Configuration|H-05 PC Assembly and BIOS Configuration]]
 - [ ] [[01-Foundations/01-Hardware/H-06 Hardware Troubleshooting Masterclass|H-06 Hardware Troubleshooting Masterclass]]
-- [ ] [[01-Foundations/01-Hardware/Hardware-Troubleshooting-Masterclass|Hardware-Troubleshooting-Masterclass]]
-- [ ] [[01-Foundations/01-Hardware/Laptop-Hardware-Complete-Guide|Laptop-Hardware-Complete-Guide]]
-- [ ] [[01-Foundations/01-Hardware/Motherboard-Architecture|Motherboard-Architecture]]
-- [ ] [[01-Foundations/01-Hardware/PC-Assembly-and-BIOS-Configuration|PC-Assembly-and-BIOS-Configuration]]
-- [ ] [[01-Foundations/01-Hardware/SMPS-Power-Supply-Complete-Guide|SMPS-Power-Supply-Complete-Guide]]
-- [ ] [[01-Foundations/01-Hardware/Storage-Deep-Dive|Storage-Deep-Dive]]
 - [ ] [[01-Foundations/01-Hardware/V-01 VMware Workstation Complete Guide|V-01 VMware Workstation Complete Guide]]
 - [ ] [[01-Foundations/01-Hardware/V-02 VirtualBox Complete Guide|V-02 VirtualBox Complete Guide]]
 - [ ] [[01-Foundations/01-Hardware/V-03 Hyper-V|V-03 Hyper-V]]
 - [ ] [[01-Foundations/01-Hardware/V-04 Virtualization Lab Environment Setup|V-04 Virtualization Lab Environment Setup]]
 
 ### 01. Foundations - Networking (02-Networking)
-- [ ] [[01-Foundations/02-Networking/DHCP|DHCP]]
-- [ ] [[01-Foundations/02-Networking/DNS|DNS]]
 - [ ] [[01-Foundations/02-Networking/N-01 Networking Fundamentals|N-01 Networking Fundamentals]]
 - [ ] [[01-Foundations/02-Networking/N-02 Network Devices Deep Dive|N-02 Network Devices Deep Dive]]
 - [ ] [[01-Foundations/02-Networking/N-03 Ethernet and MAC Address|N-03 Ethernet and MAC Address]]
@@ -62,12 +54,6 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]]
 - [ ] [[01-Foundations/02-Networking/N-09 Access Control Lists|N-09 Access Control Lists]]
 - [ ] [[01-Foundations/02-Networking/N-10 Network Troubleshooting Complete|N-10 Network Troubleshooting Complete]]
-- [ ] [[01-Foundations/02-Networking/NAT-and-PAT|NAT-and-PAT]]
-- [ ] [[01-Foundations/02-Networking/OSI-Model|OSI-Model]]
-- [ ] [[01-Foundations/02-Networking/Subnetting|Subnetting]]
-- [ ] [[01-Foundations/02-Networking/TCP-IP-and-Ports|TCP-IP-and-Ports]]
-- [ ] [[01-Foundations/02-Networking/Troubleshooting-Tools|Troubleshooting-Tools]]
-- [ ] [[01-Foundations/02-Networking/VPN|VPN]]
 
 ### 02. Operating Systems - Windows (03-Windows-OS)
 - [ ] [[02-Operating-Systems/03-Windows-OS/BitLocker|BitLocker]]
@@ -81,8 +67,6 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[02-Operating-Systems/03-Windows-OS/Windows-Update|Windows-Update]]
 
 ### 02. Operating Systems - Linux RHEL (04-Linux-RHEL)
-- [ ] [[02-Operating-Systems/04-Linux-RHEL/Filesystem|Filesystem]]
-- [ ] [[02-Operating-Systems/04-Linux-RHEL/Firewalld|Firewalld]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-01 Linux Introduction and Architecture|L-01 Linux Introduction and Architecture]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]]
@@ -99,16 +83,10 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-14 Linux Security Hardening|L-14 Linux Security Hardening]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-15 LVM — Logical Volume Manager|L-15 LVM — Logical Volume Manager]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-16 Cron Jobs and Task Scheduling|L-16 Cron Jobs and Task Scheduling]]
-- [ ] [[02-Operating-Systems/04-Linux-RHEL/Permissions|Permissions]]
-- [ ] [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl]]
 
 ### 03. Identity & Core Services - Windows Server (05-Windows-Server)
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/BAK-01 Windows Server Backup|BAK-01 Windows Server Backup]]
-- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/DFS|DFS]]
-- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/DHCP-Server|DHCP-Server]]
-- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/DNS-Server|DNS-Server]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/IIS|IIS]]
-- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/Roles|Roles]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-01 Windows Server 2022 Introduction|WS-01 Windows Server 2022 Introduction]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-04 DHCP Server — Install and Configure|WS-04 DHCP Server — Install and Configure]]
@@ -119,13 +97,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-14 VPN and Remote Access (RRAS)|WS-14 VPN and Remote Access (RRAS)]]
 
 ### 03. Identity & Core Services - Active Directory (06-Active-Directory)
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/AD-Replication|AD-Replication]]
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/Domain-Join|Domain-Join]]
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/FSMO-Roles|FSMO-Roles]]
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group-Policy]]
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/Organizational-Units|Organizational-Units]]
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/Password-Policies|Password-Policies]]
-- [ ] [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users-and-Groups]]
+
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]]
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]]
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-06 Active Directory — Users Groups OUs|WS-06 Active Directory — Users Groups OUs]]
@@ -134,8 +106,6 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-13 Active Directory Certificate Services|WS-13 Active Directory Certificate Services]]
 
 ### 04. Cloud & Security - Microsoft 365 (07-Microsoft-365)
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional-Access]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/Exchange-Online|Exchange-Online]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/INT-02 Device Enrollment|INT-02 Device Enrollment]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/INT-03 Compliance Policies|INT-03 Compliance Policies]]
@@ -146,18 +116,11 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/INT-08 Windows Update Management|INT-08 Windows Update Management]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/INT-09 Intune Monitoring and Reporting|INT-09 Intune Monitoring and Reporting]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/INT-10 Remote Device Actions|INT-10 Remote Device Actions]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/Licensing|Licensing]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/M365-01 Microsoft 365 Administration|M365-01 Microsoft 365 Administration]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online Administration|M365-02 Exchange Online Administration]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/M365-03 Microsoft Teams Administration|M365-03 Microsoft Teams Administration]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/M365-04 SharePoint Online Administration|M365-04 SharePoint Online Administration]]
 - [ ] [[04-Cloud-and-Security/07-Microsoft-365/M365-05 Security and Compliance|M365-05 Security and Compliance]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/MFA|MFA]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft-Entra-ID]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/OneDrive-Administration|OneDrive-Administration]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/SSPR|SSPR]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/SharePoint-Online|SharePoint-Online]]
-- [ ] [[04-Cloud-and-Security/07-Microsoft-365/Teams-Administration|Teams-Administration]]
 
 ### 04. Cloud & Security - Azure (08-Azure)
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ104-01 Azure Identity and Governance|AZ104-01 Azure Identity and Governance]]
@@ -172,12 +135,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-04 Azure Storage and Networking|AZ9-04 Azure Storage and Networking]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-05 Azure Identity and Security|AZ9-05 Azure Identity and Security]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-06 Azure Cost and Governance|AZ9-06 Azure Cost and Governance]]
-- [ ] [[04-Cloud-and-Security/08-Azure/Azure-Backup|Azure-Backup]]
 - [ ] [[04-Cloud-and-Security/08-Azure/BAK-02 Azure Backup and Site Recovery|BAK-02 Azure Backup and Site Recovery]]
-- [ ] [[04-Cloud-and-Security/08-Azure/Azure-Certification-Roadmaps|Azure-Certification-Roadmaps]]
-- [ ] [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure-Identity]]
-- [ ] [[04-Cloud-and-Security/08-Azure/Azure-Networking|Azure-Networking]]
-- [ ] [[04-Cloud-and-Security/08-Azure/Azure-VMs|Azure-VMs]]
 
 ### 04. Cloud & Security - Enterprise Security (09-Security)
 - [ ] [[04-Cloud-and-Security/09-Security/Access-Management|Access-Management]]
@@ -196,10 +154,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-03 PowerShell for System Administration|PS-03 PowerShell for System Administration]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-04 PowerShell Scripting|PS-04 PowerShell Scripting]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-05 PowerShell for Azure|PS-05 PowerShell for Azure]]
-- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Automation-and-Scripting|PowerShell-Automation-and-Scripting]]
-- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Fundamentals|PowerShell-Fundamentals]]
-- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-for-Active-Directory|PowerShell-for-Active-Directory]]
-- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-for-M365-and-Azure|PowerShell-for-M365-and-Azure]]
+
 
 ### 05. Automation & Ticketing - ITSM Ticketing (11-ITSM-Ticketing)
 - [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/Change-and-Asset-Management|Change-and-Asset-Management]]

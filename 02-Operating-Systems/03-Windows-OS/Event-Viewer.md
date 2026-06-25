@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, windows-os, event-viewer, logs, L1]
 aliases: [event-log, logs-analysis]
 created: 2026-06-25
