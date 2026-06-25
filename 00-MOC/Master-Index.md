@@ -54,6 +54,8 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]]
 - [ ] [[01-Foundations/02-Networking/N-09 Access Control Lists|N-09 Access Control Lists]]
 - [ ] [[01-Foundations/02-Networking/N-10 Network Troubleshooting Complete|N-10 Network Troubleshooting Complete]]
+- [ ] [[01-Foundations/02-Networking/N-11 Wireless Networking|N-11 Wireless Networking]]
+- [ ] [[01-Foundations/02-Networking/N-12 Network Security|N-12 Network Security]]
 
 ### 02. Operating Systems - Windows (03-Windows-OS)
 - [ ] [[02-Operating-Systems/03-Windows-OS/BitLocker|BitLocker]]
@@ -85,6 +87,8 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-16 Cron Jobs and Task Scheduling|L-16 Cron Jobs and Task Scheduling]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-17 Linux Log Management|L-17 Linux Log Management]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-18 Linux Performance Monitoring|L-18 Linux Performance Monitoring]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-19 Docker Basics for Linux Admins|L-19 Docker Basics for Linux Admins]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-20 Linux Troubleshooting Masterclass|L-20 Linux Troubleshooting Masterclass]]
 
 ### 03. Identity & Core Services - Windows Server (05-Windows-Server)
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/BAK-01 Windows Server Backup|BAK-01 Windows Server Backup]]
@@ -99,6 +103,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-14 VPN and Remote Access (RRAS)|WS-14 VPN and Remote Access (RRAS)]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-15 Print Server|WS-15 Print Server]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-16 WSUS — Windows Server Update Services|WS-16 WSUS — Windows Server Update Services]]
+- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-17 NPS and RADIUS Server|WS-17 NPS and RADIUS Server]]
 
 ### 03. Identity & Core Services - Active Directory (06-Active-Directory)
 
@@ -133,6 +138,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ104-04 Azure Virtual Networking|AZ104-04 Azure Virtual Networking]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ104-05 Azure Load Balancing|AZ104-05 Azure Load Balancing]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ104-06 Azure Monitor and Backup|AZ104-06 Azure Monitor and Backup]]
+- [ ] [[04-Cloud-and-Security/08-Azure/AZ104-07 Defender for Cloud|AZ104-07 Defender for Cloud]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-01 Cloud Computing Fundamentals|AZ9-01 Cloud Computing Fundamentals]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-02 Azure Global Infrastructure|AZ9-02 Azure Global Infrastructure]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-03 Azure Compute Services|AZ9-03 Azure Compute Services]]
@@ -158,6 +164,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-03 PowerShell for System Administration|PS-03 PowerShell for System Administration]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-04 PowerShell Scripting|PS-04 PowerShell Scripting]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-05 PowerShell for Azure|PS-05 PowerShell for Azure]]
+- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-06 PowerShell DSC|PS-06 PowerShell DSC]]
 
 
 ### 05. Automation & Ticketing - ITSM Ticketing (11-ITSM-Ticketing)
@@ -168,6 +175,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 ### 05. Automation & Ticketing - Ansible (12-Ansible)
 - [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-01 Ansible for Windows Admins|ANS-01 Ansible for Windows Admins]]
 - [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-02 Ansible for Linux Admins|ANS-02 Ansible for Linux Admins]]
+- [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-03 Ansible Advanced Playbooks|ANS-03 Ansible Advanced Playbooks]]
 
 ### 06. Career Growth - Interview Prep (12-Interview-Prep)
 - [ ] [[06-Career-Growth/12-Interview-Prep/30-60-90-Day-Plan-Template|30-60-90-Day-Plan-Template]]

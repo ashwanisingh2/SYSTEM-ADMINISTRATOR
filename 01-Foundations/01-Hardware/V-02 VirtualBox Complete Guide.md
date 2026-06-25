@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [sysadmin, virtualization, virtualbox, hypervisor]
 difficulty: Intermediate
 lab-required: Yes
