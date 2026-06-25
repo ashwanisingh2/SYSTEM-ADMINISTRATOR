@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [sysadmin, lab, virtualization, reference]
 difficulty: Advanced
 lab-required: Yes
@@ -114,22 +114,17 @@ gpupdate /force
 ---
 ## Troubleshooting Scenarios
 
-**Scenario 1:**
-- Problem: The Windows 11 client fails to join the `lab.local` domain, returning the error "An Active Directory Domain Controller (AD DC) for the domain 'lab.local' could not be contacted."
-- Root Cause: The client VM's DNS settings do not point to the Domain Controller static IP address (`192.168.10.10`), or the client is connected to the default NAT switch instead of VMnet1.
-- Fix:
-  1. Open a command prompt on the client VM.
-  2. Run `ping lab.local`. If it fails to resolve, run `nslookup lab.local` to see which DNS server is responding.
-  3. Go to Network Connections -> Edit IPv4 properties -> Ensure the Preferred DNS server is set exactly to the DC's IP: `192.168.10.10`.
-  4. Verify the VM settings in VMware show the network adapter connected to **VMnet1 (Host-only)**.
+### Scenario 1: Domain Join Failure (lab.local DC Not Contacted)
+**Ticket:** "Windows 11 client cannot join the lab.local domain. Error: An Active Directory Domain Controller for the domain could not be contacted."
+**L1 Resolution:** Open Command Prompt on the client VM and run `ping lab.local`. If it fails, run `nslookup lab.local` to verify DNS resolution. Open Network Connections, edit IPv4 properties, and verify that the Preferred DNS server is set to the DC's IP (`192.168.10.10`).
+**Escalation Trigger:** DNS settings are correct, but the client still cannot ping or contact the DC, indicating virtual network segmentation issues.
+**L2 Resolution:** Verify the VM network adapter configurations in the hypervisor (VMware/Hyper-V). Ensure both the client and the DC are connected to the exact same isolated virtual switch (e.g., VMnet1 Host-only), run `ipconfig /release` and `ipconfig /renew` to refresh configurations, and re-attempt the domain join.
 
-**Scenario 2:**
-- Problem: The home network physical router flags IP address conflict warnings, and family members lose internet access.
-- Root Cause: You enabled the DHCP server role on the lab VM while it was connected to the Bridged or NAT network adapter, causing it to distribute IP configurations to physical devices in your home.
-- Fix:
-  1. Turn off your lab virtual machines immediately.
-  2. Open the Hypervisor configuration settings.
-  3. Ensure that any virtual machines hosting DHCP services (like Windows Server DC or routers) are strictly assigned to an isolated internal switch network (Host-only/VMnet1) and not mapped to Bridged interfaces.
+### Scenario 2: IP Conflict on Host Physical Network (Rogue DHCP Server)
+**Ticket:** "Physical home/office router reports IP address conflicts. Local users are losing internet connection."
+**L1 Resolution:** Immediately turn off all active lab virtual machines. Verify which lab VM has the DHCP Server role installed.
+**Escalation Trigger:** Rogue DHCP server identified, but network topology needs restructuring to prevent future bridge/NAT leaks.
+**L2 Resolution:** Inspect hypervisor settings (Virtual Network Editor). Ensure any virtual machine hosting DHCP services (like the Domain Controller) has its virtual network adapter configured to an isolated, non-bridged, and non-NAT network switch (Host-only VMnet). Verify the physical router's ARP/DHCP tables to ensure lease configurations recover.
 
 ---
 ## Common Mistakes

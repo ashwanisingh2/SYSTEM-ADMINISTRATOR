@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [sysadmin, windows-server, introduction, OS]
 difficulty: Beginner
 lab-required: Yes
@@ -107,27 +107,17 @@ Install-WindowsFeature -Name Web-Server -IncludeManagementTools
 ---
 ## Troubleshooting Scenarios
 
-**Scenario 1:**
-- **Problem:** After installing Windows Server Core, the administrator cannot access the server GUI or Server Manager, and RDP connections fail.
-- **Root Cause:** Expected behavior: Server Core has no GUI. RDP is disabled by default, and firewalls block remote administration ports.
-- **Fix:**
-  1. At the Server Core CLI console, type:
-     ```cmd
-     sconfig
-     ```
-  2. Select Option **7** (Remote Desktop) and type **E** to enable it. Select option **1** for secure network-level authentication.
-  3. Select Option **4** (Configure Remote Management) and enable it.
-  4. From a workstation, launch Server Manager and select "Add Server" targeting the Server Core IP to manage it remotely.
+### Scenario 1: Windows Server Core Remote Management & RDP Connectivity
+**Ticket:** "Administrator cannot access the GUI or manage newly installed Windows Server Core remotely. Remote Desktop (RDP) connections fail."
+**L1 Resolution:** Connect to the Server Core console. Run `sconfig` from the CLI. Select Option **7** (Remote Desktop) and type **E** to enable RDP, choosing secure network-level authentication. Select Option **4** (Configure Remote Management) and enable it.
+**Escalation Trigger:** If remote management ports remain blocked by active firewall profiles or domain policies.
+**L2 Resolution:** Open PowerShell as Administrator on Server Core. Run: `Set-NetFirewallRule -DisplayGroup "Remote Desktop" -Enabled True` and `Set-NetFirewallRule -DisplayGroup "Remote Administration" -Enabled True`. Target the Server Core IP from a remote Server Manager console on a management workstation to verify access.
 
-**Scenario 2:**
-- **Problem:** Attempting to install the Active Directory role fails, returning an error: "The name of this computer is a default name (e.g., WIN-XXXXXX). You must rename it."
-- **Root Cause:** Active Directory domain services require a stable, static hostname configuration. Installing AD on a default-named computer causes routing and DNS record breaks later.
-- **Fix:**
-  1. Rename the computer to `DC01` (or your corporate naming standard) and reboot:
-     ```powershell
-     Rename-Computer -NewName "SVR-DC01" -Force -Restart
-     ```
-  2. Rerun the Active Directory role installation wizard once the system reboots.
+### Scenario 2: Active Directory Role Installation Failure due to Hostname
+**Ticket:** "Active Directory Domain Services role installation wizard fails with default hostname error."
+**L1 Resolution:** Rename the computer to a standardized server name (e.g. `SVR-DC01`) and restart using PowerShell: `Rename-Computer -NewName "SVR-DC01" -Force -Restart`.
+**Escalation Trigger:** If the computer rename fails due to existing Domain Controller registry settings, system configuration conflicts, or access restrictions.
+**L2 Resolution:** Review active role installations. Clean up previous failed AD installations using `Uninstall-ADDSDomainController` if necessary, clear local AD registry traces, and execute host renaming and domain promotion after verifying local DNS settings.
 
 ---
 ## Common Mistakes

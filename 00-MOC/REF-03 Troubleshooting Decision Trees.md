@@ -143,24 +143,17 @@ Test-NetConnection -ComputerName "vmip" -Port 3389 # Tests if port 3389 is liste
 ---
 ## Troubleshooting Scenarios
 
-**Scenario 1:**
-- Problem: A workstation fails the secure channel check with `Test-ComputerSecureChannel` returning false, blocking users from logging in with new credentials.
-- Root Cause: The computer account password has drifted out of sync with the Active Directory Domain Controller database (typically occurs when a machine is turned off for > 30 days).
-- Fix:
-  1. Log into the machine using local administrator credentials.
-  2. Open PowerShell as Administrator.
-  3. Run: `Reset-ComputerMachinePassword -Server "DCName" -Credential (Get-Credential)`.
-  4. Alternatively, use PowerShell to run `-Repair` on the secure channel, then reboot.
+### Scenario 1: Workstation Secure Channel Failure (Domain Trust Relationship Lost)
+**Ticket:** "User cannot log into domain workstation. Error: The trust relationship between this workstation and the primary domain failed."
+**L1 Resolution:** Log into the machine using a local administrator account. Verify IP configuration, DNS settings, and network reachability to the Domain Controller. Run `Test-ComputerSecureChannel` in PowerShell to verify secure channel status.
+**Escalation Trigger:** The secure channel check returns `False` and cannot be repaired due to access restrictions or missing domain credentials.
+**L2 Resolution:** Open PowerShell as Administrator. Run `Reset-ComputerMachinePassword -Server "DCName" -Credential (Get-Credential)` or run `Test-ComputerSecureChannel -Repair -Credential (Get-Credential)` using domain administrator credentials to restore the trust relationship, then reboot the workstation.
 
-**Scenario 2:**
-- Problem: An Azure VM has an NSG rule allowing port 3389, but the connection test still fails.
-- Root Cause: The RDP service inside the VM has crashed, or the local Windows Firewall profile is set to Public, blocking RDP traffic.
-- Fix:
-  1. Open the Azure Portal -> Navigate to the VM -> `Operations` -> `Run Command`.
-  2. Run the script `EnableRemotePS` or execute custom commands to restart the RDP service:
-     `net start termservice`.
-  3. Reset the local Windows Firewall settings to allow RDP:
-     `netsh advfirewall firewall set rule group="remote desktop" new enable=Yes`.
+### Scenario 2: Azure VM RDP Connection Failure
+**Ticket:** "Sysadmin cannot RDP into Azure VM Rocky-Server-01, although the Network Security Group (NSG) allows inbound port 3389."
+**L1 Resolution:** Verify VM status is "Running" in Azure Portal. Run `Test-NetConnection -ComputerName [VM-IP] -Port 3389` to verify port status. Check Network Security Group rules to confirm inbound port 3389 is allowed.
+**Escalation Trigger:** Port 3389 remains closed or unreachable, suggesting OS-level firewall blockages or a crashed Remote Desktop service.
+**L2 Resolution:** Navigate to the VM page in the Azure Portal. Under **Help > Reset password**, reset RDP configuration. If that fails, go to **Operations > Run Command**, run `RunPowerShellScript` to verify/start RDP service: `net start termservice`, and reset the Windows Firewall profile to allow RDP traffic: `netsh advfirewall firewall set rule group="remote desktop" new enable=Yes`.
 
 ---
 ## Common Mistakes
