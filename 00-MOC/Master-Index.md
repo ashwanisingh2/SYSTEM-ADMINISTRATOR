@@ -103,6 +103,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl]]
 
 ### 03. Identity & Core Services - Windows Server (05-Windows-Server)
+- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/BAK-01 Windows Server Backup|BAK-01 Windows Server Backup]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/DFS|DFS]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/DHCP-Server|DHCP-Server]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/DNS-Server|DNS-Server]]
@@ -172,6 +173,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-05 Azure Identity and Security|AZ9-05 Azure Identity and Security]]
 - [ ] [[04-Cloud-and-Security/08-Azure/AZ9-06 Azure Cost and Governance|AZ9-06 Azure Cost and Governance]]
 - [ ] [[04-Cloud-and-Security/08-Azure/Azure-Backup|Azure-Backup]]
+- [ ] [[04-Cloud-and-Security/08-Azure/BAK-02 Azure Backup and Site Recovery|BAK-02 Azure Backup and Site Recovery]]
 - [ ] [[04-Cloud-and-Security/08-Azure/Azure-Certification-Roadmaps|Azure-Certification-Roadmaps]]
 - [ ] [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure-Identity]]
 - [ ] [[04-Cloud-and-Security/08-Azure/Azure-Networking|Azure-Networking]]
@@ -181,8 +183,11 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[04-Cloud-and-Security/09-Security/Access-Management|Access-Management]]
 - [ ] [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker-Deep-Dive]]
 - [ ] [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA-Triad-and-Zero-Trust]]
+- [ ] [[04-Cloud-and-Security/09-Security/Endpoint-Security-Defender|Endpoint-Security-Defender]]
+- [ ] [[04-Cloud-and-Security/09-Security/Incident-Response-Playbook|Incident-Response-Playbook]]
 - [ ] [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA-and-Identity-Protection]]
 - [ ] [[04-Cloud-and-Security/09-Security/Microsoft-Security-Best-Practices|Microsoft-Security-Best-Practices]]
+- [ ] [[04-Cloud-and-Security/09-Security/Microsoft-Sentinel-SIEM|Microsoft-Sentinel-SIEM]]
 - [ ] [[04-Cloud-and-Security/09-Security/Windows-Defender|Windows-Defender]]
 
 ### 05. Automation & Ticketing - PowerShell (10-Scripting-PowerShell)
@@ -190,6 +195,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-02 PowerShell for Active Directory|PS-02 PowerShell for Active Directory]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-03 PowerShell for System Administration|PS-03 PowerShell for System Administration]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-04 PowerShell Scripting|PS-04 PowerShell Scripting]]
+- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-05 PowerShell for Azure|PS-05 PowerShell for Azure]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Automation-and-Scripting|PowerShell-Automation-and-Scripting]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Fundamentals|PowerShell-Fundamentals]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-for-Active-Directory|PowerShell-for-Active-Directory]]
@@ -199,6 +205,10 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/Change-and-Asset-Management|Change-and-Asset-Management]]
 - [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/ITIL-v4-and-SLA|ITIL-v4-and-SLA]]
 - [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/Incident-and-Problem-Management|Incident-and-Problem-Management]]
+
+### 05. Automation & Ticketing - Ansible (12-Ansible)
+- [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-01 Ansible for Windows Admins|ANS-01 Ansible for Windows Admins]]
+- [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-02 Ansible for Linux Admins|ANS-02 Ansible for Linux Admins]]
 
 ### 06. Career Growth - Interview Prep (12-Interview-Prep)
 - [ ] [[06-Career-Growth/12-Interview-Prep/30-60-90-Day-Plan-Template|30-60-90-Day-Plan-Template]]
