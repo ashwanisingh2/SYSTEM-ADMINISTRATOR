@@ -544,7 +544,231 @@ A: **Litigation Hold** preserves all mailbox content indefinitely or for a set d
 **Q150: What is the Microsoft Purview Compliance Center?**
 A: The compliance center is a management portal used to govern data compliance, configure DLP rules, publish retention labels, manage sensitivity classifications, and run eDiscovery investigations.
 
+**Q151: What is SELinux and how does it differ from traditional Linux permissions?**
+> A: Traditional Linux permissions (owner, group, others) use Discretionary Access Control (DAC). SELinux enforces Mandatory Access Control (MAC). Under MAC, every process, file, and system resource has a security context (label). A process can only access a file if its context is explicitly allowed by the central policy, even if the process runs as root.
+> *Simple words: Traditional permissions (chmod) me file owner permissions set karta hai, jabki SELinux me central kernel policy tay karti hai ki kaunsa process kis file ya port ko access kar sakta hai (chahe user root hi kyun na ho).*
+
+**Q152: How do you check if SELinux is blocking a process, and how do you find the logs?**
+> A: I check the current SELinux state using `getenforce`. If it is in `Enforcing` mode, I look for audit messages in `/var/log/audit/audit.log` or `/var/log/messages`. I filter using `grep sealert` or `ausearch -m AVC` (Access Vector Cache) to find violations.
+> *Simple words: `/var/log/audit/audit.log` me SELinux violation events save hote hain. Hum `ausearch -m AVC` command run karke blocked events ko view kar sakte hain.*
+
+**Q153: How do you temporarily switch SELinux to permissive mode for troubleshooting?**
+> A: I run `sudo setenforce 0` to temporarily switch to Permissive mode. This lets the system allow operations that would be blocked by policies, but logs them. To make it permanent or turn it back on, I modify `/etc/selinux/config` and set `SELINUX=permissive` or `SELINUX=enforcing`.
+> *Simple words: `setenforce 0` se temporary permissive (warnings only) and `setenforce 1` se enforcing set hota hai. Permanent change ke liye `/etc/selinux/config` file edit karte hain.*
+
+**Q154: What is the purpose of the `visudo` command?**
+> A: `visudo` is used to safely edit the `/etc/sudoers` file. It locks the file to prevent concurrent edits and parses the configuration for syntax errors before saving. If there is a syntax error, it warns the administrator and refuses to save, preventing lockout situations.
+> *Simple words: Sudoers file ko manually vi se edit nahi karna chahiye. `visudo` command edit save karne se pehle syntax validity check karta hai taaki root lockouts na ho.*
+
+**Q155: How do you configure a user to run only one specific command (e.g., systemctl restart nginx) using sudo without password?**
+> A: In `/etc/sudoers` or a file in `/etc/sudoers.d/`, I add the rule: `username ALL=(root) NOPASSWD: /usr/bin/systemctl restart nginx`. I must use the absolute path of the command.
+> *Simple words: User ko specific privilege dene ke liye command ka complete path `/etc/sudoers` configuration rule me `NOPASSWD:` tag ke sath set kiya jata hai.*
+
+**Q156: How do you disable root login and enforce key-based authentication in SSH?**
+> A: I edit `/etc/ssh/sshd_config` and set `PermitRootLogin no` and `PasswordAuthentication no`. Then, I append the user's public key to `~/.ssh/authorized_keys` and restart the service: `sudo systemctl restart sshd`.
+> *Simple words: `/etc/ssh/sshd_config` me root login and password login ko disable karke key-based login set kiya jata hai aur service reload ki jati hai.*
+
+**Q157: What is auditd in Linux, and how do you track modifications to a critical file like `/etc/passwd`?**
+> A: `auditd` is the Linux Audit Daemon. To track file modifications, I write a watch rule: `auditctl -w /etc/passwd -p wa -k passwd_changes` (where `-w` is file path, `-p wa` watches write and attribute changes, and `-k` is a tracking tag).
+> *Simple words: `auditd` daemon ke through files change trace hote hain. `auditctl -w` command path use karke hum monitor aur key tags generate kar sakte hain.*
+
+**Q158: What is fail2ban and how does it prevent brute force attacks?**
+> A: `fail2ban` reads log files (like `/var/log/secure`) looking for patterns of failure. If an IP fails authentication too many times within a set window, fail2ban automatically updates firewall rules (IPtables/Firewalld) to block that IP for a set duration.
+> *Simple words: Fail2ban failure logs monitor karta hai. Limit exceed hone par target IP ko automatically firewall rules insert karke temporary block kar deta hai.*
+
+**Q159: What does a umask of 027 mean when creating files and directories?**
+> A: A umask defines the permissions to subtract from default permissions (files defaults: 666, directories: 777). A umask of 027 means:
+> * New files get: 666 - 027 = 640 (Owner: rw, Group: r, Others: no access).
+> * New directories get: 777 - 027 = 750 (Owner: rwx, Group: r-x, Others: no access).
+> *Simple words: Umask default permissions ko override karta hai. `027` umask set karne se system users and groups ke alawa third-party groups (Others) ke liye files aur folders read/write select hone se rokta hai.*
+
+**Q160: How do you disable ping responses (ICMP requests) on a Linux server using sysctl?**
+> A: I add the parameter `net.ipv4.icmp_echo_ignore_all = 1` inside `/etc/sysctl.d/99-security.conf` and apply the changes immediately by running `sudo sysctl --system`.
+> *Simple words: `/etc/sysctl.d/` folder me config build karke kernel parameter `net.ipv4.icmp_echo_ignore_all = 1` set karte hain taaki ping ignore ho.*
+
+**Q161: What is WSUS and what role does it play in enterprise patch management?**
+> A: Windows Server Update Services (WSUS) is a role in Windows Server that allows administrators to download, test, and approve Microsoft product updates centrally before deploying them to client machines, saving internet bandwidth and testing updates for stability.
+> *Simple words: WSUS client computer updates centralize control karta hai. Iski help se bandwidth bachti hai aur updates ko production me distribute karne se pehle test aur approve kiya ja sakta hai.*
+
+**Q162: What is the difference between client-side targeting and server-side targeting in WSUS?**
+> A: In **server-side targeting**, administrators manually move computers into groups in the WSUS console. In **client-side targeting**, Group Policy Objects (GPO) or Registry settings on the client machines automatically assign them to specific groups (e.g., Test Group or Production Group).
+> *Simple words: Server-side me computers ko WSUS console se manually group me daala jata hai. Client-side me GPO ke through client automatically apne target group me sync ho jata hai.*
+
+**Q163: How do you configure client computers to report to a WSUS server using Group Policy (GPO)?**
+> A: I configure the GPO path: `Computer Configuration -> Policies -> Administrative Templates -> Windows Components -> Windows Update`. I enable **Specify intranet Microsoft update service location** and set the URL to my WSUS server (e.g., `http://wsus-server.company.local:8530`).
+> *Simple words: Domain Group Policy me Windows Update section ke under 'Specify intranet Microsoft update service location' set karke WSUS Server IP aur Port define kiya jata hai.*
+
+**Q164: What is the default port used by WSUS for HTTP and HTTPS client communication?**
+> A: Since Windows Server 2012, the default ports are **8530** for HTTP and **8531** for HTTPS.
+> *Simple words: WSUS update downloads aur reporting ke liye target port `8530` (HTTP) ya `8531` (HTTPS) default use karta hai.*
+
+**Q165: A Windows client is not showing up in the WSUS Console. How do you troubleshoot this?**
+> A: I check client network connectivity to the WSUS server port using `test-netconnection`. If connected, I reset the client's WSUS authorization configuration by running:
+> ```powershell
+> Stop-Service wuauserv
+> Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate" -Name "AccountDomainSid", "PingID", "SusClientId" -ErrorAction SilentlyContinue
+> Start-Service wuauserv
+> wuauclt /detectnow /reportnow
+> ```
+> *Simple words: WSUS ID mismatch hone par, Registry se updates settings (`SusClientId`) delete karke windows update service update cycle force launch kiya jata hai.*
+
+**Q166: What is a WSUS downstream server and how do replica vs autonomous modes differ?**
+> A: A downstream server fetches updates from an upstream WSUS server.
+> * **Replica Mode**: Downstream server inherits approved updates and target groups directly from the upstream server.
+> * **Autonomous Mode**: Downstream server downloads update files but allows local admins to approve updates and configure group memberships independently.
+> *Simple words: Replica mode upstream server ke approvals ko exact copy karta hai, jabki Autonomous mode updates downstream local admin ko approvals validate karne ki autonomy deta hai.*
+
+**Q167: How do you clean up disk space on a WSUS server when the update directory is full?**
+> A: I run the **WSUS Server Cleanup Wizard** from the WSUS console or via PowerShell: `Get-WsusServer | Invoke-WsusServerCleanup -CleanupObsoleteComputers -CleanupObsoleteUpdates -CleanupUnneededReplacedUpdates -DeclineExpiredUpdates -DeclineSupersededUpdates`.
+> *Simple words: Disk full hone par WSUS update clean operations, obsolete logs delete, aur superseded (outdated) patches ko cleanup command ke through flush karte hain.*
+
+**Q168: What is Dual Scan in Windows Update and why is it problematic for WSUS environments?**
+> A: Dual Scan occurs when a client is configured to get updates from both WSUS and Windows Update online. When enabled, client machines bypass WSUS approvals and pull patches directly from Microsoft servers, creating configuration drift.
+> *Simple words: Dual Scan configuration me client WSUS approval instructions chor kar directly Microsoft cloud update check karne lagta hai, jisse unapproved updates download ho jate hain.*
+
+**Q169: What is Patch Tuesday and Out-of-Band (OOB) updates?**
+> A: **Patch Tuesday** is the second Tuesday of every month when Microsoft regularly releases security and quality patches. **Out-of-Band (OOB) updates** are critical patches released out of schedule to resolve zero-day vulnerabilities or major bugs.
+> *Simple words: Patch Tuesday har month ke second Tuesday ko standard patches release hone ki tradition hai, jabki OOB patches emergency critical security fixes hote hain.*
+
+**Q170: How do you force a Windows client to immediately check for updates and report status?**
+> A: On the client, I open PowerShell as administrator and run:
+> ```powershell
+> usoclient StartScan
+> # Or using the newer cmdlets:
+> Get-WindowsUpdate -Install -AcceptAll
+> ```
+> *Simple words: Client side se immediately scan status check force karne ke liye `usoclient StartScan` command execute kiya jata hai.*
+
+**Q171: What is a Log Analytics Workspace in Azure?**
+> A: A Log Analytics Workspace is a logical storage container in Azure where log data from virtual machines, containers, databases, and application resources is consolidated, structured, and queried using KQL.
+> *Simple words: Log Analytics Workspace cloud telemetry aur system event logs ko store karne ka main database repository hai, jise KQL queries se access kiya jata hai.*
+
+**Q172: What is Kusto Query Language (KQL) and how is it used in Azure Monitor?**
+> A: KQL is a structured query language used to analyze, filter, and aggregate log data. In Azure Monitor, it is used to search logs, build dashboard charts, and configure Alert rules based on log thresholds.
+> *Simple words: KQL data querying and filtering language hai jo log tables se values pull karne, metrics analyze karne aur alerting set karne ke kaam aata hai.*
+
+**Q173: How does the Azure Monitor Agent (AMA) differ from the legacy Log Analytics agent (MMA/OMS)?**
+> A: The legacy agent had separate settings for metrics and logs. The modern **Azure Monitor Agent (AMA)** uses Data Collection Rules (DCR) to centrally define what logs to collect from virtual machines (Windows/Linux), supports scoping targets, and scales better.
+> *Simple words: Legacy MMA agent out-of-date ho chuka hai. New AMA agent Data Collection Rules (DCR) use karta hai jo centralized system logs collection controls define karte hain.*
+
+**Q174: What is a Data Collection Rule (DCR) in Azure Monitor?**
+> A: A DCR is an Azure resource that defines what data should be collected (e.g., Windows Event Logs, Syslogs, Performance Metrics), how it should be transformed, and where it should be sent (e.g., Log Analytics Workspace).
+> *Simple words: DCR ek rule set hai jo monitor agents ko batata hai ki VMs se kaunse specific events collect karne hain aur kis target workspace me transfer karne hain.*
+
+**Q175: Write a KQL query to find all Virtual Machines in a Log Analytics Workspace that have experienced a CPU usage greater than 90% in the last 24 hours.**
+> A:
+> ```kql
+> Perf
+> | where TimeGenerated > ago(24h)
+> | where CounterName == "% Processor Time"
+> | summarize MaxCPU = max(CounterValue) by Computer
+> | where MaxCPU > 90
+> ```
+> *Simple words: Query last 24 hours me `% Processor Time` counter inspect karti hai aur un virtual machines (Computer) ke names return karti hai jinka CPU usage > 90% raha ho.*
+
+**Q176: What is the difference between Azure Monitor Metrics and Azure Monitor Logs?**
+> A: **Metrics** are numerical values representing system performance at a point in time (e.g., CPU %, Disk write rates). They are stored in a time-series database and are near-real-time. **Logs** are records containing detailed event data, traces, and performance strings, optimized for complex analytics queries.
+> *Simple words: Metrics numerical value streams hote hain jo speed/graphs ke kaam aate hain. Logs multi-column record tables hote hain jisme detailed event details store hoti hain.*
+
+**Q177: How do you configure an alert in Azure Monitor when a specific log event (e.g., Event ID 4625 - Failed Logon) occurs?**
+> A: I create an Alert Rule in Azure Monitor, select my Log Analytics Workspace as target, set the condition query to look for Event ID 4625:
+> ```kql
+> Event | where EventID == 4625
+> ```
+> I define the threshold (e.g., Count > 5), assign a search frequency, and link an **Action Group** to send email alerts or trigger logic apps.
+> *Simple words: Log monitor alert set karne ke liye query likhte hain jo target error ID check kare. Failures count trigger limit match hone par Action Group notification system launch karta hai.*
+
+**Q178: What is an Action Group in Azure Monitor?**
+> A: An Action Group is a collection of notification preferences (email, SMS, push alerts) and automation triggers (runbooks, webhooks, Azure Functions, Logic Apps) defined by the administrator to run when an alert fires.
+> *Simple words: Action Group ek template hai jo batata hai ki alert hone par system ko kya karna hai (jaise admin ko mail bhejna ya vm restart playbook launch karna).*
+
+**Q179: How do you collect Syslog from on-premises Linux servers into Azure Log Analytics Workspace?**
+> A: I install the Azure Monitor Agent (AMA) on the Linux server, configure a Data Collection Rule (DCR) targeting Linux Syslog facilities (e.g., auth, daemon, syslog), and bind the rule to the Log Analytics Workspace.
+> *Simple words: Linux servers par AMA agent install karke DCR rules set karte hain, jo local syslog files ko secure HTTPS protocol ke through Azure Workspace me load karta hai.*
+
+**Q180: What is Azure Monitor Workbooks?**
+> A: Workbooks are interactive report documents in the Azure Portal that combine text, analytics queries, metrics graphs, and logs data into a single visual dashboard format for analysis.
+> *Simple words: Workbooks interactive charts aur graphical dashboards hote hain jo KQL query calculations ko visual format me dynamically represent karte hain.*
+
+**Q181: Explain the concept of Idempotency in Ansible.**
+> A: Idempotency means that executing a playbook multiple times on a target machine will always yield the same result, and changes are only applied if the target's current state differs from the playbook configuration, avoiding repetitive work or corrupted files.
+> *Simple words: Idempotency ka matlab hai playbook ko bar-bar run karne par target server ka status change nahi hoga agar desirable state pehle se active ho.*
+
+**Q182: How does Ansible's agentless design operate differently from tools like Puppet or Chef?**
+> A: Puppet and Chef require a client agent software constantly running on client machines to fetch changes. Ansible is agentless; it uses SSH (Linux) or WinRM/SSH (Windows) to connect, push transient script commands, and clean them up afterward.
+> *Simple words: Puppet/Chef me nodes par agent runs active rehte hain. Ansible agentless hai aur targets par standard SSH/WinRM protocol ke through directly interact karta hai.*
+
+**Q183: What is the default port and configuration required for Ansible to connect to a Windows Server node?**
+> A: Ansible uses WinRM. The default ports are **5985** (HTTP - requires basic auth configurations) or **5986** (HTTPS - encrypted, certificate authenticated).
+> *Simple words: Windows automation ke liye WinRM protocol port `5985` (unencrypted) ya `5986` (HTTPS encrypted) default use karta hai.*
+
+**Q184: How do you store and use sensitive credentials (passwords, private keys) securely in Ansible?**
+> A: I use **Ansible Vault** to encrypt sensitive files: `ansible-vault encrypt vars.yml`. During execution, I provide the vault password: `ansible-playbook -i hosts playbook.yml --ask-vault-pass`.
+> *Simple words: Secrets aur credentials files ko secure rakhne ke liye `ansible-vault` tool se variable files ko encrypt kar diya jata hai.*
+
+**Q185: Explain the structure and purpose of an Ansible Playbook.**
+> A: Playbooks are configuration files written in YAML. They define a list of plays. Each play targets specific host groups and lists tasks. Each task calls a specific module (e.g., `apt`, `service`, `win_user`) to verify or modify target state.
+> *Simple words: Playbooks YAML files hoti hain jisme target hosts aur key modules configuration details define ki jati hain.*
+
+**Q186: What are Ansible Roles and how do they help in scaling automation?**
+> A: Roles are structured directory templates used to organize playbooks. Instead of putting all tasks in one file, roles split them logically into `tasks`, `vars`, `handlers`, `templates`, and `defaults` subdirectories, making playbooks reusable and maintainable.
+> *Simple words: Roles playbooks ko modular parts (tasks, variables, templates) me divide karne ke standard folders structure rules hain jisse large code clean rehta hai.*
+
+**Q187: How does the `lineinfile` module differ from the `template` module in Ansible?**
+> A: `lineinfile` is used to add, edit, or delete a single specific line in an existing configuration file on the target host. The `template` module replaces the entire file with a dynamically parsed file generated from a Jinja2 template file.
+> *Simple words: `lineinfile` targeted files me sirf single line update/delete karta hai. `template` pure file config ko dynamic variables inputs se generate karke overwrite karta hai.*
+
+**Q188: What is an Ansible Inventory file?**
+> A: An inventory file lists the IP addresses or domain names of the target nodes. It groups nodes logically (e.g., `[web_servers]`, `[db_servers]`) and defines host-specific variable parameters.
+> *Simple words: Inventory target hosts ki list details store karne wali host database settings file hai.*
+
+**Q189: How do you verify the syntax of an Ansible Playbook without executing it on the targets?**
+> A: I run `ansible-playbook playbook.yml --syntax-check` to validate code structure, and `ansible-playbook playbook.yml --check` (Dry Run) to see what changes would be made.
+> *Simple words: Bina command run kiye syntax test karne ke liye `--syntax-check` run karte hain. Dry run ke liye `--check` flag use kiya jata hai.*
+
+**Q190: What is the purpose of Handlers in Ansible playbooks?**
+> A: Handlers are special tasks that only run when triggered by a `notify` directive from another task. They are typically used to restart a service (e.g., restart Nginx) only if a configuration file change actually occurs.
+> *Simple words: Handlers auxiliary tasks hote hain jo notify trigger hone par hi run karte hain, jaise config change hone par system check ya service restart command chalana.*
+
+**Q191: An alert indicates that a production Windows File Server's local file share is rapidly renaming and encrypting files. What is your immediate technical course of action?**
+> A:
+> 1. **Identify and Contain**: I run a quick command to identify active SMB sessions accessing the file server shares. I identify the source computer ID.
+> 2. **Network Isolation**: I immediately disable the network adapter (NIC) of that specific client workstation via command/Intune, or disable its network port at the switch to stop the spread.
+> 3. **Service Halt**: I stop the Server service (`LanmanServer`) on the file server immediately to halt SMB activity.
+> 4. **Eradication**: Identify the ransomware binary on the patient zero workstation, scan VM folders, and restore file backups once the threat is eradicated.
+> *Simple words: Sabse pehle file share lock commands run karke and client session verify karke source user network connection disconnect kiya jata hai. File server on-going file lock hone se bachane ke liye Server service stop kar di jati hai.*
+
+**Q192: A critical alert informs you that an Administrator account in Entra ID has signed in successfully from an unusual country, and MFA was bypassed. Walk me through the containment procedure.**
+> A:
+> 1. **Account Lock**: I immediately disable the administrator user account using Entra portal or PowerShell `Set-MgUser -UserId [id] -AccountEnabled $false`.
+> 2. **Token Revocation**: I revoke all active OAuth session tokens using `Revoke-MgUserSignInSession` to force disconnect the attacker from all sessions (browser, Outlook, etc.).
+> 3. **Vulnerability Scan**: Check Entra audit logs for any newly created user accounts, global admin role assignments, or app registrations done by the attacker during the session.
+> 4. **MFA Audit**: Delete any newly registered MFA devices or authentication methods set during the compromise.
+> *Simple words: Admin account ko block kar dete hain. `Revoke-MgUserSignInSession` command run karke all active logins clear karte hain aur audit logs check karke attacker ke add-on config changes delete karte hain.*
+
+**Q193: Your company receives an email from an external security researcher claiming that a database backup file is exposed publicly on an Azure Storage Blob. How do you verify and secure the data?**
+> A:
+> 1. **Investigate URL**: I check the storage account blob endpoint details.
+> 2. **Revoke Access**: In the Azure Portal or via PowerShell, I change the Storage Account Blob access level from **Public** or **Blob** access to **Private (no anonymous access)** immediately.
+> 3. **Assess Scope**: Rotate all Shared Access Signature (SAS) tokens and connection strings linked to that storage container in case they were compromised.
+> 4. **Audit Logs**: Query the Azure Storage Diagnostic logs to analyze what IPs downloaded files from the public blob to evaluate exfiltration impact.
+> *Simple words: Storage blob configurations open access settings check karke instantly Private set karte hain. SAS tokens change kiye jate hain aur audit logs read karke data leak range analyze karte hain.*
+
+**Q194: You notice an employee's computer is generating abnormal DNS requests to known command-and-control (C2) servers. How do you respond?**
+> A:
+> 1. **Host Isolation**: I isolate the host from the corporate network immediately using the Microsoft Defender for Endpoint console or Microsoft Intune console to prevent lateral movement.
+> 2. **Log Review**: Audit DNS cache logs and running processes using `Get-Process` or MDE telemetry to locate the source process causing the DNS queries.
+> 3. **Remediation**: Kill the process, locate the persistent registry startup entries, delete the executable, and run a complete offline Next-Generation Antivirus scan.
+> *Simple words: Laptop network link disconnect (isolate) karte hain. Trace logs run karke process identity target karte hain jo malware process C2 traffic generate kar raha ho aur execute delete clean up karte hain.*
+
+**Q195: An attacker compromise has been confirmed inside the local Active Directory domain. What is the importance of resetting the KRBTGT account password, and how should it be executed?**
+> A:
+> 1. **Significance**: The `krbtgt` account encrypts all Kerberos ticket-granting tickets (TGT) in the domain. If an attacker gains domain admin rights, they can dump the krbtgt hash and create a "Golden Ticket" for persistent, permanent access, even if all administrator passwords are changed.
+> 2. **Execution**: The password must be reset **twice** to invalidate old golden tickets, because AD stores the last two passwords for replication sync stability. I must wait for replication between the resets to avoid breaking authentication.
+> *Simple words: KRBTGT account Kerberos tickets signatures control karta hai. Attackers domain access control maintain rakhne ke liye iska misuse (Golden Ticket) kar sakte hain. Is security leak ko fix karne ke liye krbtgt password reset tool run karke system ko update kiya jata hai.*
+
 ---
+
 ## Lab — Step by Step
 > [!info] Lab Setup Needed
 > A web browser and access to a quiz platform (e.g., Anki, Quizlet) or a Markdown reader to self-test using these questions.
