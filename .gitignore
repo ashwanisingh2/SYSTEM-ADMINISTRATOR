@@ -1,6 +1,11 @@
 # Obsidian local settings
 .obsidian/workspace.json
+.obsidian/plugins/*/main.js
+.obsidian/plugins/*/styles.css
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Temporary files
+*.tmp
