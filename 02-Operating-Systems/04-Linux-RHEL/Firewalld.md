@@ -1,6 +1,6 @@
-﻿---
-tags: [desktop-support, linux, firewall, network-security, L2]
-aliases: [firewalld-guide, firewall-cmd, rich-rules]
+---
+tags: [desktop-support, linux, rhel, L2]
+aliases: [firewalld, firewalld]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -11,6 +11,7 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Firewalld is a dynamic firewall manager daemon standard on Red Hat Enterprise Linux (RHEL) systems. It provides a stateful packet filtering firewall, using **Zones** to classify network interface trust levels, and supports rule updates without dropping active network connections.
 - **Why it matters for a support engineer**: A server's local firewall is its primary defense. Support engineers open network ports for newly deployed services, restrict administrative access to trusted management IP subnets, and block malicious scanning traffic in real-time.
@@ -22,8 +23,8 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. The Concept of Firewall Zones
 Firewalld organizes network traffic filtering using **Zones** based on the level of trust assigned to network interfaces:
 - **`public`**: (Default) For untrusted networks. Allows only selected inbound connections (e.g., SSH).
@@ -49,49 +50,6 @@ Rich Rules provide fine-grained, advanced access controls. While standard rules 
 
 ---
 
-## Commands & Syntax
-
-### Bash
-```bash
-# Check if the firewalld service is active and running
-firewall-cmd --state
-
-# List all active configurations for the default zone
-firewall-cmd --list-all
-
-# List active configurations for a specific zone (e.g., work)
-firewall-cmd --zone=work --list-all
-
-# Check the default zone assigned to new network interfaces
-firewall-cmd --get-default-zone
-
-# Change the default zone to 'work'
-firewall-cmd --set-default-zone=work
-
-# Add a service (HTTP) temporarily (Runtime only)
-firewall-cmd --add-service=http
-
-# Add a port (TCP 8080) permanently
-firewall-cmd --permanent --add-port=8080/tcp
-
-# Remove a port rule permanently
-firewall-cmd --permanent --remove-port=8080/tcp
-
-# Reload the firewall to apply all permanent configurations
-firewall-cmd --reload
-
-# Add a Rich Rule to allow SSH access ONLY from a specific host IP permanently
-firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.50" port port="22" protocol="tcp" accept'
-
-# Add a Rich Rule to reject all traffic from a malicious subnet permanently
-firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198.51.100.0/24" reject'
-```
-
-### Configuration Directory Locations:
-- User-defined configurations (Permanent settings): `/etc/firewalld/zones/`
-- Default system templates: `/usr/lib/firewalld/zones/`
-
----
 
 ## Real-World Scenarios
 
@@ -150,6 +108,7 @@ firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -173,6 +132,7 @@ firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -183,8 +143,82 @@ firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #linux #firewall #network-security #L2 #interview-topic #lab-complete #daily-use
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 **Objective:** Inspect active zones, create a custom zone, allow a service and a custom TCP port permanently, reload firewalld, write a rich rule to permit a specific host, and verify active configurations.
 **Time Required:** 30 minutes
 **Environment Needed:** A RHEL VM.
@@ -224,8 +258,80 @@ firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### Bash
+```bash
+# Check if the firewalld service is active and running
+firewall-cmd --state
 
+# List all active configurations for the default zone
+firewall-cmd --list-all
+
+# List active configurations for a specific zone (e.g., work)
+firewall-cmd --zone=work --list-all
+
+# Check the default zone assigned to new network interfaces
+firewall-cmd --get-default-zone
+
+# Change the default zone to 'work'
+firewall-cmd --set-default-zone=work
+
+# Add a service (HTTP) temporarily (Runtime only)
+firewall-cmd --add-service=http
+
+# Add a port (TCP 8080) permanently
+firewall-cmd --permanent --add-port=8080/tcp
+
+# Remove a port rule permanently
+firewall-cmd --permanent --remove-port=8080/tcp
+
+# Reload the firewall to apply all permanent configurations
+firewall-cmd --reload
+
+# Add a Rich Rule to allow SSH access ONLY from a specific host IP permanently
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.50" port port="22" protocol="tcp" accept'
+
+# Add a Rich Rule to reject all traffic from a malicious subnet permanently
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198.51.100.0/24" reject'
+```
+
+### Configuration Directory Locations:
+- User-defined configurations (Permanent settings): `/etc/firewalld/zones/`
+- Default system templates: `/usr/lib/firewalld/zones/`
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The dynamic firewall management service standard for RHEL Linux configurations.
+> **Why**: Secures server interfaces by classifying trust levels via zones and filtering TCP/UDP ports.
+> **How**: Use `firewall-cmd` to manage rules, differentiate between runtime and permanent states, and apply rich rules for host filtering.
+> **Command**: `firewall-cmd --reload` / `firewall-cmd --list-all` / `firewall-cmd --permanent --add-port`
+> **Interview Answer Starter**: "To manage host security in RHEL, I utilize firewalld to bind interfaces to appropriate zones, writing permanent port rules and applying rich rules for source-IP restrictions..."
+
+**Key Numbers to Remember:**
+- Default firewall zone: `public`
+- Exit status code for a healthy state check: `0`
+- User configurations path: `/etc/firewalld/`
+- Default SSH port: `22`
+
+**3 Things Interviewer Wants to Hear:**
+- Never disable firewalld in production to troubleshoot
+- Permanent rules do not take effect until `firewall-cmd --reload` is executed
+- Rich rules permit filtering access based on source IP and target port combinations
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: How do you check if the local RHEL firewall 'firewalld' is currently active and running?**
 A: I run the command: `systemctl status firewalld` or the firewall-specific command: `firewall-cmd --state`.
@@ -259,34 +365,14 @@ A: A developer complained that our new firewall rules blocked their app, and the
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The dynamic firewall management service standard for RHEL Linux configurations.
-> **Why**: Secures server interfaces by classifying trust levels via zones and filtering TCP/UDP ports.
-> **How**: Use `firewall-cmd` to manage rules, differentiate between runtime and permanent states, and apply rich rules for host filtering.
-> **Command**: `firewall-cmd --reload` / `firewall-cmd --list-all` / `firewall-cmd --permanent --add-port`
-> **Interview Answer Starter**: "To manage host security in RHEL, I utilize firewalld to bind interfaces to appropriate zones, writing permanent port rules and applying rich rules for source-IP restrictions..."
-
-**Key Numbers to Remember:**
-- Default firewall zone: `public`
-- Exit status code for a healthy state check: `0`
-- User configurations path: `/etc/firewalld/`
-- Default SSH port: `22`
-
-**3 Things Interviewer Wants to Hear:**
-- Never disable firewalld in production to troubleshoot
-- Permanent rules do not take effect until `firewall-cmd --reload` is executed
-- Rich rules permit filtering access based on source IP and target port combinations
+---
+## Seedha Simple Mein
+*Seedha simple mein: Firewalld ke bare mein seekhta hai. Yeh linux infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[01-Foundations/02-Networking/TCP-IP-and-Ports|TCP/IP and Ports]] — Underpins the port protocols filtered by firewalld.
 - [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl]] — The service manager that controls the firewalld daemon.
 - [[04-Cloud-and-Security/09-Security/Zero-Trust|Zero Trust]] — The identity security model utilizing local host firewalls.
 
 ---
-
-## Tags
-#desktop-support #linux #firewall #network-security #L2 #interview-topic #lab-complete #daily-use
-

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, storage, filesystem]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-03-file-system-management, l-03]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #rhcsa
 ---
 
 # L-03: File System Management
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers the Linux Filesystem Hierarchy Standard (FHS), file type classifications, metadata analysis using `ls`, link types (Hard vs. Soft), `find` query options, and compression utilities.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of the Linux directory structure as a single, massive organic tree growing from a single seed called the **Root (`/`)**. 
 Unlike Windows, which has different trees for different drive letters (`C:\`, `D:\`), Linux mounts all storage devices, folders, and virtual systems onto branches of this single tree. 
 
@@ -22,11 +26,11 @@ Each branch has a designated zone:
 - **Soft Links** are street signs pointing to a house; if you tear down the house, the sign points to nothing.
 - **Hard Links** are duplicate entries in the municipal registrar matching the exact same physical concrete foundation; if you delete one entry, the house still exists as long as the second registrar record is active.
 
-*Seedha simple mein: Linux mein saari files '/' (root) directory ke andar store hoti hain. Har folder ka FHS ke mutabik ek rules hota hai (jaise /etc settings ke liye aur /var changing logs ke liye). Soft links shortcut ki tarah kaam karte hain aur Hard links exact copy hote hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Filesystem Hierarchy Standard (FHS)
 Linux organizes filesystems according to the FHS specification:
 
@@ -102,7 +106,92 @@ Every file is referenced by an **inode** (index node) containing metadata (size,
     - *Command:* `tar -cJvf backup.tar.xz /data` (`-J` filters through xz).
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Creating recursive hard links to directories:** Attempting to run `ln` on a directory directory to create a hard link. This is strictly blocked by the operating system kernel because it would create infinite directory loops, breaking filesystem navigation and index sweeps.
+> **Correct approach:** Only create soft symbolic links (`ln -s`) when linking directory targets.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When compressing massive data directories over remote SSH terminals, avoid gzip. Use XZ (`tar -cJvf`) if bandwidth is limited because it achieves significantly higher compression ratios, saving transfer time. If CPU usage is the bottleneck, use pigz (parallel gzip) to utilize all CPU cores instead of standard single-core gzip.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A running Linux terminal session.
 
@@ -154,7 +243,9 @@ Every file is referenced by an **inode** (index node) containing metadata (size,
    ```
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```bash
 # Display inode numbers of files in current directory
 ls -i
@@ -167,8 +258,18 @@ df -i
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | FHS | Filesystem Standard separating configuration (/etc), binaries (/bin), and logs (/var). |
+| 2 | Inode | File metadata index containing file size, blocks location, permissions, and owner. |
+| 3 | Soft Link | Symbolic link (shortcut) pointing to a target filepath; breaks if original is deleted. |
+| 4 | Hard Link | Duplicate directory pointer sharing the same inode; remains active if original is deleted. |
+| 5 | XZ Compression | High-ratio compression utility; slower execution but generates smallest archive footprints. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** A server reports it is out of disk space (`No space left on device` error). However, running `df -h` shows that only $60\%$ of the storage volume capacity is used.
 - **Root Cause:** Inode exhaustion. The system has millions of micro-files (e.g., broken session logs or mail queues) which have consumed all available inode addresses in the filesystem metadata table, preventing new file creations even though physical block space remains free.
@@ -199,29 +300,9 @@ df -i
      ```
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Creating recursive hard links to directories:** Attempting to run `ln` on a directory directory to create a hard link. This is strictly blocked by the operating system kernel because it would create infinite directory loops, breaking filesystem navigation and index sweeps.
-> **Correct approach:** Only create soft symbolic links (`ln -s`) when linking directory targets.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When compressing massive data directories over remote SSH terminals, avoid gzip. Use XZ (`tar -cJvf`) if bandwidth is limited because it achieves significantly higher compression ratios, saving transfer time. If CPU usage is the bottleneck, use pigz (parallel gzip) to utilize all CPU cores instead of standard single-core gzip.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | FHS | Filesystem Standard separating configuration (/etc), binaries (/bin), and logs (/var). |
-| 2 | Inode | File metadata index containing file size, blocks location, permissions, and owner. |
-| 3 | Soft Link | Symbolic link (shortcut) pointing to a target filepath; breaks if original is deleted. |
-| 4 | Hard Link | Duplicate directory pointer sharing the same inode; remains active if original is deleted. |
-| 5 | XZ Compression | High-ratio compression utility; slower execution but generates smallest archive footprints. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain the structural difference between a Hard Link and a Soft Link.**
 A: A **Hard Link** is a directory entry that points directly to the same physical inode as the original file. They share the same inode number and metadata. Modifying the content of either modifies the file, and deleting the original file does not delete the data because the hard link still references the inode. Hard links cannot link directories or span across different filesystem partitions. A **Soft Link** (symlink) is a unique file containing a path string that points to the original file. It has its own inode number. If the original file is deleted, the symlink remains but becomes broken, pointing to a non-existent path. Symlinks can target directories and cross partition boundaries.
 
@@ -239,8 +320,13 @@ A:
 A: `/proc` (process information pseudo-filesystem) and `/sys` (system pseudo-filesystem) are virtual filesystems generated dynamically in memory by the Linux kernel on boot. They contain no real data blocks on disk and consume zero bytes. `/proc` exposes active process states (grouped by PID directories), system memory stats (`/proc/meminfo`), and kernel configurations. `/sys` exposes hardware device structures, driver states, and kernel subsystem tunables. Writing to specific files in these directories (e.g., echoing a value to `/proc/sys/net/ipv4/ip_forward`) dynamically alters kernel behavior without rebooting.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux mein saari files '/' (root) directory ke andar store hoti hain. Har folder ka FHS ke mutabik ek rules hota hai (jaise /etc settings ke liye aur /var changing logs ke liye). Soft links shortcut ki tarah kaam karte hain aur Hard links exact copy hote hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Shell execution syntaxes.
 - [[02-Operating-Systems/04-Linux-RHEL/L-04 Text Editors and File Viewing|L-04 Text Editors and File Viewing]] — Accessing configuration files in /etc.
 - [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership|L-06 File Permissions and Ownership]] — Detail on rwx bits listed in ls -l.
-

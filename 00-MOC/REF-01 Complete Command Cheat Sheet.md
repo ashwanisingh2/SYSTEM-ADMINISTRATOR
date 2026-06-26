@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, commands, cheat-sheet, reference]
-difficulty: Beginner/Intermediate/Advanced
-lab-required: No
-read-time: 30 mins
+---
+tags: [desktop-support, systems, commands, L2]
+aliases: [complete-command-cheat-sheet, ref-01]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # REF-01: Complete Command Cheat Sheet
@@ -124,9 +126,38 @@ Cloud resource management commands:
 - `Connect-AzAccount` (Log in)
 - `Get-AzVM -ResourceGroupName "Prod-RG" | Start-AzVM` (Start all VMs in group)
 - `New-AzResourceGroup -Name "Dev-RG" -Location "EastUS"` (Create resource group)
+---
+### 6. DevOps, Monitoring, & Automation Essentials
+
+#### Docker Commands
+- `docker run -d -p 8080:80 --name my-web nginx:alpine` (Run container in background)
+- `docker ps -a` (List all local containers, including stopped ones)
+- `docker logs -f my-web` (Stream container logs)
+- `docker exec -it my-web sh` (Open interactive shell inside container)
+- `docker system prune -a --volumes -f` (Clean up unused container resources)
+
+#### Terraform Commands
+- `terraform init` (Initialize project and download provider plugins)
+- `terraform plan -out=tfplan` (Generate and save execution plan)
+- `terraform apply tfplan` (Apply plan to provision resources)
+- `terraform destroy --auto-approve` (Tear down all managed infrastructure)
+
+#### Python One-Liners for Sysadmins
+- `python3 -m http.server 8000` (Start quick local HTTP web server)
+- `python3 -c "import json, sys; print(json.load(sys.stdin)['ip'])"` (Parse JSON from pipe and print a key)
+- `python3 -c "import urllib.request; print(urllib.request.urlopen('https://api.ipify.org').read().decode())"` (Get public IP)
+
+#### Monitoring Commands
+- `curl http://localhost:9100/metrics` (Check Node Exporter metrics endpoint)
+- `promtool check config /etc/prometheus/prometheus.yml` (Validate Prometheus config syntax)
+- `zabbix_get -s 192.168.1.50 -k system.cpu.load` (Query Zabbix agent metrics from manager)
+
+#### CI/CD Pipeline Execution
+- `act -j build-and-test` (Run GitHub Actions workflows locally using Docker)
+- `jenkins-cli.jar -s http://localhost:8080/ build Test-Pipeline -s -v` (Trigger Jenkins build via CLI)
 
 ---
-## Lab — Step by Step
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A workstation running Windows 11 with PowerShell installed, and a local or virtual Linux host running SSH.
 
@@ -218,6 +249,10 @@ A:
 
 **Q3: Why is Get-WinEvent preferred over Get-EventLog in modern PowerShell scripting?**
 A: `Get-WinEvent` is preferred because it uses the modern Windows Event Log API, which allows it to query both classic event logs and newer event provider logs. It is also faster than `Get-EventLog` because it can filter events on the remote host before transferring data over the network, using XML-based queries.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Yeh cheat sheet sysadmin ke daily use wale networking, Linux, Windows, PowerShell, Azure, Docker, and automation commands ka ek primary center collection hai. Iske commands ko direct system terminal me copy-paste karke dynamic results aur service configurations verify kiye ja sakte hain.*
 
 ---
 ## Related Notes

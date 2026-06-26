@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-104, virtual-machine, deployment]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [az104-03-azure-virtual-machines, az104-03]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #az-104
 ---
 
 # AZ104-03: Azure Virtual Machines
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers advanced Azure Virtual Machine engineering. It details disk SKU categories, proximity placement configurations, custom extensions, backup integration, metrics collection, and deployment automation using ARM templates.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure Virtual Machine administration as deploying servers inside a massive global data center:
 - **Managed Disks** are the physical server hard drives: you choose between slow magnetic disks for archives (Standard HDD) or high-speed solid-state drives for database engines (Premium/Ultra SSD).
 - **Proximity Placement Groups** are like reserving desks in the same room for a team: you tell the manager (Azure scheduler) to place your VMs physically close to each other inside the data center to reduce network latency.
 - **Custom Script Extensions** are the automated installation crews: the moment the VM finishes booting, they run your custom scripts to install tools, configure firewalls, and prepare the OS.
 - **ARM Templates** are the architectural blueprints: instead of manually clicking buttons in the portal, you write a JSON code file describing the VM, and the platform deploys the exact system automatically on-demand.
 
-*Seedha simple mein: AZ-104 VMs managed disks (Premium SSD, Standard SSD), high-availability (Availability Sets, Zones), monitoring (diagnostic metrics), and deployment automation (ARM/JSON templates) par run hoti hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. VM Sizing & Managed Disk SKUs
 Azure VMs support different managed disk types based on size and performance requirements:
 
@@ -59,7 +63,9 @@ Infrastructure-as-Code (IaC) templates written in JSON.
   - `outputs` — Values returned after deployment (e.g., VM Public IP).
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal and an active subscription.
 
@@ -92,8 +98,40 @@ To install the NGINX web server on `vm-web-dev` automatically:
 7. **Verify:** Confirm that the default NGINX welcome page displays, proving the script ran successfully.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AZ-104 VMs managed disks (Premium SSD, Standard SSD), high-availability (Availability Sets, Zones), monitoring (diagnostic metrics), and deployment automation (ARM/JSON templates) par run hoti hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-03 Azure Compute Services|AZ9-03 Azure Compute Services]] — Base compute profiles and fault domain basics.
 - [[04-Cloud-and-Security/08-Azure/AZ104-01 Azure Identity and Governance|AZ104-01 Azure Identity and Governance]] — RBAC controls for virtual machine contributor.
 - [[04-Cloud-and-Security/08-Azure/AZ104-06 Azure Monitor and Backup|AZ104-06 Azure Monitor and Backup]] — Advanced backup recovery options and metric alerts.
-

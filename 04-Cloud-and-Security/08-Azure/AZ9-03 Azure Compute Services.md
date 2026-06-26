@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-900, compute]
-difficulty: Beginner
-lab-required: Yes
-read-time: 12 mins
+---
+tags: [desktop-support, azure, cloud, L1]
+aliases: [az9-03-azure-compute-services, az9-03]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #none
 ---
 
 # AZ9-03: Azure Compute Services
@@ -11,17 +13,19 @@ read-time: 12 mins
 > This note covers the Azure compute service portfolio. It details Virtual Machine sizing profiles, Availability Sets, Scale Sets, Azure App Services, serverless Functions, Container Instances (ACI), and Kubernetes (AKS).
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure compute options like choosing a commercial vehicle fleet for a business:
 - **Azure Virtual Machines (IaaS)** is like buying a cargo van. You must purchase the chassis, maintain the engine, change the oil (OS patching), and drive it yourself, but you have complete control over what sits in the back.
 - **Azure App Service (PaaS)** is hiring a taxi. You don't care about the taxi's engine or maintenance; you just give the driver your destination (your code/website files) and pay for the ride.
 - **Azure Functions (Serverless)** is renting an automated delivery drone for one single package. The drone is asleep; it wakes up when a delivery request arrives (trigger), flies the package, lands, and turns off. You only pay for the exact seconds the drone was flying (consumption model).
 
-*Seedha simple mein: Azure compute services dynamic scaling and hosting solutions provide karti hain. VMs full OS control (IaaS) deti hain. App Services code hosting (PaaS) ke liye hain, aur Azure Functions serverless triggers execute karne ke liye compile kiye jaate hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Azure Virtual Machines (VMs)
 Azure VMs provide on-demand, virtualized compute resources.
 - **VM Size Series:**
@@ -67,6 +71,7 @@ Executes code on-demand in response to events (triggers) without managing virtua
 - **Azure Kubernetes Service (AKS):** A fully managed Kubernetes service used to orchestrate, scale, and manage complex, multi-container microservice deployments.
 
 ---
+
 ## Compute Services Decision Table
 
 | Business Requirement | Recommended Azure Service | Service Model |
@@ -78,7 +83,9 @@ Executes code on-demand in response to events (triggers) without managing virtua
 | Deploy a microservice application with 50 load-balanced containers | **Azure Kubernetes Service** | PaaS |
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal and an active subscription.
 
@@ -113,8 +120,40 @@ Executes code on-demand in response to events (triggers) without managing virtua
 4. Confirm you can connect successfully to the Ubuntu shell.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure compute services dynamic scaling and hosting solutions provide karti hain. VMs full OS control (IaaS) deti hain. App Services code hosting (PaaS) ke liye hain, aur Azure Functions serverless triggers execute karne ke liye compile kiye jaate hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-01 Cloud Computing Fundamentals|AZ9-01 Cloud Computing Fundamentals]] — Service model comparisons (IaaS vs PaaS).
 - [[04-Cloud-and-Security/08-Azure/AZ9-04 Azure Storage and Networking|AZ9-04 Azure Storage and Networking]] — Virtual networks for VM interfaces.
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines|AZ104-03 Azure Virtual Machines]] — Advanced sizing and ARM template deployments.
-

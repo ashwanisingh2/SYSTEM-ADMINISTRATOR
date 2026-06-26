@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, operations]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 12 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-10-remote-device-actions, int-10]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #md-102
 ---
 
 # INT-10: Remote Device Actions
@@ -11,17 +13,19 @@ read-time: 12 mins
 > This note covers remote device actions in Microsoft Intune, detailing administrative commands (Sync, Restart, Remote Lock), data wiping states (Fresh Start, Wipe, Retire), diagnostic collection, and remote assistance options.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of remote device actions as a remote management system for a fleet of vehicles.
 - **Sync** is like sending a radio signal checking if the vehicle's onboard computer has received new route updates.
 - **Retire** is like peeling the corporate magnetic logo off a delivery driver's personal car. The car remains theirs, but they can no longer use it to enter secure corporate loading zones.
 - **Wipe** is like activating the vehicle's self-destruct mechanism, erasing all data on the computer and resetting the ignition to factory settings.
 - **Fresh Start** is like performing a clean engine swap, removing all aftermarket modifications (bloatware) and leaving only the factory standard setup.
-*Seedha simple mein: Remote actions ke zariye aap devices ko cloud console se control kar sakte hain, jaise phone/laptop locks, diagnostic reports retrieve karna, aur device data wipe karna.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Administrative Actions
 - **Sync**: Forces the device to check in with Intune immediately and pull down pending policies and apps.
 - **Restart**: Initiates an OS reboot. The user receives a notification warning before the system restarts.
@@ -41,7 +45,24 @@ Think of remote device actions as a remote management system for a fleet of vehi
 - **Remote Assistance**: Integrates Intune with support tools like **Microsoft Remote Help** or **TeamViewer**, allowing helpdesk technicians to view or control the user's screen during support sessions.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Clicking **Wipe** on a user's personal (BYOD) mobile phone when they leave the organization. This triggers a complete factory reset, erasing their personal photos and files and creating liability issues. Use **Retire** instead.
+> Deleting the device object from the Intune console before triggering a Wipe or Retire command. This breaks the management link and prevents the device from executing the command.
+> Running Fresh Start on devices containing proprietary legacy hardware drivers. This replaces custom drivers with generic Microsoft drivers, potentially disabling key components (like custom trackpads or graphics cards).
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Use the **Autopilot Reset** command when recycling laptops within the same department. It resets Windows to a clean state while retaining the Entra ID join status and Autopilot configurations, saving time compared to a full Wipe.
+> When decommissioning corporate hardware, trigger the **Wipe** action and select **Clean device, and continue to wipe even if device loses power**. This performs a secure data write across all sectors of the drive, preventing data recovery.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to Microsoft Intune Admin Center with Intune Administrator permissions. Enrolled test Windows 11 client device.
 
@@ -73,15 +94,27 @@ Simulate decommissioning a personal device:
 4. Observe the client machine lock instantly, requiring the user passcode to unlock.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 # Run on Windows client to force manual sync to pull down remote actions
 C:\Windows\System32\deviceenroller.exe /c /mobiledeviceenrollmenttoday
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Retire | Selective wipe that removes corporate data while leaving personal files intact. |
+| 2 | Wipe | Complete factory reset that erases all partitions and user data on the device. |
+| 3 | Fresh Start | Clean OS install that removes OEM bloatware and upgrades to the latest Windows version. |
+| 4 | Autopilot Reset | Wipes local user profiles and apps, but retains Entra ID join status for reuse. |
+| 5 | Sync | Direct command that forces a client device to check in and pull down pending policies. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: An administrator triggers a "Wipe" command on a lost corporate laptop, but the device status remains "Wipe Pending" indefinitely, and the device is not wiped.
 - Root Cause: The device is turned off or disconnected from the internet, preventing it from receiving the push notification command from Intune.
@@ -99,31 +132,9 @@ C:\Windows\System32\deviceenroller.exe /c /mobiledeviceenrollmenttoday
   4. If the partition is missing, reinstall Windows manually using bootable media or rebuild the recovery partition before triggering the remote action.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Clicking **Wipe** on a user's personal (BYOD) mobile phone when they leave the organization. This triggers a complete factory reset, erasing their personal photos and files and creating liability issues. Use **Retire** instead.
-> Deleting the device object from the Intune console before triggering a Wipe or Retire command. This breaks the management link and prevents the device from executing the command.
-> Running Fresh Start on devices containing proprietary legacy hardware drivers. This replaces custom drivers with generic Microsoft drivers, potentially disabling key components (like custom trackpads or graphics cards).
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Use the **Autopilot Reset** command when recycling laptops within the same department. It resets Windows to a clean state while retaining the Entra ID join status and Autopilot configurations, saving time compared to a full Wipe.
-> When decommissioning corporate hardware, trigger the **Wipe** action and select **Clean device, and continue to wipe even if device loses power**. This performs a secure data write across all sectors of the drive, preventing data recovery.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Retire | Selective wipe that removes corporate data while leaving personal files intact. |
-| 2 | Wipe | Complete factory reset that erases all partitions and user data on the device. |
-| 3 | Fresh Start | Clean OS install that removes OEM bloatware and upgrades to the latest Windows version. |
-| 4 | Autopilot Reset | Wipes local user profiles and apps, but retains Entra ID join status for reuse. |
-| 5 | Sync | Direct command that forces a client device to check in and pull down pending policies. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain the difference between the Retire and Wipe remote actions. When would you use each?**
 A: **Retire** performs a selective wipe, removing corporate configurations, certificates, emails, and managed applications, while leaving personal files and applications intact. It is used for personal/BYOD devices. **Wipe** performs a full factory reset, erasing all user data, applications, and partitions. It is used when decommissioning or repurposing corporate-owned hardware, or if a device is lost or stolen.
 
@@ -138,8 +149,13 @@ A:
 A: The "Fresh Start" action requires the client machine to run Windows 10/11 (Pro, Enterprise, or Education), have an active Intune management connection, and possess a functional and enabled local Windows Recovery Environment (WinRE) partition. If WinRE is missing or disabled, the Fresh Start action will fail.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Remote actions ke zariye aap devices ko cloud console se control kar sakte hain, jaise phone/laptop locks, diagnostic reports retrieve karna, aur device data wipe karna.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Establishes identity joins and MDM authority.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-02 Device Enrollment|INT-02 Device Enrollment]] — Details device onboarding flows.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-05 Application Management|INT-05 Application Management]] — Details application deployment profiles.
-

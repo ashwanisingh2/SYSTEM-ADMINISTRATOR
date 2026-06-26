@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, m365, sspr, security, L2]
-aliases: [sspr-guide, password-writeback, password-reset]
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [sspr, sspr]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # Self-Service Password Reset (SSPR)
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Self-Service Password Reset (SSPR) is a Microsoft Entra ID feature that allows users to reset their forgotten passwords without contacting the IT helpdesk. It verifies identity using pre-registered security methods (such as the Authenticator app, SMS, or security questions).
 - **Why it matters for a support engineer**: Password resets account for up to 30% of helpdesk ticket volume. Implementing SSPR reduces ticket queues, empowers users to resolve lockouts immediately, and secures the reset workflow against social engineering.
@@ -22,8 +23,8 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. SSPR Verification Methods
 To reset their password, users must satisfy a configured number of authentication methods (typically 1 or 2):
 - **Microsoft Authenticator**: Push notification or verification code (TOTP). Very secure.
@@ -54,52 +55,6 @@ For organizations using local Active Directory synced to the cloud, SSPR require
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-SSPR and writeback configurations can be verified using the `Microsoft.Graph.Identity.SignIns` and local Active Directory modules.
-```powershell
-# Connect to Microsoft Graph with Directory Setting read/write permissions
-Connect-MgGraph -Scopes "Directory.AccessAsUser.All", "User.ReadWrite.All"
-
-# Query the status of SSPR configurations on your tenant
-Get-MgDirectorySetting | Select-Object -ExpandProperty Values
-
-# Verify the password writeback status on your on-premises Entra Connect Sync Server
-Import-Module ADSync
-Get-ADSyncAADPasswordResetConfiguration
-
-# Enable password writeback on the Entra Connect server
-Set-ADSyncAADPasswordResetConfiguration -Enable $true
-```
-
-### CMD / Run Box
-```cmd
-:: Test if the on-premises sync server can reach the Azure Service Bus endpoint for writeback
-powershell -Command "Test-NetConnection -ComputerName 'servicebus.windows.net' -Port 443"
-```
-
-### GUI Path
-- **SSPR Enablement**: Entra Admin Center -> **Protection** -> **Password reset** -> **Properties** (Select "All" or "Selected" groups).
-- **Authentication Methods**: Entra Admin Center -> **Protection** -> **Password reset** -> **Authentication methods**.
-
-### Important Registry Paths
-- Enabling the "Reset password" link on the Windows 10/11 Lock Screen:
-  ```
-  HKLM\SOFTWARE\Policies\Microsoft\SecondaryAuthenticationFactor\
-  (Create DWORD "AllowSelfServicePasswordReset" set to 1)
-  ```
-
-### Key Event IDs
-On the on-premises Entra Connect server, check the **Application** log:
-
-| Event ID | Source | Meaning | Action |
-|----------|--------|---------|--------|
-| **33005** | Directory Synchronization | Password writeback succeeded | Success event; user's local AD password was updated. |
-| **33006** | Directory Synchronization | Password writeback failed | Check AD delegation permissions or local complexity rules. |
-| **33001** | Directory Synchronization | Connection to Service Bus failed | Check proxy settings and firewall outbound port 443. |
-
----
 
 ## Real-World Scenarios
 
@@ -147,6 +102,7 @@ On the on-premises Entra Connect server, check the **Application** log:
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -170,6 +126,7 @@ On the on-premises Entra Connect server, check the **Application** log:
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -180,8 +137,12 @@ On the on-premises Entra Connect server, check the **Application** log:
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #m365 #sspr #security #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Configure and enable Self-Service Password Reset (SSPR) for a test group, verify authentication methods, and inspect writeback settings.
 **Time Required:** 30 minutes
 **Environment Needed:** A Windows Server VM running Entra Connect Sync and access to a Microsoft 365 Developer tenant.
@@ -209,8 +170,83 @@ On the on-premises Entra Connect server, check the **Application** log:
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+SSPR and writeback configurations can be verified using the `Microsoft.Graph.Identity.SignIns` and local Active Directory modules.
+```powershell
+# Connect to Microsoft Graph with Directory Setting read/write permissions
+Connect-MgGraph -Scopes "Directory.AccessAsUser.All", "User.ReadWrite.All"
 
+# Query the status of SSPR configurations on your tenant
+Get-MgDirectorySetting | Select-Object -ExpandProperty Values
+
+# Verify the password writeback status on your on-premises Entra Connect Sync Server
+Import-Module ADSync
+Get-ADSyncAADPasswordResetConfiguration
+
+# Enable password writeback on the Entra Connect server
+Set-ADSyncAADPasswordResetConfiguration -Enable $true
+```
+
+### CMD / Run Box
+```cmd
+:: Test if the on-premises sync server can reach the Azure Service Bus endpoint for writeback
+powershell -Command "Test-NetConnection -ComputerName 'servicebus.windows.net' -Port 443"
+```
+
+### GUI Path
+- **SSPR Enablement**: Entra Admin Center -> **Protection** -> **Password reset** -> **Properties** (Select "All" or "Selected" groups).
+- **Authentication Methods**: Entra Admin Center -> **Protection** -> **Password reset** -> **Authentication methods**.
+
+### Important Registry Paths
+- Enabling the "Reset password" link on the Windows 10/11 Lock Screen:
+  ```
+  HKLM\SOFTWARE\Policies\Microsoft\SecondaryAuthenticationFactor\
+  (Create DWORD "AllowSelfServicePasswordReset" set to 1)
+  ```
+
+### Key Event IDs
+On the on-premises Entra Connect server, check the **Application** log:
+
+| Event ID | Source | Meaning | Action |
+|----------|--------|---------|--------|
+| **33005** | Directory Synchronization | Password writeback succeeded | Success event; user's local AD password was updated. |
+| **33006** | Directory Synchronization | Password writeback failed | Check AD delegation permissions or local complexity rules. |
+| **33001** | Directory Synchronization | Connection to Service Bus failed | Check proxy settings and firewall outbound port 443. |
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The self-service cloud portal allowing users to reset their AD/Entra passwords.
+> **Why**: Reduces helpdesk ticket volumes and secures the password reset workflow.
+> **How**: Configure SSPR targets, set auth methods, and enable Password Writeback on the Entra Connect server.
+> **Command**: `Get-ADSyncAADPasswordResetConfiguration` / `aka.ms/sspr`
+> **Interview Answer Starter**: "SSPR enables secure password recovery using multi-factor signals. In hybrid networks, I configure Password Writeback so cloud resets update the local Active Directory..."
+
+**Key Numbers to Remember:**
+- Default sync port for writeback: TCP 443 (Outbound)
+- Event ID for writeback success: `33005`
+- Event ID for writeback failure: `33006`
+- SSPR setup web address: `aka.ms/setup`
+
+**3 Things Interviewer Wants to Hear:**
+- SSPR writeback communicates over outbound HTTPS, eliminating inbound firewall rules
+- Why to disable weak verification methods like security questions
+- Resolving Event ID 33006 by checking AD permission delegation for the sync account
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is Self-Service Password Reset (SSPR) and how does it help a user?**
 A: SSPR is a feature that allows users to reset their forgotten password on the web (`aka.ms/sspr`) using registered security methods like a text code or the Authenticator app, without having to wait on the phone for a helpdesk technician.
@@ -239,34 +275,14 @@ A: We decided to deploy SSPR to reduce helpdesk calls. Knowing that users might 
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The self-service cloud portal allowing users to reset their AD/Entra passwords.
-> **Why**: Reduces helpdesk ticket volumes and secures the password reset workflow.
-> **How**: Configure SSPR targets, set auth methods, and enable Password Writeback on the Entra Connect server.
-> **Command**: `Get-ADSyncAADPasswordResetConfiguration` / `aka.ms/sspr`
-> **Interview Answer Starter**: "SSPR enables secure password recovery using multi-factor signals. In hybrid networks, I configure Password Writeback so cloud resets update the local Active Directory..."
-
-**Key Numbers to Remember:**
-- Default sync port for writeback: TCP 443 (Outbound)
-- Event ID for writeback success: `33005`
-- Event ID for writeback failure: `33006`
-- SSPR setup web address: `aka.ms/setup`
-
-**3 Things Interviewer Wants to Hear:**
-- SSPR writeback communicates over outbound HTTPS, eliminating inbound firewall rules
-- Why to disable weak verification methods like security questions
-- Resolving Event ID 33006 by checking AD permission delegation for the sync account
+---
+## Seedha Simple Mein
+*Seedha simple mein: SSPR ke bare mein seekhta hai. Yeh m365 infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft Entra ID]] — The core directory managing user accounts.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Password-Policies|Password Policies]] — The local rules validating the writeback password.
 - [[04-Cloud-and-Security/07-Microsoft-365/MFA|MFA]] — The authentication platform utilized by SSPR.
 
 ---
-
-## Tags
-#desktop-support #m365 #sspr #security #L2 #interview-topic #lab-complete #daily-use
-

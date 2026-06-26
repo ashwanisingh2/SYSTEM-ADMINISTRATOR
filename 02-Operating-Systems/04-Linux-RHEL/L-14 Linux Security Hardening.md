@@ -1,6 +1,6 @@
 ---
-tags: [linux, security, hardening, rhcsa]
-aliases: [linux-security-hardening]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-14-linux-security-hardening, l-14]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -14,6 +14,7 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — Linux hardening is the process of reducing a system's vulnerability surface area by securing its settings, restricting permissions, and enabling advanced access controls.
 - **Why it matters for a support engineer** — Enterprise servers are target-rich environments. Misconfigurations (like weak SSH settings or broad sudo permissions) are the easiest entry points for attackers.
@@ -24,12 +25,11 @@ cert-relevant: #rhcsa
   - ****L2 Resolution:**** Configures sudoers files, sets SSH hardening policies, writes basic auditd rules, and configures fail2ban jails.
   - ****L3 Resolution:**** Designs enterprise-wide SELinux policies, configures custom kernel tuning (`sysctl.conf`), and integrates auditd logs with SIEM systems (like Sentinel).
 
-*Seedha simple mein: Hardening ka matlab hai server ko surakshit (secure) banana. Faaltu services ko band karna, SSH logins ko safe banana, permissions tight karna, aur monitoring tools active rakhna taaki koi system ke sath chhed-chhad na kar sake.*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. SELinux (Security-Enhanced Linux)
 SELinux enforces Mandatory Access Control (MAC), meaning it overrides user file permissions (DAC). Even if root has access to a file, SELinux can block access if the security contexts do not match.
 * **SELinux Modes**:
@@ -60,8 +60,78 @@ SSH is the primary entry point for remote admins. Hardening includes:
 
 ---
 
-## Step-by-Step Lab / Configuration
+---
 
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A running RHEL 8/9 or CentOS Stream VM.
 > - Root or sudo access on the machine.
@@ -171,8 +241,8 @@ sudo sysctl --system
 
 ---
 
-## Common Commands / Cheat Sheet
-
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `getenforce` | Check current SELinux status | `getenforce` |
@@ -184,8 +254,8 @@ sudo sysctl --system
 
 ---
 
+---
 ## Troubleshooting
-
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
 | **SSH service fails to start after port change** | SELinux blocked the new port configuration. | Add the new port to SELinux policy: `semanage port -a -t ssh_port_t -p tcp [new_port]` |
@@ -194,8 +264,8 @@ sudo sysctl --system
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What is the difference between DAC (Discretionary Access Control) and MAC (Mandatory Access Control) in Linux?**
 > A: **DAC** controls access based on user/group permissions (e.g., chmod), where the file owner decides access permissions. **MAC** (enforced by SELinux) controls access based on security policies set by system administrators that processes and users cannot override, even if they are root.
 
@@ -210,6 +280,11 @@ sudo sysctl --system
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: Hardening ka matlab hai server ko surakshit (secure) banana. Faaltu services ko band karna, SSH logins ko safe banana, permissions tight karna, aur monitoring tools active rakhna taaki koi system ke sath chhed-chhad na kar sake.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-09 SSH Configuration and Security]]
 - [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership]]

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, architecture, introduction]
-difficulty: Beginner
-lab-required: Yes
-read-time: 10 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-01-linux-introduction-and-architecture, l-01]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #rhcsa
 ---
 
 # L-01: Linux Introduction and Architecture
@@ -11,18 +13,20 @@ read-time: 10 mins
 > This note introduces the Linux operating system, detailing its history, open-source licensing model, distribution families, kernel-space/user-space architecture, and terminal interfaces.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of the operating system as a complete corporate hierarchy inside a major factory:
 - **Hardware** is the physical building, machine tools, and engines (CPU, RAM, Disks).
 - **The Kernel** is the general manager. They work in a secure private office (Kernel Space) and are the only one allowed to talk directly to physical machine controllers, deciding who gets to use what tool when.
 - **The Shell** is the manager's secretary. They stand at the office door (User Space) taking orders from workers (Applications) in specific languages (bash, zsh), translating those orders, and passing them to the general manager.
 - **Applications** are the factory workers who execute tasks (editing documents, serving web pages).
 
-*Seedha simple mein: Linux ek open-source operating system hai jo Linus Torvalds ne 1991 mein create kiya tha. Iska main core 'Kernel' hota hai jo hardware aur applications ke beech mediator ka kaam karta hai, aur 'Shell' user command input lene ka platform hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Open Source & The GPL License
 Linux is distributed under the **GPL (GNU General Public License)**.
 - **Copyleft Concept:** Anyone can use, modify, and redistribute the source code for free, but they must release their modifications under the same GPL license. They cannot make modifications proprietary.
@@ -83,7 +87,92 @@ The shell reads command inputs, evaluates them, and invokes execution.
 - **Shell:** The command interpreter application executing *inside* the terminal window.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Running commands as root by default:** Logging in as the `root` superuser for daily system administration. A simple typo in a delete command (e.g., running `rm -rf /` instead of `rm -rf ./`) as root will wipe the entire operating system instantly without warning prompts.
+> **Correct approach:** Log in as a standard user and use the `sudo` command prefix to elevate privileges only when executing specific administrative commands.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When choosing Linux distributions for enterprise servers, align with either RHEL (Rocky/Alma) or Ubuntu LTS. These releases provide stable long-term support (typically 5-10 years of security updates), preventing application breaks caused by major package changes on rolling-release distros.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A workstation running VirtualBox or Hyper-V, and a CentOS Stream or Rocky Linux ISO file.
 
@@ -118,7 +207,9 @@ The shell reads command inputs, evaluates them, and invokes execution.
    ```
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 Query system details and interface scopes:
 
 ```bash
@@ -133,8 +224,18 @@ uptime
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Kernel | The core operating system manager handling hardware, memory, CPU scheduling, and drivers. |
+| 2 | Shell | The command interpreter that reads user inputs, translates them, and interacts with the kernel. |
+| 3 | GPL | Copyleft license guaranteeing code freedom; modifications must remain open source. |
+| 4 | RHEL | Red Hat Enterprise Linux; the commercial industry standard distribution family. |
+| 5 | System Call | The API bridge allowing user-space applications to request services from the kernel. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** When attempting to run a custom administrative application, the process crashes, throwing: "Kernel Panic - not syncing: Attempted to kill init! exitcode=0x00000007."
 - **Root Cause:** A critical kernel space crash. The `init` system process (PID 1), which parent-controls all user-space processes, was killed or corrupted.
@@ -160,29 +261,9 @@ uptime
   4. Start the GUI manually: `systemctl isolate graphical.target` or reboot.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Running commands as root by default:** Logging in as the `root` superuser for daily system administration. A simple typo in a delete command (e.g., running `rm -rf /` instead of `rm -rf ./`) as root will wipe the entire operating system instantly without warning prompts.
-> **Correct approach:** Log in as a standard user and use the `sudo` command prefix to elevate privileges only when executing specific administrative commands.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When choosing Linux distributions for enterprise servers, align with either RHEL (Rocky/Alma) or Ubuntu LTS. These releases provide stable long-term support (typically 5-10 years of security updates), preventing application breaks caused by major package changes on rolling-release distros.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Kernel | The core operating system manager handling hardware, memory, CPU scheduling, and drivers. |
-| 2 | Shell | The command interpreter that reads user inputs, translates them, and interacts with the kernel. |
-| 3 | GPL | Copyleft license guaranteeing code freedom; modifications must remain open source. |
-| 4 | RHEL | Red Hat Enterprise Linux; the commercial industry standard distribution family. |
-| 5 | System Call | The API bridge allowing user-space applications to request services from the kernel. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What is the difference between User Space and Kernel Space in Linux architecture?**
 A: **Kernel Space** is the protected memory zone where the core operating system kernel executes. It has direct access to all physical hardware, CPU registers, and memory controllers. **User Space** is the restricted memory zone where standard user applications, databases, and shells run. User space applications cannot talk directly to hardware; they must request kernel services using system calls. This separation ensures stability: if an application in user space crashes, it cannot corrupt kernel memory or crash the hardware.
 
@@ -197,8 +278,13 @@ A:
 A: A **Terminal** is the display and input wrapper program (such as GNOME Terminal or PuTTY) that renders the text window and interfaces with the desktop GUI. It captures keystrokes and displays output. A **Shell** is the command interpreter engine (such as bash or zsh) running *inside* that terminal window. The shell reads the text input received from the terminal, evaluates variables, executes scripts, runs commands, and returns the resulting output to the terminal for display.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux ek open-source operating system hai jo Linus Torvalds ne 1991 mein create kiya tha. Iska main core 'Kernel' hota hai jo hardware aur applications ke beech mediator ka kaam karta hai, aur 'Shell' user command input lene ka platform hai.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Basic CLI execution commands.
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — Navigating directories.
 - [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]] — Systemd process runlevels and targets.
-

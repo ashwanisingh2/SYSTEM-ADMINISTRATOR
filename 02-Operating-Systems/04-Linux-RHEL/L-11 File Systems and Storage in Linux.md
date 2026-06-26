@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, storage, lvm, fstab]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-11-file-systems-and-storage-in-linux, l-11]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #rhcsa
 ---
 
 # L-11: File Systems and Storage in Linux
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers Linux storage engineering. It details filesystem formatting (ext4/xfs), persistent mounting (`/etc/fstab`), Logical Volume Manager (LVM) provisioning/resizing, and NFS mounting.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of storage management in Linux like building out commercial real estate:
 - A **Raw Hard Drive (`/dev/sdb`)** is raw, undeveloped land.
 - **Partitioning (`fdisk`)** is drawing boundary fences on the land to divide it into distinct plots (partitions).
@@ -19,11 +23,11 @@ Think of storage management in Linux like building out commercial real estate:
 - **Mounting** is assigning a postal address to a paved plot (e.g., mapping a drive to `/data` so users can enter it).
 - **LVM (Logical Volume Manager)** is modular construction: instead of buying fixed plots, you dump all land into a giant common pool (Volume Group), build virtual skyscrapers (Logical Volumes) out of the pool, and if you need more space, you buy another plot of land (Physical Volume), throw it in the pool, and instantly expand your skyscraper floors (extend LV) while people are still working inside.
 
-*Seedha simple mein: Linux storage format karne ke liye hum xfs ya ext4 filesystem use karte hain. `/etc/fstab` file server boot par disks auto-mount karti hai. LVM ke zariye hum storage space ko dynamically extend aur resize kar sakte hain bina server shutdown kiye.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Filesystem Type Comparison
 - **ext4 (Fourth Extended Filesystem):**
   - Legacy standard Linux filesystem.
@@ -73,8 +77,79 @@ Logical Volumes:   [ LV: lv_sales ]    [ LV: lv_hr ]
 ```
 
 ---
-## LVM Configuration Commands
 
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 ### Initializing and Creating LVM
 ```bash
 pvcreate /dev/sdb1 /dev/sdc1                  # Initialize disks as Physical Volumes
@@ -97,7 +172,6 @@ xfs_growfs /dev/vg_data/lv_sales              # Use if formatted with xfs
 ```
 
 ---
-## Lab — Step by Step
 > [!info] Lab Setup Needed
 > A VM running Linux with two unallocated virtual disks (`/dev/sdb` and `/dev/sdc`) of 10GB each.
 
@@ -160,8 +234,40 @@ xfs_growfs /dev/vg_data/lv_sales              # Use if formatted with xfs
 3. Verify new size: `df -h /mnt/data_store` should now show 8GB capacity.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux storage format karne ke liye hum xfs ya ext4 filesystem use karte hain. `/etc/fstab` file server boot par disks auto-mount karti hai. LVM ke zariye hum storage space ko dynamically extend aur resize kar sakte hain bina server shutdown kiye.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — Base directory permissions and hierarchy.
 - [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership|L-06 File Permissions and Ownership]] — Configuring read-write rights on mounted shares.
 - [[02-Operating-Systems/04-Linux-RHEL/L-12 Network Configuration in Linux|L-12 Network Configuration in Linux]] — NFS firewall network settings.
-

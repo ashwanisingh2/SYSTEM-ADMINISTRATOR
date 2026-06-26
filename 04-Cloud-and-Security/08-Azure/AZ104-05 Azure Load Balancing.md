@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-104, load-balancer, high-availability]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [az104-05-azure-load-balancing, az104-05]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #az-104
 ---
 
 # AZ104-05: Azure Load Balancing and Hybrid Connectivity
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers Azure traffic routing and hybrid networks. It details Layer 4 Load Balancers, Layer 7 Application Gateways, Global routers (Front Door/Traffic Manager), VPN Gateways, and ExpressRoute circuit routing.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure Load Balancing like managing customer queues in a massive bank branch:
 - **Azure Load Balancer (Layer 4)** is a simple queue helper at the entrance. They look at your ticket number (IP address/Port) and quickly route you to the next available teller (backend VM). They don't open your paperwork or care what service you need.
 - **Application Gateway (Layer 7)** is a specialized receptionist. They open your file, read the request (URL path, e.g., `/images` vs `/payment`), and route you to the specific department office handling that task. They also check you for weapons (Web Application Firewall - WAF).
 - **Azure Front Door** is a global routing coordinator: they direct users to the nearest regional bank branch (East US vs West Europe) based on speed and availability.
 - **VPN Gateway** is a secure, private armored car transit link connecting your home branch to corporate headquarters.
 
-*Seedha simple mein: AZ-104 load balancing L4 (Load Balancer) aur L7 (Application Gateway) options offer karta hai. Global routing ke liye Front Door aur DNS-based Traffic Manager use hote hain. Hybrid connections VPN Gateway ya ExpressRoute ke zariye established kiye jaate hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Azure Load Balancer (Layer 4)
 Operates at the transport layer (TCP/UDP). It distributes incoming traffic across healthy VM instances in a backend pool.
 - **Components:**
@@ -73,7 +77,9 @@ A web traffic load balancer operating at the application layer.
     - *Microsoft Peering:* Connects to public Azure services (Storage, SQL) and Microsoft 365.
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal, two web VMs (`vm-web-01` and `vm-web-02`) running in the same availability set on `vnet-hub`.
 
@@ -110,8 +116,40 @@ A web traffic load balancer operating at the application layer.
 4. **Verify:** Open a web browser on your host machine. Navigate to the Load Balancer's public IP address (`pip-lb-web`). Refresh repeatedly. Confirm that traffic alternates between the responses from `vm-web-01` and `vm-web-02`, showing load balancing is active.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AZ-104 load balancing L4 (Load Balancer) aur L7 (Application Gateway) options offer karta hai. Global routing ke liye Front Door aur DNS-based Traffic Manager use hote hain. Hybrid connections VPN Gateway ya ExpressRoute ke zariye established kiye jaate hain.*
+
+---
 ## Related Notes
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — Understanding DNS resolution and NAT port forwarding.
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines|AZ104-03 Azure Virtual Machines]] — Creating VMs and scale sets.
 - [[04-Cloud-and-Security/08-Azure/AZ104-04 Azure Virtual Networking|AZ104-04 Azure Virtual Networking]] — VNet design and Gateway subnets.
-

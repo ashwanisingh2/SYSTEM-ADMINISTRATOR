@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, enrollment]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-02-device-enrollment, int-02]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #md-102
 ---
 
 # INT-02: Device Enrollment
@@ -11,16 +13,18 @@ read-time: 15 mins
 > This note covers the enrollment protocols for bringing Windows, Android, iOS/iPadOS, and macOS devices into Microsoft Intune. It explains platform-specific flows, enrollment restrictions, and troubleshooting procedures.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of device enrollment as onboarding a new employee at a high-security office.
 - **Windows Autopilot** is like ordering a custom-tagged briefcase directly from the factory. The employee receives it, opens it, connects to Wi-Fi, and the lock combination and layouts automatically apply.
 - **Android Enterprise Work Profile** is like dividing a personal backpack into two compartments: one side has a padlock for company documents, and the other side is open for personal snacks and keys.
 - **Apple Business Manager (ADE)** is like registering a company-owned phone directly with Apple so that the moment it turns on, it immediately checks in with your company's servers and configures itself.
-*Seedha simple mein: Device Enrollment woh step hai jis ke zariye target hardware (Windows, iOS, Android, macOS) ko Intune key credentials aur server configurations ke sath bind kiya jata hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Windows Enrollment Methods
 - **Automatic MDM Enrollment**: Triggered when a device joins Microsoft Entra ID. The user enters their credentials during Windows Out-of-Box Experience (OOBE), and the device auto-registers in Intune.
 - **Windows Autopilot**: A cloud-based service that customizes the OOBE. It allows IT departments to ship pre-configured devices directly to end-users without imaging.
@@ -41,7 +45,24 @@ Think of device enrollment as onboarding a new employee at a high-security offic
 Allows blocking specific platforms (e.g., block personal macOS devices), enforcing OS version minimums, and setting maximum device counts per user.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Joining a Windows client via "Add a work or school account" in Settings instead of "Join this device to Microsoft Entra ID". The former registers the device as a personal (BYOD) device, which blocks corporate policies if personal device enrollment is disabled.
+> Deploying iOS ADE profiles without setting up the Apple Push Notification service (APNs) certificate first. Intune cannot communicate with Apple devices without an active APNs certificate.
+> Setting up Android enrollment without linking an Android Enterprise Google account, preventing Android profiles from deploying.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Renew your Apple APNs certificate on time every year. If you let it expire, you must re-enroll all your organization's iOS and macOS devices from scratch, as the token keys will break. Set calendar reminders 30 days before expiration.
+> Use the **Enrollment Status Page (ESP)** for Autopilot. This blocks the Windows desktop access until the critical apps and security profiles have fully installed, preventing users from logging into unconfigured systems.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A Windows 11 virtual machine or physical client, an Intune tenant, and a test user licensed for Microsoft Intune.
 
@@ -72,7 +93,9 @@ On the test Windows 11 machine:
 3. Verify that the **OS** reads `Windows`, **Ownership** reads `Corporate`, and **Compliance** status displays `Compliant`.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 dsregcmd /status                                # Confirms Entra ID Join status (AzureAdJoined: YES)
 Get-ScheduledTask -TaskPath "\Microsoft\Windows\EnterpriseMgmt\" # Lists MDM synchronization schedules
@@ -81,8 +104,18 @@ Start-Process -FilePath "C:\Windows\System32\deviceenroller.exe" -ArgumentList "
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Autopilot | Automated cloud-driven Windows provisioning direct to end-users. |
+| 2 | Work Profile | Android container separating corporate apps and personal data on a single phone. |
+| 3 | ABM (ADE) | Apple portal linking hardware purchases directly to Intune for forced enrollment. |
+| 4 | APNs Certificate | Apple encryption token required for Intune to communicate with iOS/macOS. |
+| 5 | Device Restrictions | Policy defining which platforms and ownership types can enroll in the tenant. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: An iOS device is enrolled using Apple Business Manager, but the user is able to delete the MDM profile from the settings app.
 - Root Cause: The enrollment profile assigned in Apple Business Manager had the "Locked enrollment" configuration set to "No".
@@ -101,31 +134,9 @@ Start-Process -FilePath "C:\Windows\System32\deviceenroller.exe" -ArgumentList "
   3. Navigate to `Mobility (MDM and MAM)` -> `Microsoft Intune` and verify that the user belongs to the group allowed for auto-enrollment.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Joining a Windows client via "Add a work or school account" in Settings instead of "Join this device to Microsoft Entra ID". The former registers the device as a personal (BYOD) device, which blocks corporate policies if personal device enrollment is disabled.
-> Deploying iOS ADE profiles without setting up the Apple Push Notification service (APNs) certificate first. Intune cannot communicate with Apple devices without an active APNs certificate.
-> Setting up Android enrollment without linking an Android Enterprise Google account, preventing Android profiles from deploying.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Renew your Apple APNs certificate on time every year. If you let it expire, you must re-enroll all your organization's iOS and macOS devices from scratch, as the token keys will break. Set calendar reminders 30 days before expiration.
-> Use the **Enrollment Status Page (ESP)** for Autopilot. This blocks the Windows desktop access until the critical apps and security profiles have fully installed, preventing users from logging into unconfigured systems.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Autopilot | Automated cloud-driven Windows provisioning direct to end-users. |
-| 2 | Work Profile | Android container separating corporate apps and personal data on a single phone. |
-| 3 | ABM (ADE) | Apple portal linking hardware purchases directly to Intune for forced enrollment. |
-| 4 | APNs Certificate | Apple encryption token required for Intune to communicate with iOS/macOS. |
-| 5 | Device Restrictions | Policy defining which platforms and ownership types can enroll in the tenant. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What are the requirements for Windows MDM automatic enrollment, and how would you configure it?**
 A: Windows MDM auto-enrollment requires Microsoft Entra ID integration, an active Intune license for the enrolling user, and the client machine running Windows 10/11 (Pro, Enterprise, or Education). Configuration is done by logging into the Entra ID Portal under Mobility (MDM and MAM) -> Microsoft Intune, and setting the MDM User Scope to "All" or a selected group, while setting the MAM User Scope to "None".
 
@@ -140,8 +151,13 @@ A:
 A: The APNs certificate creates a secure trust link between Intune and Apple's push servers. It must be renewed using the same Apple ID used to create it. If a different Apple ID is used, a new certificate is generated instead of renewing the old one. This breaks the trust chain for all enrolled iOS/macOS devices, requiring them to be factory reset and re-enrolled to restore connection to Intune.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Device Enrollment woh step hai jis ke zariye target hardware (Windows, iOS, Android, macOS) ko Intune key credentials aur server configurations ke sath bind kiya jata hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Establishes basic license structures and MDM authority.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-03 Compliance Policies|INT-03 Compliance Policies]] — Governs device health states post-enrollment.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-06 Windows Autopilot|INT-06 Windows Autopilot]] — Deep dive into zero-touch Windows deployments.
-

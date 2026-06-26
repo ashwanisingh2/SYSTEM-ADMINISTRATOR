@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, active-directory, organizational-units, L1]
-aliases: [ad-containers, ou-delegation]
+---
+tags: [desktop-support, active-directory, identity, L2]
+aliases: [organizational-units, organizational-units]
 created: 2026-06-25
 status: #complete
 difficulty: #beginner
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # Organizational Units
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: An Organizational Unit (OU) is a logical container object in an Active Directory domain used to organize users, computers, groups, and other objects. OUs act as boundaries for administrative delegation and Group Policy Object (GPO) application.
 - **Why it matters for a support engineer**: OUs partition the Active Directory database. A support engineer must know how to navigate the OU structure, delegate permissions (like password resets) to helpdesk staff, and link GPOs to target objects.
@@ -22,8 +23,8 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. The Role of OUs
 Unlike domains, OUs are not security boundaries. They are management containers:
 - **Logical Organization**: Groups resources logically (e.g., by department, geography, or object type).
@@ -44,42 +45,6 @@ Windows Server 2008+ introduced the **Protect object from accidental deletion** 
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-```powershell
-# Create a new Organizational Unit with accidental deletion protection enabled
-New-ADOrganizationalUnit -Name "SalesWorkstations" -Path "OU=Workstations,DC=lab,DC=local" -ProtectedFromAccidentalDeletion $true
-
-# Disable accidental deletion protection on an OU to allow for modification
-Set-ADOrganizationalUnit -Identity "OU=SalesWorkstations,OU=Workstations,DC=lab,DC=local" -ProtectedFromAccidentalDeletion $false
-```
-
-### CMD / Run Box
-```cmd
-REM Launch Active Directory Users and Computers console
-dsa.msc
-REM Move a computer object to a different OU from the command line
-dsmove "CN=WORKSTATION01,CN=Computers,DC=lab,DC=local" -newparent "OU=Workstations,DC=lab,DC=local"
-```
-
-### GUI Path
-> Server Manager -> Tools -> **Active Directory Users and Computers** -> Right-click Domain -> **New** -> **Organizational Unit**.
-> *Note: To disable deletion protection in GUI: View -> Check **Advanced Features** -> Right-click OU -> Properties -> Object tab -> Uncheck "Protect object from accidental deletion".*
-
-### Important Registry Paths
-```
-HKLM\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\
-```
-
-### Key Event IDs
-| Event ID | Meaning | Where to Check |
-|----------|---------|----------------|
-| 4741 | A computer account was created | Security Log |
-| 4743 | A computer account was deleted | Security Log |
-| 4662 | An operation was performed on an Active Directory object (Auditing required) | Security Log |
-
----
 
 ## Real-World Scenarios
 
@@ -120,6 +85,7 @@ redircmp "OU=Workstations,DC=lab,DC=local"
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -145,6 +111,7 @@ redircmp "OU=Workstations,DC=lab,DC=local"
 
 ---
 
+
 ## Common Mistakes & Fixes
 | Mistake | Why It Happens | Correct Approach |
 |---------|----------------|------------------|
@@ -154,8 +121,12 @@ redircmp "OU=Workstations,DC=lab,DC=local"
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #active-directory #organizational-units #L1 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Create an OU structure, enable accidental deletion protection, delegate password reset permissions to a helpdesk group, and verify configuration.
 **Time Required:** 30 minutes
 **Environment Needed:** A Windows Server 2022 VM (Domain Controller).
@@ -192,8 +163,72 @@ redircmp "OU=Workstations,DC=lab,DC=local"
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+```powershell
+# Create a new Organizational Unit with accidental deletion protection enabled
+New-ADOrganizationalUnit -Name "SalesWorkstations" -Path "OU=Workstations,DC=lab,DC=local" -ProtectedFromAccidentalDeletion $true
 
+# Disable accidental deletion protection on an OU to allow for modification
+Set-ADOrganizationalUnit -Identity "OU=SalesWorkstations,OU=Workstations,DC=lab,DC=local" -ProtectedFromAccidentalDeletion $false
+```
+
+### CMD / Run Box
+```cmd
+REM Launch Active Directory Users and Computers console
+dsa.msc
+REM Move a computer object to a different OU from the command line
+dsmove "CN=WORKSTATION01,CN=Computers,DC=lab,DC=local" -newparent "OU=Workstations,DC=lab,DC=local"
+```
+
+### GUI Path
+> Server Manager -> Tools -> **Active Directory Users and Computers** -> Right-click Domain -> **New** -> **Organizational Unit**.
+> *Note: To disable deletion protection in GUI: View -> Check **Advanced Features** -> Right-click OU -> Properties -> Object tab -> Uncheck "Protect object from accidental deletion".*
+
+### Important Registry Paths
+```
+HKLM\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\
+```
+
+### Key Event IDs
+| Event ID | Meaning | Where to Check |
+|----------|---------|----------------|
+| 4741 | A computer account was created | Security Log |
+| 4743 | A computer account was deleted | Security Log |
+| 4662 | An operation was performed on an Active Directory object (Auditing required) | Security Log |
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The logical containers in Active Directory used to organize directory objects and define GPO and delegation boundaries.
+> **Why**: Critical for organizing resources, delegating task management, and target policy applications.
+> **How**: Create OUs with accidental deletion protection, delegate specific tasks using the wizard, and link target GPOs.
+> **Command**: `New-ADOrganizationalUnit`
+> **Interview Answer Starter**: "In my experience, OU design must focus on GPO linking requirements and administrative delegation scopes to maintain a clean structure..."
+
+**Key Numbers to Remember:**
+- Default computer landing container: `CN=Computers`
+- Max nesting depth recommendation: Under 3-4 levels
+- AdminSDHolder execution interval: 60 minutes
+
+**3 Things Interviewer Wants to Hear:**
+1. Using OUs as boundaries for GPO linking and administrative delegation
+2. Enabling Accidental Deletion Protection on all OUs
+3. Troubleshooting delegation failures caused by blocked inheritance or AdminSDHolder policies
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is an Organizational Unit (OU) and how does it differ from a default container?**
 A: An OU is a logical container in Active Directory used to organize users, computers, and groups. It differs from default containers (like `CN=Computers`) because OUs support Group Policy Object (GPO) links and administrative delegation, while default containers do not.
@@ -219,33 +254,14 @@ A: We had to migrate from a geographic to a functional tiering OU layout to simp
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The logical containers in Active Directory used to organize directory objects and define GPO and delegation boundaries.
-> **Why**: Critical for organizing resources, delegating task management, and target policy applications.
-> **How**: Create OUs with accidental deletion protection, delegate specific tasks using the wizard, and link target GPOs.
-> **Command**: `New-ADOrganizationalUnit`
-> **Interview Answer Starter**: "In my experience, OU design must focus on GPO linking requirements and administrative delegation scopes to maintain a clean structure..."
-
-**Key Numbers to Remember:**
-- Default computer landing container: `CN=Computers`
-- Max nesting depth recommendation: Under 3-4 levels
-- AdminSDHolder execution interval: 60 minutes
-
-**3 Things Interviewer Wants to Hear:**
-1. Using OUs as boundaries for GPO linking and administrative delegation
-2. Enabling Accidental Deletion Protection on all OUs
-3. Troubleshooting delegation failures caused by blocked inheritance or AdminSDHolder policies
+---
+## Seedha Simple Mein
+*Seedha simple mein: Organizational-Units ke bare mein seekhta hai. Yeh active-directory infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users and Groups]] — Details objects stored inside OUs.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Details policies linked to OUs.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Domain-Join|Domain Join]] — Details computer placement in target OUs.
 
 ---
-
-## Tags
-#desktop-support #active-directory #organizational-units #L1 #interview-topic #lab-complete #daily-use
-

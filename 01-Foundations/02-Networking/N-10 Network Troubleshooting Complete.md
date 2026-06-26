@@ -178,3 +178,24 @@ A: A TCP SYN Flood attack is an exploit where an attacker sends thousands of SYN
 - [[01-Foundations/02-Networking/N-01 Networking Fundamentals|N-01 Networking Fundamentals]] — The 7 layers of the OSI model.
 - [[01-Foundations/02-Networking/N-03 Ethernet and MAC Address|N-03 Ethernet and MAC Address]] — ARP caches and frame details.
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — Resolution DNS and routing NAT helpers.
+
+
+---
+
+### Enterprise Networking & Wireless Analysis
+
+#### 1. Wireshark Packet Capture Filtering
+Use these filters during packet capture analysis to isolate issues quickly:
+- **HTTP POST Request Error isolation**: `http.request.method == "POST" && http.response.code >= 400`
+- **Isolate TCP Retransmissions (Packet Loss)**: `tcp.analysis.retransmission || tcp.analysis.duplicate_ack`
+- **DNS Server response failures check**: `dns.flags.response == 1 && dns.flags.rcode != 0`
+- **Isolate host traffic (excluding noise)**: `ip.addr == 192.168.1.50 && !arp && !dns`
+
+#### 2. Wireless Troubleshooting (Enterprise Wi-Fi)
+- **802.1X EAP Authentication Failed**: Verify certificate validation settings on RADIUS server (NPS); check client identity store configuration.
+- **Roaming failure (sticky client)**: Adjust Minimum RSSI settings on wireless access points (APs) or check that both APs broadcast identical SSIDs with overlapping coverage ranges (15-20% overlap).
+- **RF Interference**: Run a channel survey; move corporate APs from saturated 2.4GHz bands to clean 5GHz/6GHz channels using 20MHz or 40MHz channel widths.
+
+#### 3. Software-Defined WAN (SD-WAN) Basics
+- **What it is**: SD-WAN decouples the network control plane from the physical hardware forwarding plane. It manages WAN links (MPLS, Broadband, LTE) dynamically.
+- **Why it matters**: It automatically routes business-critical traffic (like VoIP) over the lowest latency links while routing general web traffic over cheap broadband, using real-time link quality metrics (jitter, packet loss, latency).

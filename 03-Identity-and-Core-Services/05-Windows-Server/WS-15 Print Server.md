@@ -216,6 +216,25 @@ Running  Spooler            Print Spooler
 > **A:** Type 3 drivers are legacy user-mode drivers that require separate installation packages for x86 and x64 clients on the print server. Type 4 drivers are modern, lightweight, modular driver packages introduced in Windows 8/Server 2012. They do not require client-side architecture matching (cross-platform deployment is easier) and are highly stable, reducing the need for driver isolation.
 
 ---
+
+---
+## Real-World Scenario: File Server Crash (500+ Users Affected)
+Agar company ka main file server (500+ users connected) crash ho jaye, toh as a Senior Sysadmin aapka immediate action plan yeh hoga:
+1. **Identify & Isolate**: Check if the server is pingable. Verify hardware status via Dell iDRAC / HPE iLO or check virtual machine status in vCenter/Hyper-V.
+2. **Access Check & Lock**: If the storage volume is corrupt or unmapped, stop DFS Namespace referrals to the crashed target to redirect users to secondary replica servers if active.
+3. **Trigger Disaster Recovery (DR)**: Start restoring the crashed system drive or volumes from the latest VSS snapshot or Azure Backup RSV restore point.
+4. **Communication**: Broadcast status updates to the Incident Commander and helpdesk teams to manage incoming support volume.
+
+### PowerShell Automation Snippet: Verify File Shares and Access Permissions
+```powershell
+# Get all active file shares on the server
+Get-SmbShare | Format-Table -AutoSize
+
+# Test local DFS Namespace server connection health
+Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
+```
+
+---
 ## Related Notes
 - [[Roles]]
 - [[WS-03 DNS Server — Install and Configure]]

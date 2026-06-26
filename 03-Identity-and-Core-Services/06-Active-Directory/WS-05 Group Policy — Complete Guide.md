@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, windows-server, group-policy, gpo]
-difficulty: Advanced
-lab-required: Yes
-read-time: 18 mins
+---
+tags: [desktop-support, active-directory, identity, L2]
+aliases: [ws-05-group-policy-complete-guide, ws-05]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #none
 ---
 
 # WS-05: Group Policy — Complete Guide
@@ -11,18 +13,20 @@ read-time: 18 mins
 > This note covers Group Policy Object (GPO) architecture, inheritance processing, security filtering, and client troubleshooting. It contains configuration paths for twenty key administrative policies and diagnostic command guides.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Group Policy as the central remote control and law enforcement database of your organization's IT department. 
 
 Instead of a sysadmin walking to 500 computers to block USB drives, configure security settings, and set the corporate desktop wallpaper, the admin writes a law (GPO) in the central database. 
 
 When a computer boots up (Computer Configuration) or a user logs in (User Configuration), the system queries the Domain Controller: "What laws apply to me?" The DC hands over the linked policies. The operating system instantly enforces those settings, locking down registry paths, changing files, and configuring applications automatically.
 
-*Seedha simple mein: Group Policy ke zariye hum hazaron computers aur users par security settings, registry values aur application configurations ek hi click mein enforce karte hain. LSDOU rule iski processing order ko control karta hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. GPO Architecture: LSDOU Processing Order
 GPOs are processed in a specific hierarchical order, commonly remembered by the acronym **LSDOU**:
 1. **L**ocal Policies: Configured on the physical client machine (`gpedit.msc`). Processed first.
@@ -42,6 +46,7 @@ GPOs are processed in a specific hierarchical order, commonly remembered by the 
 - **User Configuration:** Applies when the user enters credentials. Governs desktop settings, mapped drives, printers, folder redirection, and application choices. Applies to the user profile on any machine.
 
 ---
+
 ## 20 Key Group Policies for Sysadmins
 
 ### 1. Map Network Drives
@@ -127,7 +132,22 @@ Advanced content only — basics in [[Windows Defender, BitLocker basics]]
 - **Action:** Blocks standard users from launching `cmd.exe` or executing scripts.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Modifying the Default Domain Policy for general software deployment:** Adding dozens of custom drive maps, registry edits, and software deployments directly into the `Default Domain Policy` or `Default Domain Controllers Policy`. If a configuration breaks, recovering these core default policies is difficult and impacts the entire forest.
+> **Correct approach:** Leave default policies at their default settings (except password limits). Always create dedicated, modular GPOs for custom configurations.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When configuring GPO preferences (like drive maps or file copies), use **Item-Level Targeting** (located under the Common tab of the preference properties). This allows you to restrict the policy setting to apply only if the user matches highly specific criteria (e.g., only if they belong to a specific security group, have a specific IP address range, or use a laptop chassis).
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A Domain Controller (`SVR-DC01`), a member workstation, and an OU named `Accounts_OU` containing a test user (`jdoe`).
 
@@ -160,7 +180,9 @@ Advanced content only — basics in [[Windows Defender, BitLocker basics]]
 4. **Verify:** Check "This PC." Confirm that the network drive `S:` pointing to `\\SVR-FS01\Accounts` is visible and mapped.
 
 ---
-## Commands and Diagnostics Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```cmd
 :: Windows Command Prompt (Client Side)
 :: Force immediate Group Policy update evaluation (runs in background)
@@ -178,8 +200,18 @@ gpresult /h C:\temp\gpreport.html && start C:\temp\gpreport.html
 - **Group Policy Results:** Queries a remote target online client machine and reads its active database to report which policies actually applied.
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | LSDOU | Local, Site, Domain, OU. The order of policy processing where downstream links override upstream. |
+| 2 | Enforced | Link option that forces GPO settings down the OU tree, overriding block inheritance rules. |
+| 3 | gpupdate /force | Command line utility that triggers an immediate refresh and evaluation of all active policies. |
+| 4 | gpresult /h | Generates a detailed HTML report showing exactly which GPO settings applied or failed. |
+| 5 | Item-Level Target | Preference filter targeting policies based on specific security groups or environment parameters. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** A security GPO to block USB access has been configured and linked to the `Finance_OU`, but the settings are not applying to client workstations. The client reports "GP successfully applied" but USB drives still open.
 - **Root Cause:** Target mismatch. The USB deny policy is located under **Computer Configuration**, but the `Finance_OU` only contains **User Objects**. GPOs configured under Computer Configuration only apply if linked to OUs containing Computer Objects.
@@ -200,29 +232,9 @@ gpresult /h C:\temp\gpreport.html && start C:\temp\gpreport.html
   5. Verify application on the client using `gpresult`.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Modifying the Default Domain Policy for general software deployment:** Adding dozens of custom drive maps, registry edits, and software deployments directly into the `Default Domain Policy` or `Default Domain Controllers Policy`. If a configuration breaks, recovering these core default policies is difficult and impacts the entire forest.
-> **Correct approach:** Leave default policies at their default settings (except password limits). Always create dedicated, modular GPOs for custom configurations.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When configuring GPO preferences (like drive maps or file copies), use **Item-Level Targeting** (located under the Common tab of the preference properties). This allows you to restrict the policy setting to apply only if the user matches highly specific criteria (e.g., only if they belong to a specific security group, have a specific IP address range, or use a laptop chassis).
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | LSDOU | Local, Site, Domain, OU. The order of policy processing where downstream links override upstream. |
-| 2 | Enforced | Link option that forces GPO settings down the OU tree, overriding block inheritance rules. |
-| 3 | gpupdate /force | Command line utility that triggers an immediate refresh and evaluation of all active policies. |
-| 4 | gpresult /h | Generates a detailed HTML report showing exactly which GPO settings applied or failed. |
-| 5 | Item-Level Target | Preference filter targeting policies based on specific security groups or environment parameters. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain the difference between Group Policy Policies (Settings) and Group Policy Preferences.**
 A: **Group Policy Policies** are restrictive settings enforced by the OS. They modify locked system registry keys (such as `HKEY_CURRENT_USER\Software\Policies`). The user cannot override these settings; they are greyed out in the GUI. If the GPO is unlinked, the setting is removed (no tattooing). **Group Policy Preferences** are configurations (like drive maps or registry edits) that configure initial settings but are not strictly enforced. The user can modify these settings later. If the GPO is unlinked, the setting remains (tattooing), unless configured to "Remove this item when it is no longer applied."
 
@@ -237,8 +249,13 @@ A:
 A: By default, User Configuration settings apply based on where the *user object* is located in AD. Loopback Processing is used when you want User Configuration settings to apply based on the location of the *computer object* instead. It is used on shared environments like terminal servers (Remote Desktop Session Hosts) or kiosk PCs. When enabled (in either Merge or Replace mode), it forces the GPO to read the user policies linked to the computer's OU and apply them to any user logging into that specific machine, preventing normal user GPOs (like drive maps) from running on the kiosk.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Group Policy ke zariye hum hazaron computers aur users par security settings, registry values aur application configurations ek hi click mein enforce karte hain. LSDOU rule iski processing order ko control karta hai.*
+
+---
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]] — Active Directory containers and OUs.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-06 Active Directory — Users Groups OUs|WS-06 Active Directory — Users Groups OUs]] — Managing security groups for filtering.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-08 FSMO Roles|WS-08 FSMO Roles]] — Domain PDC emulator role running time synchronization.
-

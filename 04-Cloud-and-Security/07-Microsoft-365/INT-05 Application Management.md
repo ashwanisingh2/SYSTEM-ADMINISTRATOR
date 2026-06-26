@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, apps]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-05-application-management, int-05]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #md-102
 ---
 
 # INT-05: Application Management
@@ -11,16 +13,18 @@ read-time: 15 mins
 > This note covers application lifecycle management in Microsoft Intune, detailing app packaging, Win32 app deployment, Microsoft 365 apps deployment, and App Protection Policies (MAM).
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Intune Application Management as a digital delivery service.
 - **Store Apps & Web Clips** are like ordering items straight from a public store to a user's desk.
 - **Win32 Apps (.intunewin)** are like custom machinery. You can't ship them raw; you must place them inside a standardized container box (packaged using the `IntuneWinAppUtil` tool) along with detailed instructions on how to assemble it (install command), check if it's running (detection rules), and return it if needed (uninstall command).
 - **App Protection Policies (MAM)** are like corporate safes placed inside personal homes. The user can interact with the app, but they cannot drag files out of the safe and drop them onto their personal tables (e.g., personal OneDrive or Gmail).
-*Seedha simple mein: Intune ke zariye aap users ke device par applications auto-install kar sakte hain. Win32 apps ko `.intunewin` package mein convert karke, silent install and detection rules ke sath push kiya jata hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Intune App Types
 - **Store Apps**: Directly integrated with the Microsoft Store (using the new Windows Package Manager winget interface), Apple App Store, and Google Play Store.
 - **Line-of-Business (LOB) Apps**: Direct uploads of `.msi` or `.apk` files. Good for simple installations, but lacks the advanced features (such as dependencies and detection scripts) of Win32 apps.
@@ -46,7 +50,24 @@ Protects corporate data at the application level:
 - Enforces an app-specific access PIN, independent of the device passcode.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Uploading large installers as LOB (Line-of-Business) `.msi` packages instead of Win32 app `.intunewin` packages. LOB apps fail to handle dependencies or custom exit codes, leading to deployment failures.
+> Forgetting the silent switch flag (e.g., `/qn` or `/S`) in the install command. The installation will run in the system context and wait for user input indefinitely, causing the deployment to time out.
+> Using detection rules that check for a folder that the app uninstaller fails to delete, which causes Intune to report the app is still installed.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When debugging Win32 app installations, use **CMTrace** or **OneTrace** to view the `IntuneManagementExtension.log` on the client machine. This log records the download status, command executions, and detection rule outcomes in real-time.
+> Always add **Dependencies** for complex applications. For instance, if an app requires the .NET Framework or a specific runtime, package the runtime as a separate Win32 app and set it as a dependency for the main app.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Microsoft Intune Admin Center access. A Windows development machine with the `IntuneWinAppUtil.exe` packaging utility downloaded. A test installer file (e.g., VLC Player `.exe` installer).
 
@@ -88,7 +109,9 @@ Protects corporate data at the application level:
 4. Verify deployment progress under `Apps` -> `All apps` -> Select `VLC Media Player` -> Monitor the **Installation Status** chart.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 # Get local client Intune Management Extension agent logs
 Get-Content -Path "C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log" -Tail 50 -Wait
@@ -97,8 +120,18 @@ Restart-Service -Name "IntuneManagementExtension"
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Win32 App | Standardized package format enabling complex app deployments with detection scripts. |
+| 2 | IntuneWinAppUtil | Prep tool that packages installation source folders into encrypted `.intunewin` files. |
+| 3 | Detection Rule | Check parameters (file, registry, script) verifying if an app is successfully installed. |
+| 4 | MAM (App Protection)| Security policies restricting data sharing and enforcing PIN locks inside corporate apps. |
+| 5 | Required Assignment | Forces silent background installation of the app on target devices. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: A Win32 app fails to install on client machines, returning error code `0x87D1041C` in the Intune console.
 - Root Cause: The application installation completed successfully, but the **Detection Rule** failed to find the file or registry path specified, causing Intune to report the installation as failed.
@@ -116,31 +149,9 @@ Restart-Service -Name "IntuneManagementExtension"
   3. Save the changes and sync the target clients to trigger the removal and re-installation.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Uploading large installers as LOB (Line-of-Business) `.msi` packages instead of Win32 app `.intunewin` packages. LOB apps fail to handle dependencies or custom exit codes, leading to deployment failures.
-> Forgetting the silent switch flag (e.g., `/qn` or `/S`) in the install command. The installation will run in the system context and wait for user input indefinitely, causing the deployment to time out.
-> Using detection rules that check for a folder that the app uninstaller fails to delete, which causes Intune to report the app is still installed.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When debugging Win32 app installations, use **CMTrace** or **OneTrace** to view the `IntuneManagementExtension.log` on the client machine. This log records the download status, command executions, and detection rule outcomes in real-time.
-> Always add **Dependencies** for complex applications. For instance, if an app requires the .NET Framework or a specific runtime, package the runtime as a separate Win32 app and set it as a dependency for the main app.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Win32 App | Standardized package format enabling complex app deployments with detection scripts. |
-| 2 | IntuneWinAppUtil | Prep tool that packages installation source folders into encrypted `.intunewin` files. |
-| 3 | Detection Rule | Check parameters (file, registry, script) verifying if an app is successfully installed. |
-| 4 | MAM (App Protection)| Security policies restricting data sharing and enforcing PIN locks inside corporate apps. |
-| 5 | Required Assignment | Forces silent background installation of the app on target devices. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What is the purpose of the Microsoft Win32 Content Prep Tool, and why is it required?**
 A: The Microsoft Win32 Content Prep Tool (`IntuneWinAppUtil.exe`) packages classic Windows applications (.exe or .msi) into the `.intunewin` format. It compresses the installation files, encrypts the package, and calculates verification hashes. This is required because Intune's Win32 deployment engine requires a standardized package format to securely distribute, decrypt, install, and track applications on client machines.
 
@@ -155,8 +166,13 @@ A:
 A: App Protection Policies manage corporate data *inside* specific applications (like Outlook, Word, and OneDrive). When a user logs into these apps with their corporate account, Intune applies policies that encrypt corporate data, require an app PIN, and block copy-paste actions between corporate apps and personal apps. It also blocks saving corporate files to personal storage. This secures corporate data without requiring full device enrollment.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Intune ke zariye aap users ke device par applications auto-install kar sakte hain. Win32 apps ko `.intunewin` package mein convert karke, silent install and detection rules ke sath push kiya jata hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Establishes identity joins and MDM authority.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-04 Configuration Profiles|INT-04 Configuration Profiles]] — Details device and OS configurations.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-06 Windows Autopilot|INT-06 Windows Autopilot]] — Coordinates app deployment during device setup.
-

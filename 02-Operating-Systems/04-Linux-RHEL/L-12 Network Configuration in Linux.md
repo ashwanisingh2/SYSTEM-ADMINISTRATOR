@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, networking, firewalld, selinux]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-12-network-configuration-in-linux, l-12]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #rhcsa
 ---
 
 # L-12: Network Configuration in Linux
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers Linux enterprise networking using NetworkManager (`nmcli`/`nmtui`), static IP configuration, bonding, FirewallD rule management, and SELinux policy configurations and audits.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of network configuration in Linux like securing and directing traffic in a high-security embassy building:
 - **NetworkManager (`nmcli`)** is the civil engineer who sets up physical connections, configures gateways, and assigns office phone extensions (Static IPs).
 - **`/etc/resolv.conf`** is the speed dial phone directory pointing to the local directory service (DNS).
 - **FirewallD** is the security guards standing at the gates (Zones). They check the type of vehicle (Service/Port) and block unapproved incoming visitors.
 - **SELinux (Security-Enhanced Linux)** is the internal security clearance protocol. Even if the firewall let you in, and the filesystem allows you to open a file, if your security clearance badge (SELinux Context Label) does not match the file's label, the protocol blocks you (SELinux denial).
 
-*Seedha simple mein: Linux mein network manage karne ke liye hum `nmcli` (command line) aur `nmtui` (text GUI) use karte hain. Firewalld traffic ports control karta hai. SELinux kernel-level security module hai jo process contexts ke basis par access control karta hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. NetworkManager Command-Line (nmcli)
 NetworkManager manages interfaces (Devices) and configuration files (Connections).
 - **`nmcli device status`** — List physical network interfaces.
@@ -90,7 +94,79 @@ SELinux enforces MAC (Mandatory Access Control) using security labels.
   ```
 
 ---
-## Lab — Step by Step
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A running Rocky Linux VM with one ethernet interface (`eth0`) and root privileges.
 
@@ -146,8 +222,40 @@ SELinux enforces MAC (Mandatory Access Control) using security labels.
 4. Start NGINX bound to port 8088; it will now start successfully without denials.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux mein network manage karne ke liye hum `nmcli` (command line) aur `nmtui` (text GUI) use karte hain. Firewalld traffic ports control karta hai. SELinux kernel-level security module hai jo process contexts ke basis par access control karta hai.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Base diagnostic testing commands.
 - [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]] — Inspecting audit logs using journalctl.
 - [[02-Operating-Systems/04-Linux-RHEL/L-09 SSH Configuration and Security|L-09 SSH Configuration and Security]] — Opening custom SSH ports.
-

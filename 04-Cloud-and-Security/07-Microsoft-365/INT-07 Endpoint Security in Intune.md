@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, security]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-07-endpoint-security-in-intune, int-07]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #md-102
 ---
 
 # INT-07: Endpoint Security in Intune
@@ -11,17 +13,19 @@ read-time: 15 mins
 > This note covers Endpoint Security in Microsoft Intune, detailing Defender AV policies, Attack Surface Reduction (ASR) rules, BitLocker management with Azure AD key escrowing, and Microsoft Security Baselines.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Endpoint Security in Intune as configuring defenses for a corporate fort.
 - **Antivirus Policies** are like putting guards at the entry gates with photos of known bad actors (malware signatures).
 - **Firewall Policies** are like checkpoint controls determining which delivery trucks (network ports) can enter or exit.
 - **Attack Surface Reduction (ASR)** is like closing off unnecessary windows and locking secondary doors (blocking scripts from launching from email attachments or Office documents).
 - **BitLocker** is like locking all paper files in an encrypted safe. If someone breaks in and steals the cabinet (the physical drive), they cannot read the files without the combination (the BitLocker Recovery Key stored in Azure AD).
-*Seedha simple mein: Endpoint Security blade ke zariye aap device ke local windows defender settings, firewall rules, ASR rules, aur BitLocker encryption ko direct cloud se lock down karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Microsoft Defender Integration
 Intune integrates with Microsoft Defender for Endpoint (MDE) to evaluate client risk status:
 - Once linked, the Intune agent installs the MDE sensor on client devices.
@@ -52,7 +56,24 @@ Automates encryption of the operating system drive:
 Pre-configured groups of settings recommended by Microsoft security teams. Deploys standard configurations for Windows OS, Defender, and Microsoft Edge, replacing custom configurations for standard deployments.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Enabling BitLocker policies that require a startup PIN on virtual machines or remote laptops without physical keyboard access at boot, locking out users.
+> Enabling all Attack Surface Reduction (ASR) rules in "Enforce" mode instantly. ASR rules block common process behaviors. Always deploy ASR rules in **Audit** mode first to identify business-critical application conflicts.
+> Neglecting to back up the BitLocker recovery keys to Azure AD before initiating the encryption process, resulting in unrecoverable data if a device malfunctions.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When onboarding systems to Defender for Endpoint (MDE), create a Conditional Access policy that blocks access to corporate data if the machine risk level rises above "Medium". This isolates infected devices automatically.
+> Regularly audit the **Microsoft Security Baselines** dashboard in Intune. When Microsoft updates a baseline, compare the new settings with your active configuration profiles before migrating target groups.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to Microsoft Intune Admin Center with Endpoint Security Manager role. A licensed Windows 11 client device.
 
@@ -98,7 +119,9 @@ On the client machine (after the policy applies and encryption completes):
 4. Verify the 48-digit BitLocker recovery key is visible in the console.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 manage-bde -status c:                              # Displays encryption percentage and TPM details on client
 manage-bde -protectors -get c:                     # Displays current recovery password ID and key on client
@@ -106,8 +129,18 @@ Get-MpComputerStatus | Select-Object RealTimeProtectionEnabled, AMServiceEnabled
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Real-Time Protection | Antivirus engine that continuously scans files and processes for active malware. |
+| 2 | ASR Rules | Security rules that block common malware transmission vectors (e.g., Office child processes). |
+| 3 | TPM 2.0 | Hardware chip that provides cryptographic security functions required by BitLocker. |
+| 4 | Key Escrowing | Automatically backups BitLocker recovery keys to Azure Active Directory. |
+| 5 | Security Baseline | Group of Microsoft-recommended security configurations deployed as a single profile. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: An administrator deploys the BitLocker policy, but the Intune dashboard shows the policy state as "Error" with code `0x8018001a` (TPM not found).
 - Root Cause: The client device does not have a Trusted Platform Module (TPM) chip, or the TPM is disabled in the system BIOS/UEFI.
@@ -127,31 +160,9 @@ Get-MpComputerStatus | Select-Object RealTimeProtectionEnabled, AMServiceEnabled
   4. In the settings configuration, add the path of the application executable to the **ASR Exclusion List**.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Enabling BitLocker policies that require a startup PIN on virtual machines or remote laptops without physical keyboard access at boot, locking out users.
-> Enabling all Attack Surface Reduction (ASR) rules in "Enforce" mode instantly. ASR rules block common process behaviors. Always deploy ASR rules in **Audit** mode first to identify business-critical application conflicts.
-> Neglecting to back up the BitLocker recovery keys to Azure AD before initiating the encryption process, resulting in unrecoverable data if a device malfunctions.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When onboarding systems to Defender for Endpoint (MDE), create a Conditional Access policy that blocks access to corporate data if the machine risk level rises above "Medium". This isolates infected devices automatically.
-> Regularly audit the **Microsoft Security Baselines** dashboard in Intune. When Microsoft updates a baseline, compare the new settings with your active configuration profiles before migrating target groups.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Real-Time Protection | Antivirus engine that continuously scans files and processes for active malware. |
-| 2 | ASR Rules | Security rules that block common malware transmission vectors (e.g., Office child processes). |
-| 3 | TPM 2.0 | Hardware chip that provides cryptographic security functions required by BitLocker. |
-| 4 | Key Escrowing | Automatically backups BitLocker recovery keys to Azure Active Directory. |
-| 5 | Security Baseline | Group of Microsoft-recommended security configurations deployed as a single profile. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: How would you configure a silent BitLocker deployment in Intune, and where are the recovery keys stored?**
 A: To configure silent BitLocker deployment, I create a Disk Encryption policy in Endpoint Security. I enable device encryption, require TPM, set the compatible TPM startup PIN to "Blocked" (which bypasses user prompts), and set the recovery folder to require backup to Microsoft Entra ID. The recovery keys are stored securely under the device's object inside the Microsoft Entra ID portal.
 
@@ -166,8 +177,13 @@ A:
 A: Security Baselines provide pre-configured, tested groups of security settings recommended by Microsoft security experts. They ensure compliance with industry standards with minimal configuration overhead. Creating individual profiles from scratch is more time-consuming, requires manual mapping of hundreds of settings, and increases the risk of configuration errors.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Endpoint Security blade ke zariye aap device ke local windows defender settings, firewall rules, ASR rules, aur BitLocker encryption ko direct cloud se lock down karte hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Establishes identity joins and console controls.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-03 Compliance Policies|INT-03 Compliance Policies]] — Details compliance health checks.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-04 Configuration Profiles|INT-04 Configuration Profiles]] — Details device configuration templates.
-

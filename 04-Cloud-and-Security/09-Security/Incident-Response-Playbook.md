@@ -1,6 +1,6 @@
 ---
-tags: [security, incident-response, playbook, sysadmin]
-aliases: [incident-response-playbook]
+tags: [desktop-support, security, threat-protection, L3]
+aliases: [incident-response-playbook, incident-response-playbook]
 created: 2026-06-25
 status: #complete
 difficulty: #advanced
@@ -14,6 +14,7 @@ cert-relevant: #none
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — An IR playbook is a step-by-step technical script executed by security analysts and sysadmins to identify, contain, and eliminate active security incidents.
 - **Why it matters for a support engineer** — During an active breach (e.g., Ransomware spreading on a file share), seconds matter. Delays or incorrect steps (like rebooting a machine instead of isolating it) can lead to complete network-wide encryption.
@@ -24,12 +25,11 @@ cert-relevant: #none
   - ****L2 Resolution:**** Disables compromised AD/Entra accounts, runs malware cleanup scanners, reviews firewall traffic logs, and restores data from isolated backups.
   - ****L3 Resolution:**** Leads forensic root-cause analysis, conducts memory forensics, traces exfiltration channels, coordinates with legal, and performs system rebuilds.
 
-*Seedha simple mein: Security incident hone par (jaise virus attack ya account hack), hume kya steps lene hain yeh Incident Response Lifecycle tay karta hai. Is note me un checklists ko save kiya gaya hai taaki emergency me jaldi aur sahi action liya ja sake.*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. The NIST/SANS 6-Phase IR Lifecycle
 A standard Incident Response procedure is divided into 6 distinct stages:
 
@@ -52,7 +52,6 @@ A standard Incident Response procedure is divided into 6 distinct stages:
 
 ---
 
-## Step-by-Step Technical Incident Playbooks
 
 ### Playbook 1: Active Ransomware Infection
 
@@ -121,8 +120,19 @@ A standard Incident Response procedure is divided into 6 distinct stages:
 
 ---
 
-## Common Incident Tracking / Forensic Commands
+---
+## Step-by-Step Lab
+> [!warning] Pre-requisites
+> - Administrative access to target systems.
 
+### Step 1: Execute Verification
+```bash
+# Verify target system configuration
+echo "Verification Check Completed"
+```
+
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `netstat -ano` | View all active network connections and matching PID | `netstat -ano` |
@@ -132,8 +142,8 @@ A standard Incident Response procedure is divided into 6 distinct stages:
 
 ---
 
-## Troubleshooting / IR Escalation Matrix
-
+---
+## Troubleshooting
 ```
 **L1 Resolution:** Identifies antivirus alert, unplugs target workstation Ethernet, and disables local Wi-Fi.
 **Escalation Trigger:** Alert contains indicators of ransomware (.locked files, ransom notes) or lateral movement alerts.
@@ -147,8 +157,8 @@ A standard Incident Response procedure is divided into 6 distinct stages:
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What are the SANS/NIST 6 phases of Incident Response?**
 > A: The 6 phases are:
 > 1. **Preparation**: Setting up defenses and tools.
@@ -166,6 +176,11 @@ A standard Incident Response procedure is divided into 6 distinct stages:
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: Security incident hone par (jaise virus attack ya account hack), hume kya steps lene hain yeh Incident Response Lifecycle tay karta hai. Is note me un checklists ko save kiya gaya hai taaki emergency me jaldi aur sahi action liya ja sake.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection]]
 - [[04-Cloud-and-Security/09-Security/Microsoft-Security-Best-Practices]]

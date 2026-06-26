@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, processes, monitoring]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 12 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-07-process-management, l-07]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #rhcsa
 ---
 
 # L-07: Process Management
@@ -11,7 +13,9 @@ read-time: 12 mins
 > This note covers Linux process lifecycle administration, including process states, priority tuning (nice/renice), foreground/background job controls, signal routing, `/proc` memory diagnostics, and zombie resolution.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of process management in Linux like managing tasks in a busy kitchen:
 - A **Process** is an active recipe being cooked (it has its own kitchen counter space/memory and chefs).
 - A **Thread** is multiple chefs working together on the *same* recipe sharing the *same* counter space (like one chopping onions, one boiling water).
@@ -19,11 +23,11 @@ Think of process management in Linux like managing tasks in a busy kitchen:
 - **Nice Values** are task priorities: a high-priority emergency order is "less nice" (Nice -20) and cuts the queue, while a low-priority task is "very nice" (Nice +19) and steps aside for other chefs.
 - **Signals** are orders shouted by the head chef: "Pause what you are doing" (SIGSTOP), "Wrap up nicely" (SIGTERM), or "Get out of the kitchen immediately" (SIGKILL).
 
-*Seedha simple mein: Linux mein har running program ek process (PID) hota hai. Process monitoring ke liye hum `ps`, `top` aur `htop` use karte hain. `kill` command ke zariye signals (1, 9, 15) bhej kar processes ko terminate kiya jata hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Process vs. Thread
 - **Process:** An executing instance of a program. It is assigned a unique **PID (Process ID)**, its own isolated virtual memory space, file descriptors, and security context. Processes do not share memory directly.
 - **Thread:** A lightweight unit of execution inside a process. Multiple threads share the parent process's memory space and resources, allowing fast concurrency but riskier stability: if one thread crashes, the entire parent process dies.
@@ -92,7 +96,92 @@ A zombie process has exited but remains in the process table because its parent 
   2. If the parent does not respond, kill the parent process. The zombie will be adopted by `systemd` (PID 1), which automatically cleans up orphan zombies.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Defaulting to kill -9 for all process terminations:** Running `kill -9` on databases or active applications. This bypasses the application cleanup routines, leaving temporary locks active, half-written database logs corrupted, and files unclosed.
+> **Correct approach:** Always start with `kill -15` (SIGTERM) to allow the application to save states and close files. Only use `kill -9` as a last resort if the process is completely hung.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Use the `/proc` filesystem to check running processes manually when troubleshooting. For example, if a process name is hidden or modified, you can inspect `/proc/[PID]/exe` (which links to the actual binary path) or read `/proc/[PID]/cmdline` to see the exact start arguments used.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A Linux terminal console session.
 
@@ -148,7 +237,9 @@ A zombie process has exited but remains in the process table because its parent 
    ```
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```bash
 # Display process details of PID 1234, including parent PID (PPID) and nice value
 ps -o pid,ppid,ni,stat,cmd -p 1234
@@ -161,8 +252,18 @@ systemd-cgtop
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Process | Active program instance assigned a unique PID and isolated virtual memory space. |
+| 2 | nice | Priority tuner; values range from -20 (highest priority) to +19 (lowest priority). |
+| 3 | SIGTERM (15) | Default terminate signal instructing processes to clean up and exit gracefully. |
+| 4 | SIGKILL (9) | Force kill signal executed at kernel level; cannot be caught or ignored. |
+| 5 | D State | Uninterruptible sleep; process is waiting for hardware I/O and cannot be killed. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** An administrator runs `kill -9 1234` on a process consuming high resources, but the process remains active, ignoring the signal. Running `ps` shows its state as `D`.
 - **Root Cause:** The process is in Uninterruptible Sleep (`D` state) waiting for a physical hardware response (typically a dead NFS mount or failing block storage controller). In this state, the kernel blocks all signal deliveries until the I/O system call returns.
@@ -184,29 +285,9 @@ systemd-cgtop
   4. Optimize database write queries or upgrade slow HDDs to SSD arrays.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Defaulting to kill -9 for all process terminations:** Running `kill -9` on databases or active applications. This bypasses the application cleanup routines, leaving temporary locks active, half-written database logs corrupted, and files unclosed.
-> **Correct approach:** Always start with `kill -15` (SIGTERM) to allow the application to save states and close files. Only use `kill -9` as a last resort if the process is completely hung.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Use the `/proc` filesystem to check running processes manually when troubleshooting. For example, if a process name is hidden or modified, you can inspect `/proc/[PID]/exe` (which links to the actual binary path) or read `/proc/[PID]/cmdline` to see the exact start arguments used.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Process | Active program instance assigned a unique PID and isolated virtual memory space. |
-| 2 | nice | Priority tuner; values range from -20 (highest priority) to +19 (lowest priority). |
-| 3 | SIGTERM (15) | Default terminate signal instructing processes to clean up and exit gracefully. |
-| 4 | SIGKILL (9) | Force kill signal executed at kernel level; cannot be caught or ignored. |
-| 5 | D State | Uninterruptible sleep; process is waiting for hardware I/O and cannot be killed. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What is a zombie process, and how do you resolve it if you cannot kill it directly?**
 A: A zombie process (marked `Z` in `ps`) is a process that has completed execution but still occupies a slot in the process table. This occurs because the parent process has failed to read the child's exit status. You cannot kill a zombie directly with `kill -9` because it is already dead. To resolve it, I would first identify the parent process ID (PPID) using `ps -o ppid -p [Zombie_PID]`. I would send a `SIGHUP` (1) or `SIGTERM` (15) to the parent to instruct it to run the cleanup. If the parent remains hung, killing the parent process forces `systemd` (PID 1) to adopt the zombie and clean it up automatically.
 
@@ -220,8 +301,13 @@ A:
 A: **VSZ** is the total amount of virtual memory allocated to a process, including memory swapped out to disk, memory mapped to shared libraries, and memory allocated but not yet used. **RSS** is the actual physical RAM (in Kilobytes) that the process is currently using on the system memory chips. RSS is the accurate metric to evaluate if a process is consuming too much system memory.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux mein har running program ek process (PID) hota hai. Process monitoring ke liye hum `ps`, `top` aur `htop` use karte hain. `kill` command ke zariye signals (1, 9, 15) bhej kar processes ko terminate kiya jata hai.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Basic CLI execution commands.
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — Virtual directory mappings like `/proc`.
 - [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]] — Managing background system processes.
-

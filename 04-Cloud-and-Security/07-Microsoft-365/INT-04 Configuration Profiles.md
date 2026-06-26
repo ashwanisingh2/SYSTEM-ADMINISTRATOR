@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, profiles]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-04-configuration-profiles, int-04]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #md-102
 ---
 
 # INT-04: Configuration Profiles
@@ -11,13 +13,15 @@ read-time: 15 mins
 > This note covers Intune Configuration Profiles, detailing the settings catalog, device restrictions, connection configurations (Wi-Fi/VPN), policy assignments using filters, and conflict resolution rules.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Configuration Profiles as the remote control settings for your organization's devices. Instead of walking up to every machine to disable USB ports, type in Wi-Fi passwords, configure the desktop background, or set up VPN tunnels, you build a configuration blueprint in the cloud. The moment a device turns on and connects to the internet, it pulls down this blueprint and configures itself.
-*Seedha simple mein: Configuration Profiles ke zariye aap devices ki OS settings remote control karte ho, jaise USB block karna, Wi-Fi profile push karna ya updates control karna.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Configuration Profile Types
 - **Settings Catalog**: The modern, search-first interface. Contains all available settings across platforms in one search index, replacing legacy template models.
 - **Templates**: Legacy grouped profiles focusing on specific areas (e.g., Device Restrictions, VPN, Wi-Fi, Endpoint Protection).
@@ -47,7 +51,24 @@ When multiple profiles containing conflicting settings are assigned to the same 
 - **Conflict between two different values**: The setting is marked as **Conflict**, and neither value is applied.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Mixing different settings configurations for the same feature across Templates, Administrative Templates, and the Settings Catalog. This makes troubleshooting conflicts difficult. Use the Settings Catalog as your primary configuration interface.
+> Deploying VPN or Wi-Fi configuration profiles to "All Users" without assigning the required root certificates first, causing connection handshakes to fail.
+> Exposing internal URLs for wallpaper or lock screen assets that remote devices cannot resolve without an active VPN connection. Use public-facing, secure URLs (`https://`).
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Use **Intune Filters** to refine policy targeting. Filters are evaluated in real-time before policies are evaluated, reducing enrollment delay and avoiding policy application errors.
+> When converting GPOs to Intune, use the **Group Policy analytics** tool in the Intune console. Import your exported GPO XML files, and the tool will show you which settings have direct matches in the cloud and which require OMA-URI workarounds.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Microsoft Intune Admin Center with Intune Administrator permissions, and a test Windows 11 client device.
 
@@ -77,7 +98,9 @@ Create a profile that blocks removable storage write access and customizes the l
 4. Check the sync status in **Settings** -> **Accounts** -> **Access work or school** -> Select the account -> **Info** -> Scroll down to see applied policies.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 # Read Intune MDM diagnostic logs in XML format on client
 Get-Content -Path "C:\Users\Public\Documents\MDMDiagnostics\MDMDiagReport.xml"
@@ -86,8 +109,18 @@ Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\"
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Settings Catalog | Searchable index containing all available Intune policy settings in one place. |
+| 2 | OMA-URI | Custom path used to configure OS settings not yet exposed in the standard GUI. |
+| 3 | Conflict Status | Error state triggered when two policies try to set different values for the same setting. |
+| 4 | Intune Filters | High-speed evaluation rules used to target policies based on device properties. |
+| 5 | GPO Analytics | Import tool that evaluates local GPOs for compatibility with cloud management. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: An administrator deploys a new Wi-Fi profile with corporate credentials, but the status dashboard in the Intune portal shows all target devices are stuck in a "Pending" state.
 - Root Cause: Configuration Profiles only apply when the device checks in. If the device is offline or cannot connect to the internet, it remains pending.
@@ -106,31 +139,9 @@ Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\"
   4. Exclude the target group from one of the policies, or merge the settings into a single configuration profile.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Mixing different settings configurations for the same feature across Templates, Administrative Templates, and the Settings Catalog. This makes troubleshooting conflicts difficult. Use the Settings Catalog as your primary configuration interface.
-> Deploying VPN or Wi-Fi configuration profiles to "All Users" without assigning the required root certificates first, causing connection handshakes to fail.
-> Exposing internal URLs for wallpaper or lock screen assets that remote devices cannot resolve without an active VPN connection. Use public-facing, secure URLs (`https://`).
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Use **Intune Filters** to refine policy targeting. Filters are evaluated in real-time before policies are evaluated, reducing enrollment delay and avoiding policy application errors.
-> When converting GPOs to Intune, use the **Group Policy analytics** tool in the Intune console. Import your exported GPO XML files, and the tool will show you which settings have direct matches in the cloud and which require OMA-URI workarounds.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Settings Catalog | Searchable index containing all available Intune policy settings in one place. |
-| 2 | OMA-URI | Custom path used to configure OS settings not yet exposed in the standard GUI. |
-| 3 | Conflict Status | Error state triggered when two policies try to set different values for the same setting. |
-| 4 | Intune Filters | High-speed evaluation rules used to target policies based on device properties. |
-| 5 | GPO Analytics | Import tool that evaluates local GPOs for compatibility with cloud management. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: How does Intune resolve conflicts when two different configuration profiles apply to the same device with different values for the same setting?**
 A: When two configuration profiles apply conflicting values for the same setting to a device, the status for that setting changes to "Conflict". The device does not apply either value, ignoring the setting and leaving it at its current OS state. The administrator must locate the conflicting profiles using the Device Configuration dashboard and edit the assignments to resolve the issue.
 
@@ -145,8 +156,13 @@ A:
 A: The Settings Catalog is preferred because it contains all available settings across platforms in a single, searchable index. It is updated directly by Microsoft as new OS settings are exposed, making it more comprehensive than legacy templates. It also allows administrators to build custom, unified profiles rather than managing multiple legacy templates.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Configuration Profiles ke zariye aap devices ki OS settings remote control karte ho, jaise USB block karna, Wi-Fi profile push karna ya updates control karna.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Sets up the basic management authority and console layout.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-03 Compliance Policies|INT-03 Compliance Policies]] — Defines health states that override configuration profiles.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-05 Application Management|INT-05 Application Management]] — Details application deployment profiles.
-

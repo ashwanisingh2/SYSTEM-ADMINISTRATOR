@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, active-directory, security, password-policy, L2]
-aliases: [fgpp-guide, password-security]
+---
+tags: [desktop-support, active-directory, identity, L2]
+aliases: [password-policies, password-policies]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # Password Policies
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Active Directory Password Policies are security configurations that define domain-wide rules for password complexity, minimum length, history limits, expiration age, and account lockout thresholds.
 - **Why it matters for a support engineer**: A support engineer must know how password rules are evaluated to troubleshoot lockout loops, reset expired accounts, and configure custom security profiles for different departments.
@@ -22,8 +23,8 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Default Domain Password Policy
 - **The Rule of One**: Historically, Active Directory only supported a single password policy per domain, defined in the **Default Domain Policy** linked to the domain root. If you attempted to link a separate GPO containing different password settings to an OU, the settings were ignored by local workstations.
 - **Scope**: The Default Domain Policy applies to all domain accounts, setting baseline rules (e.g., minimum 8 characters, complexity enabled, 90-day expiration).
@@ -42,42 +43,6 @@ Defines the parameters used to block access after failed login attempts:
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-```powershell
-# Create a new Fine-Grained Password Policy (PSO) for domain administrators
-New-ADFineGrainedPasswordPolicy -Name "AdminPasswordPolicy" -Precedence 10 -ComplexityEnabled $true -MinPasswordLength 16 -LockoutThreshold 5 -LockoutDuration "00:30:00" -LockoutObservationWindow "00:15:00"
-
-# Subject the new PSO to the Domain Admins security group
-Add-ADFineGrainedPasswordPolicySubject -Identity "AdminPasswordPolicy" -Subjects "Domain Admins"
-```
-
-### CMD / Run Box
-```cmd
-REM Query current domain-wide password policy settings from cmd
-net accounts
-```
-
-### GUI Path
-> Server Manager -> Tools -> **Active Directory Administrative Center** (ADAC) -> Select Domain -> **System** container -> **Password Settings Container**.
-
-### Important Registry Paths
-```
-HKLM\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\
-```
-
-### Key Event IDs
-Password policy auditing events are logged in the Security log of Domain Controllers:
-
-| Event ID | Meaning | Where to Check |
-|----------|---------|----------------|
-| 4723 | An attempt was made to change an account's password (by the user) | Security Log |
-| 4724 | An attempt was made to reset an account's password (by an administrator) | Security Log |
-| 4740 | A user account was locked out | Security Log |
-| 4725 | A user account was disabled | Security Log |
-
----
 
 ## Real-World Scenarios
 
@@ -120,6 +85,7 @@ Password policy auditing events are logged in the Security log of Domain Control
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -145,6 +111,7 @@ Password policy auditing events are logged in the Security log of Domain Control
 
 ---
 
+
 ## Common Mistakes & Fixes
 | Mistake | Why It Happens | Correct Approach |
 |---------|----------------|------------------|
@@ -154,8 +121,12 @@ Password policy auditing events are logged in the Security log of Domain Control
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #active-directory #security #password-policy #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Create a Password Settings Object (PSO) using ADAC/PowerShell, target it to a security group, and verify the effective policy on a test user.
 **Time Required:** 20 minutes
 **Environment Needed:** A Windows Server 2022 VM (Domain Controller).
@@ -188,8 +159,72 @@ Password policy auditing events are logged in the Security log of Domain Control
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+```powershell
+# Create a new Fine-Grained Password Policy (PSO) for domain administrators
+New-ADFineGrainedPasswordPolicy -Name "AdminPasswordPolicy" -Precedence 10 -ComplexityEnabled $true -MinPasswordLength 16 -LockoutThreshold 5 -LockoutDuration "00:30:00" -LockoutObservationWindow "00:15:00"
 
+# Subject the new PSO to the Domain Admins security group
+Add-ADFineGrainedPasswordPolicySubject -Identity "AdminPasswordPolicy" -Subjects "Domain Admins"
+```
+
+### CMD / Run Box
+```cmd
+REM Query current domain-wide password policy settings from cmd
+net accounts
+```
+
+### GUI Path
+> Server Manager -> Tools -> **Active Directory Administrative Center** (ADAC) -> Select Domain -> **System** container -> **Password Settings Container**.
+
+### Important Registry Paths
+```
+HKLM\SYSTEM\CurrentControlSet\Services\NTDS\Parameters\
+```
+
+### Key Event IDs
+Password policy auditing events are logged in the Security log of Domain Controllers:
+
+| Event ID | Meaning | Where to Check |
+|----------|---------|----------------|
+| 4723 | An attempt was made to change an account's password (by the user) | Security Log |
+| 4724 | An attempt was made to reset an account's password (by an administrator) | Security Log |
+| 4740 | A user account was locked out | Security Log |
+| 4725 | A user account was disabled | Security Log |
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The Active Directory security configurations defining password complexity, length, age, and lockout rules.
+> **Why**: Critical for securing user identities and preventing unauthorized access.
+> **How**: Configure the Default Domain Policy for standard users, and deploy PSOs for privileged accounts.
+> **Command**: `Get-ADUserResultantPasswordPolicy`
+> **Interview Answer Starter**: "In my experience, managing password policies requires implementing Fine-Grained Password Policies to secure administrative credentials while maintaining standard rules for users..."
+
+**Key Numbers to Remember:**
+- Default Domain Policy link level: Domain Root
+- Active Directory lockout threshold event ID: 4740
+- Custom PSO class name: `msDS-PasswordSettings`
+
+**3 Things Interviewer Wants to Hear:**
+1. Using PSOs (Fine-Grained Password Policies) to apply different rules
+2. Conflict resolution rules for PSOs (lowest precedence value wins)
+3. Using audit logs (Event IDs 4724, 4740) to trace password resets and lockouts
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What are the main settings configured in a standard domain password policy?**
 A: A standard domain password policy configures minimum password length, password complexity (requiring uppercase, lowercase, numbers, and special characters), password history (preventing reuse of previous passwords), and maximum/minimum password age.
@@ -215,33 +250,14 @@ A: We increased the minimum password length to 14 characters. Users complained a
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The Active Directory security configurations defining password complexity, length, age, and lockout rules.
-> **Why**: Critical for securing user identities and preventing unauthorized access.
-> **How**: Configure the Default Domain Policy for standard users, and deploy PSOs for privileged accounts.
-> **Command**: `Get-ADUserResultantPasswordPolicy`
-> **Interview Answer Starter**: "In my experience, managing password policies requires implementing Fine-Grained Password Policies to secure administrative credentials while maintaining standard rules for users..."
-
-**Key Numbers to Remember:**
-- Default Domain Policy link level: Domain Root
-- Active Directory lockout threshold event ID: 4740
-- Custom PSO class name: `msDS-PasswordSettings`
-
-**3 Things Interviewer Wants to Hear:**
-1. Using PSOs (Fine-Grained Password Policies) to apply different rules
-2. Conflict resolution rules for PSOs (lowest precedence value wins)
-3. Using audit logs (Event IDs 4724, 4740) to trace password resets and lockouts
+---
+## Seedha Simple Mein
+*Seedha simple mein: Password-Policies ke bare mein seekhta hai. Yeh active-directory infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users and Groups]] — Target objects for password policies.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Details GPO deployments.
 - [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA and Identity Protection]] — Details integration with multi-factor authentication.
 
 ---
-
-## Tags
-#desktop-support #active-directory #security #password-policy #L2 #interview-topic #lab-complete #daily-use
-

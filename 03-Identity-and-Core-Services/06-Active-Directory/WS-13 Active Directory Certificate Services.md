@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, windows-server, pki, certificates, adcs]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, active-directory, identity, L2]
+aliases: [ws-13-active-directory-certificate-services, ws-13]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #none
 ---
 
 # WS-13: Active Directory Certificate Services (AD CS)
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers Public Key Infrastructure (PKI) deployment within Windows Server. It details Root and Subordinate Certificate Authority (CA) design, Template customization, dynamic Group Policy Auto-Enrollment, and Revocation checks (CRL/OCSP).
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of a Public Key Infrastructure (PKI) as a government passport and ID department. 
 - The **Root CA** is the main government office. Their word is absolute law, but they keep their main office sealed and offline to prevent break-ins (Offline Root).
 - The **Subordinate CA** is the local passport office on your street. The main government signs their credentials, and they issue the actual IDs (Certificates) to citizens (Users/Computers) for daily use.
 - A **Certificate** is a passport: it contains your photo, identity details, and a security hologram signed by the office. When you visit a website, you show your passport, and the browser checks the signature.
 - The **CRL (Certificate Revocation List)** is the border control list of revoked/stolen passports that are no longer valid.
 
-*Seedha simple mein: AD CS enterprise network mein digital certificates issue aur manage karne ke liye PKI setup hai. Root CA offline rakha jata hai aur Subordinate CAs dynamic certificates distribute karte hain auto-enrollment ke zariye.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. PKI and CA Hierarchy Architecture
 A standard enterprise Public Key Infrastructure (PKI) uses a two-tier CA hierarchy:
 - **Tier 1: Root CA:** The trust anchor. It signs the certificate of the subordinate CA. 
@@ -47,8 +51,22 @@ When a certificate is compromised (e.g., laptop stolen, private key leaked), it 
 - **OCSP (Online Certificate Status Protocol):** A real-time verification protocol. The client queries an OCSP responder targeting a specific certificate serial number. The responder checks the database and returns a small, immediate status answer: "Good", "Revoked", or "Unknown".
 
 ---
-## Windows Server CLI Configuration Commands
 
+## Common Mistakes
+> [!warning] Avoid These
+> **Setting Root CA validity periods shorter than Subordinate CAs:** Creating a Root CA with a 2-year validity, and attempting to issue a 3-year certificate from a subordinate CA. The subordinate CA cannot issue certificates whose lifespans exceed its own root authority expiration date.
+> **Correct approach:** Root CAs should have long validity periods (e.g., 10-20 years), Subordinate CAs 5-10 years, and issued client certificates 1-2 years.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When configuring CRL distribution points (CDP), always host the CRL on an external, anonymous HTTP web server rather than relying on LDAP paths. If a non-domain laptop or mobile device checks a certificate's revocation state, it cannot query the internal Active Directory LDAP directory, causing verification timeouts.
+
+---
+
+---
+## Step-by-Step Lab
 ### Installing AD CS Role Binaries
 ```powershell
 # Install AD CS Certificate Authority role and management tools
@@ -69,7 +87,6 @@ Install-AdcsCertificationAuthority `
 ```
 
 ---
-## Lab — Step by Step
 > [!info] Lab Setup Needed
 > A Domain Controller (`SVR-DC01` at `192.168.10.10`) running Windows Server 2022.
 
@@ -110,8 +127,21 @@ Install-AdcsCertificationAuthority `
 7. **Verify:** On a domain workstation, run `gpupdate /force` in CMD. Open `certlm.msc` (Local Computer Certificates). Expand Personal -> Certificates. Verify that a workstation certificate signed by `company-SVR-DC01-CA` is issued dynamically.
 
 ---
-## Troubleshooting Scenarios
 
+---
+## Cheat Sheet / Quick Reference
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Two-Tier CA | Design utilizing an offline Root CA for core trust security, and a online Subordinate CA for issuance. |
+| 2 | Auto-Enrollment | AD feature that automatically issues and renews user/computer certificates via Group Policy. |
+| 3 | CRL | A published list of revoked certificate serial numbers that clients check locally. |
+| 4 | OCSP | Real-time revocation checker protocol querying specific certificate status on-demand. |
+| 5 | Enterprise CA | Active Directory integrated CA that uses templates and supports auto-enrollment. |
+
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** Users receive SSL warnings when opening internal intranet sites: "This certificate is not trusted because it was issued by an untrusted Certificate Authority."
 - **Root Cause:** The clients' operating systems do not have the Root CA's certificate installed in their "Trusted Root Certification Authorities" store.
@@ -134,29 +164,9 @@ Install-AdcsCertificationAuthority `
   5. Re-run `certutil -pulse` on the client to retry enrollment.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Setting Root CA validity periods shorter than Subordinate CAs:** Creating a Root CA with a 2-year validity, and attempting to issue a 3-year certificate from a subordinate CA. The subordinate CA cannot issue certificates whose lifespans exceed its own root authority expiration date.
-> **Correct approach:** Root CAs should have long validity periods (e.g., 10-20 years), Subordinate CAs 5-10 years, and issued client certificates 1-2 years.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When configuring CRL distribution points (CDP), always host the CRL on an external, anonymous HTTP web server rather than relying on LDAP paths. If a non-domain laptop or mobile device checks a certificate's revocation state, it cannot query the internal Active Directory LDAP directory, causing verification timeouts.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Two-Tier CA | Design utilizing an offline Root CA for core trust security, and a online Subordinate CA for issuance. |
-| 2 | Auto-Enrollment | AD feature that automatically issues and renews user/computer certificates via Group Policy. |
-| 3 | CRL | A published list of revoked certificate serial numbers that clients check locally. |
-| 4 | OCSP | Real-time revocation checker protocol querying specific certificate status on-demand. |
-| 5 | Enterprise CA | Active Directory integrated CA that uses templates and supports auto-enrollment. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Why is it considered security best practice to keep a Root Certificate Authority (CA) offline?**
 A: The Root CA is the foundation of trust for the entire corporate network. If an attacker compromises the Root CA's private key, they can generate valid certificates for any domain, user, or server, bypassing all SSL decryption controls and authenticating as administrators. Keeping the Root CA offline, disconnected from all networks, and locked in a physical vault prevents remote compromise. The subordinate CA is kept online to handle daily work, and if it is compromised, its certificate can be revoked by the offline Root CA without destroying the entire PKI root trust.
 
@@ -171,8 +181,13 @@ A:
 A: Public and Private keys are mathematically linked under asymmetric cryptography. The **Public Key** is shared openly. Anyone can use it to encrypt data or verify a digital signature. However, data encrypted with the public key can *only* be decrypted using the corresponding private key. The **Private Key** must be kept secret by the owner. It is used to decrypt received files or generate digital signatures.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AD CS enterprise network mein digital certificates issue aur manage karne ke liye PKI setup hai. Root CA offline rakha jata hai aur Subordinate CAs dynamic certificates distribute karte hain auto-enrollment ke zariye.*
+
+---
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]] — Storing PKI metadata in the directory.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Deploying auto-enrollment policy options.
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-14 VPN and Remote Access (RRAS)|WS-14 VPN and Remote Access (RRAS)]] — Utilizing client certificates for SSTP VPN links.
-

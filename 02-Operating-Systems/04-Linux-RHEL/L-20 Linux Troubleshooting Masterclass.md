@@ -1,6 +1,6 @@
 ---
-tags: [linux, rhel, troubleshooting, sysadmin, diagnostics]
-aliases: [linux-troubleshooting]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-20-linux-troubleshooting-masterclass, l-20]
 created: 2026-06-25
 status: #complete
 difficulty: #advanced
@@ -20,6 +20,8 @@ cert-relevant: #rhcsa
 > This masterclass note aggregates critical Linux system diagnostics. It provides a structured methodology for identifying, isolating, and resolving runtime issues across CPU, memory, disk, network, and application layers, and features real-world troubleshooting scenarios.
 
 ---
+
+---
 ## Concept Overview
 - **What it is** — Linux troubleshooting is the systematic process of diagnosing, isolating, and resolving system malfunctions, resource bottlenecks, boot issues, and service failures.
 - **Why it matters for a support engineer** — Production servers fail. When a business-critical database or web portal goes offline, a sysadmin cannot rely on guesswork. You must have a methodical approach using CLI diagnostic tools to pinpoint the exact failure point under pressure.
@@ -29,9 +31,11 @@ cert-relevant: #rhcsa
   - **L2**: Troubleshoot service startup failures (`systemctl status`), identify locked file descriptors, resolve network port conflicts, configure basic kernel logs, and extend full partitions.
   - **L3**: Recover systems from grub/boot failures, run system call tracing (`strace`/`ltrace`), debug kernel panic core dumps, resolve advanced storage corruption, and perform packet analysis (`tcpdump`).
 
-*Seedha simple mein: Linux troubleshooting ka matlab hai server par aane wali problems ko step-by-step logic aur commands ke zariye pehchanna aur theek karna. Command line tools ka use karke hum pata karte hain ki problem storage, permissions, networking, ya code execution mein hai.*
 
 ---
+
+---
+## Technical Deep Dive
 ## Real-World Analogy
 Think of a Linux server as a **high-security hospital**:
 - If a patient is sick, you don't perform random surgery immediately. First, you check basic vitals (Temperature, Pulse) -> this is like checking `df -h` and `free -m`.
@@ -39,7 +43,6 @@ Think of a Linux server as a **high-security hospital**:
 - If you need a deep look inside the organs, you run an X-Ray or MRI -> this is like running `strace` or `tcpdump` to watch the system calls and packets in real time.
 
 ---
-## Technical Deep Dive
 
 ### 1. The SysAdmin Diagnostic Pipeline
 To troubleshoot efficiently, always isolate the problem domain by checking layers in order:
@@ -74,8 +77,79 @@ To troubleshoot efficiently, always isolate the problem domain by checking layer
   - `strace`: Traces system calls and signals received by a process. It intercepts calls to the Linux kernel (like opening files or binding network ports) to find where a process gets stuck.
 
 ---
-## Step-by-Step Lab / Configuration
 
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A Rocky Linux / RHEL system.
 > - Root or sudo access.
@@ -164,8 +238,9 @@ sudo systemctl start nginx && sudo systemctl status nginx
 ```
 
 ---
-## Cheat Sheet
 
+---
+## Cheat Sheet / Quick Reference
 | Command / Setting | Purpose | Example |
 |---|---|---|
 | `journalctl -xe` | Opens systemd journal logs at the end, displaying system errors | `journalctl -xe --no-pager` |
@@ -178,8 +253,9 @@ sudo systemctl start nginx && sudo systemctl status nginx
 | `fuser -v /var/log/nginx` | Lists users/processes accessing a specific file or directory | `fuser -k -9 /var/log/nginx` |
 
 ---
-## Troubleshooting
 
+---
+## Troubleshooting
 | Problem | Cause | Fix |
 |---|---|---|
 | Server disk shows 100% full, but `du -sh` shows minimal file usage. | Deleted files are still held open in memory by active processes. | Run `lsof \| grep deleted`. Identify the PID and restart the service or run `kill -9 <PID>` to release the lock. |
@@ -189,8 +265,9 @@ sudo systemctl start nginx && sudo systemctl status nginx
 | High Load Average but CPU utilization shows 5% (Idle is 95%). | CPU cores are idle but processes are blocked waiting for slow storage or network disks (High I/O Wait). | Run `vmstat 1 5` and inspect the `wa` column. Run `iostat -xz 1 5` to locate the saturated disk device. |
 
 ---
-## Interview Questions
 
+---
+## Interview Questions
 > [!question] L1 Question
 > **Q:** How do you check if a specific port (like port 443) is open and listening on a Linux server?
 > **A:** I can use the socket statistics command `ss` or the older `netstat` tool. The command `sudo ss -tulpn | grep :443` will display listening sockets (`-l`), filtering for TCP (`-t`) and UDP (`-u`), while showing numerical port values (`-n`) and the associated process name/PID (`-p`). If nothing is returned, the port is closed or the service is stopped.
@@ -209,6 +286,12 @@ sudo systemctl start nginx && sudo systemctl status nginx
 > - **Task:** Track the low-level system execution calls of the HTTPD binary on startup to locate the failure.
 > - **Action:** I will bypass systemctl and run the daemon binary directly inside `strace`: `strace -f -o /tmp/httpd_trace.txt /usr/sbin/httpd -X`. The `-f` flag traces spawned threads, and `-o` writes the trace to a file. I will search the text file `/tmp/httpd_trace.txt` from the bottom up, looking for failed system calls returning errors like `EACCES` (Permission Denied) or `ENOENT` (No such file).
 > - **Result:** This trace might reveal that Apache was crashing because it could not access a specific SSL key file due to a permissions mismatch, allowing me to correct the path ownership and successfully start the service.
+
+---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux troubleshooting ka matlab hai server par aane wali problems ko step-by-step logic aur commands ke zariye pehchanna aur theek karna. Command line tools ka use karke hum pata karte hain ki problem storage, permissions, networking, ya code execution mein hai.*
 
 ---
 ## Related Notes

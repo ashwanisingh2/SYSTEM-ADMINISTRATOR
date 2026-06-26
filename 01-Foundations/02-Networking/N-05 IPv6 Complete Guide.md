@@ -201,3 +201,24 @@ A: In **Stateful DHCPv6**, the DHCP server acts similarly to an IPv4 DHCP server
 - [[01-Foundations/02-Networking/N-01 Networking Fundamentals|N-01 Networking Fundamentals]] — Base IP mapping and comparison to OSI.
 - [[01-Foundations/02-Networking/N-04 IPv4 Addressing Complete Guide|N-04 IPv4 Addressing Complete Guide]] — Comparison with legacy subnets and class concepts.
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — Server configurations for DNS and DHCP.
+
+
+---
+
+### Enterprise Networking & Wireless Analysis
+
+#### 1. Wireshark Packet Capture Filtering
+Use these filters during packet capture analysis to isolate issues quickly:
+- **HTTP POST Request Error isolation**: `http.request.method == "POST" && http.response.code >= 400`
+- **Isolate TCP Retransmissions (Packet Loss)**: `tcp.analysis.retransmission || tcp.analysis.duplicate_ack`
+- **DNS Server response failures check**: `dns.flags.response == 1 && dns.flags.rcode != 0`
+- **Isolate host traffic (excluding noise)**: `ip.addr == 192.168.1.50 && !arp && !dns`
+
+#### 2. Wireless Troubleshooting (Enterprise Wi-Fi)
+- **802.1X EAP Authentication Failed**: Verify certificate validation settings on RADIUS server (NPS); check client identity store configuration.
+- **Roaming failure (sticky client)**: Adjust Minimum RSSI settings on wireless access points (APs) or check that both APs broadcast identical SSIDs with overlapping coverage ranges (15-20% overlap).
+- **RF Interference**: Run a channel survey; move corporate APs from saturated 2.4GHz bands to clean 5GHz/6GHz channels using 20MHz or 40MHz channel widths.
+
+#### 3. Software-Defined WAN (SD-WAN) Basics
+- **What it is**: SD-WAN decouples the network control plane from the physical hardware forwarding plane. It manages WAN links (MPLS, Broadband, LTE) dynamically.
+- **Why it matters**: It automatically routes business-critical traffic (like VoIP) over the lowest latency links while routing general web traffic over cheap broadband, using real-time link quality metrics (jitter, packet loss, latency).

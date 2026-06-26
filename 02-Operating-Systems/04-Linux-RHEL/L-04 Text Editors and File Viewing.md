@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, vim, text-editing, piping]
-difficulty: Beginner
-lab-required: Yes
-read-time: 12 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-04-text-editors-and-file-viewing, l-04]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #rhcsa
 ---
 
 # L-04: Text Editors and File Viewing
@@ -11,18 +13,20 @@ read-time: 12 mins
 > This note covers Linux text editing and stream processing utilities. It provides a complete reference guide for Vi/Vim modes, file viewing commands, `grep` search filters, `sed` stream editing, `awk` log processing, and I/O redirection.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of text processing in Linux as a physical assembly line in a bottling factory:
 - **Redirection (`>`)** is routing the output of a machine into a specific bottle.
 - **Piping (`|`)** is connecting two conveyor belts together: the output of the first machine (e.g., list files) feeds directly into the intake of the next machine (e.g., search text) without dropping anything on the floor.
 - **Vim** is a high-speed, keyboard-driven workstation where the operator doesn't waste time reaching for a mouse. Instead, they use precise key shortcuts (modes) to cut, paste, edit, and save files.
 - **sed** and **awk** are automated robotic filters that scan passing text lines, replacing words (sed) or counting and reformatting database columns (awk) at lightning speeds.
 
-*Seedha simple mein: Vim ek command-line text editor hai jo modes par chalta hai. Command line par outputs ko manage karne ke liye pipes (`|`) aur redirection (`>`) ka use hota hai. sed aur awk scripts ke zariye hum log files se custom data extract karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. The Vi/Vim Master Reference Guide
 Vim is modal: keys behave differently depending on the active mode.
 
@@ -107,7 +111,93 @@ Linux processes communicate via three standard I/O channels:
   - `command1 | command2` — Feeds stdout of command1 as stdin to command2.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Using cat to read multi-gigabyte log files:** Running `cat /var/log/httpd/access_log` on a busy web server. This dumps millions of lines of text to the terminal buffer, consuming CPU resources, slowing down the console session, and making navigation impossible.
+> **Correct approach:** Use `less` or `tail -n 100` to read log files in manageable segments.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When running a long-running background command over SSH, always redirect both stdout and stderr to a file and run the command with `nohup` or inside a `screen`/`tmux` session. This prevents the process from being terminated if your SSH network connection drops.
+> E.g.: `nohup ./backup_run.sh > backup.log 2>&1 &`
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A Linux terminal console session.
 
@@ -154,7 +244,9 @@ Linux processes communicate via three standard I/O channels:
    *(Note: `-F:` tells awk to split fields using the colon character).*
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```bash
 # Search for active system log entries containing "denied" ignoring case
 grep -i "denied" /var/log/secure
@@ -167,8 +259,18 @@ awk -F: '{print $1 " -> " $6}' /etc/passwd
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Vim Normal Mode | The default navigation mode; use keys `h j k l` to navigate and `i` to enter edit mode. |
+| 2 | Vim Substitute | command `:%s/old/new/g` substitutes all instances of a string in a file globally. |
+| 3 | Piping | Using the `|` operator to feed the standard output of one command as the input of another. |
+| 4 | tail -f | Follow option that outputs new additions to a file in real-time; crucial for log monitoring. |
+| 5 | sed -i | Stream editor flag that modifies target file contents in-place without generating a new file. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** When attempting to run a script, it fails throwing syntax errors. The script was edited on a Windows machine before being copied to the Linux server.
 - **Root Cause:** Windows uses `CRLF` (Carriage Return + Line Feed, `\r\n`) line endings, while Linux uses `LF` (`\n`). The invisible `\r` carriage return characters corrupt shell scripts.
@@ -200,30 +302,9 @@ awk -F: '{print $1 " -> " $6}' /etc/passwd
   3. Verify that the changes were successfully saved.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Using cat to read multi-gigabyte log files:** Running `cat /var/log/httpd/access_log` on a busy web server. This dumps millions of lines of text to the terminal buffer, consuming CPU resources, slowing down the console session, and making navigation impossible.
-> **Correct approach:** Use `less` or `tail -n 100` to read log files in manageable segments.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When running a long-running background command over SSH, always redirect both stdout and stderr to a file and run the command with `nohup` or inside a `screen`/`tmux` session. This prevents the process from being terminated if your SSH network connection drops.
-> E.g.: `nohup ./backup_run.sh > backup.log 2>&1 &`
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Vim Normal Mode | The default navigation mode; use keys `h j k l` to navigate and `i` to enter edit mode. |
-| 2 | Vim Substitute | command `:%s/old/new/g` substitutes all instances of a string in a file globally. |
-| 3 | Piping | Using the `|` operator to feed the standard output of one command as the input of another. |
-| 4 | tail -f | Follow option that outputs new additions to a file in real-time; crucial for log monitoring. |
-| 5 | sed -i | Stream editor flag that modifies target file contents in-place without generating a new file. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: How do you search for all occurrences of the word "denied" in the directory `/var/log` recursively, outputting only the filenames and line numbers?**
 A: I will use the `grep` command with recursive (`-r`), line number (`-n`), and ignore-case (`-i`) options:
 ```bash
@@ -251,8 +332,13 @@ A:
 - `command > file.txt 2>&1` first redirects standard output (1) to the file, then redirects standard error (2) to the current location of standard output (which is the file). Result: both stdout and stderr are routed to the file.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Vim ek command-line text editor hai jo modes par chalta hai. Command line par outputs ko manage karne ke liye pipes (`|`) aur redirection (`>`) ka use hota hai. sed aur awk scripts ke zariye hum log files se custom data extract karte hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Basic navigation and command syntaxes.
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — FHS directory layouts.
 - [[02-Operating-Systems/04-Linux-RHEL/L-13 Bash Scripting for Sysadmins|L-13 Bash Scripting for Sysadmins]] — Automating log processing inside scripts.
-

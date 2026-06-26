@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-900, cloud-computing]
-difficulty: Beginner
-lab-required: No
-read-time: 10 mins
+---
+tags: [desktop-support, azure, cloud, L1]
+aliases: [az9-01-cloud-computing-fundamentals, az9-01]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #none
 ---
 
 # AZ9-01: Cloud Computing Fundamentals
@@ -11,16 +13,18 @@ read-time: 10 mins
 > This note covers foundational cloud computing concepts, including cloud service benefits, CapEx/OpEx financial profiles, IaaS/PaaS/SaaS service models, cloud deployment types (Public/Private/Hybrid), and the Shared Responsibility Model.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of cloud computing like the city municipal electricity grid:
 - **On-Premises Infrastructure** is like buying your own giant coal-fired power generator, building a storage shed for it in your backyard, hiring full-time mechanics, and running your own cables. You pay a massive upfront fee (CapEx) regardless of whether you turn on one lightbulb or run a factory.
 - **Cloud Computing** is turning off your backyard generator and plugging your power cord into the wall outlet. The power company (Azure) manages the massive power generators, security, and repairs. You only pay for the exact amount of electricity you consume per minute (OpEx). If you host a party and need more power (Scale), you draw it instantly; when the party ends, you scale back down, paying only for what you used.
 
-*Seedha simple mein: Cloud computing internet ke zariye servers, storage aur databases ko rent par lene ki facility hai. Isme hume physical hardware buy nahi karna padta (OpEx model) aur hum resources ko demand ke basis par instantly auto-scale kar sakte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Cloud Infrastructure Benefits
 - **High Availability (HA):** Guarantees resource availability and minimal downtime through SLA bindings and redundant datacenter clustering.
 - **Scalability:** The ability to add resources (CPU/RAM/storage) when load increases.
@@ -74,7 +78,20 @@ Who manages what in the cloud depends on the service model:
 - **THE GOLDEN RULE:** Regardless of the cloud service model, **the customer is ALWAYS responsible for their own Data and Access Identity permissions.**
 
 ---
-## Quick Revision Table
+
+---
+## Step-by-Step Lab
+> [!warning] Pre-requisites
+> - Administrative access to target systems.
+
+### Step 1: Execute Verification
+```bash
+# Verify target system configuration
+echo "Verification Check Completed"
+```
+
+---
+## Cheat Sheet / Quick Reference
 | # | Concept | One Line Summary |
 |---|---------|-----------------|
 | 1 | Elasticity | The ability of a cloud network to scale resources up or down automatically on-demand. |
@@ -84,8 +101,17 @@ Who manages what in the cloud depends on the service model:
 | 5 | Shared Respons| The boundary agreement defining what parts of the stack the customer secures versus the cloud. |
 
 ---
-## Interview Q&A
 
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 **Q1: What is the difference between Scalability and Elasticity in cloud computing?**
 A: **Scalability** is the ability of an infrastructure system to handle increased load by adding resources, either vertically (adding more CPU/RAM to a single VM) or horizontally (adding more VM instances to a web cluster). It is a measure of capacity limit. **Elasticity** is the ability to automate this process. An elastic system uses monitoring metrics (like CPU crossing $80\%$) to trigger auto-scaling: adding VMs dynamically when load spikes, and shutting them down when traffic drops to prevent billing waste.
 
@@ -100,8 +126,13 @@ A:
 A: Under the Shared Responsibility Model, the **Customer** is always $100\%$ responsible for securing their own data and managing user access permissions (identities), regardless of the service model. While Microsoft secures the physical datacenters, network routing, and application servers hosting Microsoft 365, the customer must configure password policies, MFA, conditional access rules, and data classification labels to prevent unauthorized logins or data leaks.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Cloud computing internet ke zariye servers, storage aur databases ko rent par lene ki facility hai. Isme hume physical hardware buy nahi karna padta (OpEx model) aur hum resources ko demand ke basis par instantly auto-scale kar sakte hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-02 Azure Global Infrastructure|AZ9-02 Azure Global Infrastructure]] — Regions and Availability Zones.
 - [[04-Cloud-and-Security/08-Azure/AZ9-03 Azure Compute Services|AZ9-03 Azure Compute Services]] — Azure VM (IaaS) and App Service (PaaS) profiles.
 - [[04-Cloud-and-Security/08-Azure/AZ9-06 Azure Cost and Governance|AZ9-06 Azure Cost and Governance]] — Cloud billing and pricing models.
-

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, windows-server, active-directory, management]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, active-directory, identity, L2]
+aliases: [ws-06-active-directory-users-groups-ous, ws-06]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # WS-06: Active Directory — Users, Groups, OUs
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers Active Directory administration, including OU layout design, object properties, bulk deployment scripting, Group Scope resolution, security auditing, and privilege delegation.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Active Directory objects like the structural organization of a high-security office building:
 - **OUs** are the physical department rooms (Sales, Finance) labeled on the doors.
 - **Users** are the individual employees who walk around the building.
@@ -20,11 +24,11 @@ Think of Active Directory objects like the structural organization of a high-sec
   - **Domain Local Groups** represent the electronic locks on specific file drawers (e.g., "Read-Write Lock on Finance Files").
   - You assign employees their job cards (Global Group), slot the job cards into the locks (Domain Local Group), and access is granted. This is the **AGDLP** rule.
 
-*Seedha simple mein: AD OUs container hote hain jahan objects store hote hain. AD groups do type ke hote hain: Security (permissions ke liye) aur Distribution (email ke liye). AGDLP rule permissions manage karne ka best practice standards hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. OU Design Best Practices
 Organizational Units (OUs) should be designed to support **Group Policy application** and **Administrative Delegation**, not just replicate the company organizational chart.
 - **Standard Structure (Hierarchical):**
@@ -64,7 +68,22 @@ Protects against brute-force attacks:
 Delegation allows administrators to grant specific permissions (e.g., resetting passwords, modifying group memberships) to non-admin users (like a Helpdesk technician) on a specific OU without granting them full Domain Admin rights.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Using Domain Admins for daily non-admin work:** Adding IT support staff accounts directly into the `Domain Admins` group to allow them to reset user passwords or join computers to the domain. This exposes the entire forest to credential harvesting if their workstation is compromised.
+> **Correct approach:** Use Delegation of Control to grant minimal permissions (least privilege) on specific OUs for daily administrative tasks, keeping Domain Admin group membership strictly limited.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When designing naming conventions for sAMAccountNames, always plan for collisions. If using `firstinitial+lastname` (e.g., `jsmith` for John Smith), you will eventually encounter a Jane Smith. Standardize on unique identifiers or use middle initials (e.g., `jasmith`) in your creation scripts.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A Domain Controller (`SVR-DC01`) with Active Directory Users and Computers (ADUC) installed.
 
@@ -114,7 +133,9 @@ Delegation allows administrators to grant specific permissions (e.g., resetting 
 5. Test: Log into a workstation using a Helpdesk user account. Verify that they can reset passwords for users inside `Corp_Users`, but receive access denied if attempting to reset Domain Admin passwords.
 
 ---
-## Commands and Diagnostics Reference
+
+---
+## Cheat Sheet / Quick Reference
 Advanced content only — basics in [[Basic AD user management]]
 
 Execute dynamic account query and unlocking scripts:
@@ -135,8 +156,18 @@ Get-ADPrincipalGroupMembership -Identity "jdoe" | Select-Object Name, GroupScope
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | AGDLP | Accounts (Users) -> Global (Job Role) -> Domain Local (Access Lock) -> Permissions. |
+| 2 | Security Group | Group type containing a SID, used to assign resource permissions and rights. |
+| 3 | Distribution Group| Email distribution group; lacks a SID, cannot be used for ACL permissions. |
+| 4 | AdminSDHolder | Security process that automatically resets ACL overrides on protected admin objects. |
+| 5 | Delegation | Granting restricted administrative rights on an OU scope to specific non-admin groups. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** A Helpdesk tech delegates control to reset passwords on the `Corp_Users` OU. However, when they attempt to reset the password for a manager whose account resides in that OU, they receive "Access Denied."
 - **Root Cause:** The manager user object is a member of a protected administrative group (e.g., Domain Admins). Active Directory runs a background service called **AdminSDHolder** every 60 minutes, which resets ACL permissions on all protected accounts, stripping custom delegated OU permissions to secure administrative integrity.
@@ -156,29 +187,9 @@ Get-ADPrincipalGroupMembership -Identity "jdoe" | Select-Object Name, GroupScope
   5. Right-click the OU and click **Delete**; it will now delete successfully.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Using Domain Admins for daily non-admin work:** Adding IT support staff accounts directly into the `Domain Admins` group to allow them to reset user passwords or join computers to the domain. This exposes the entire forest to credential harvesting if their workstation is compromised.
-> **Correct approach:** Use Delegation of Control to grant minimal permissions (least privilege) on specific OUs for daily administrative tasks, keeping Domain Admin group membership strictly limited.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When designing naming conventions for sAMAccountNames, always plan for collisions. If using `firstinitial+lastname` (e.g., `jsmith` for John Smith), you will eventually encounter a Jane Smith. Standardize on unique identifiers or use middle initials (e.g., `jasmith`) in your creation scripts.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | AGDLP | Accounts (Users) -> Global (Job Role) -> Domain Local (Access Lock) -> Permissions. |
-| 2 | Security Group | Group type containing a SID, used to assign resource permissions and rights. |
-| 3 | Distribution Group| Email distribution group; lacks a SID, cannot be used for ACL permissions. |
-| 4 | AdminSDHolder | Security process that automatically resets ACL overrides on protected admin objects. |
-| 5 | Delegation | Granting restricted administrative rights on an OU scope to specific non-admin groups. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain the AGDLP nesting rule and why it is considered best practice in Active Directory design.**
 A: **AGDLP** stands for: **A**ccounts go into **G**lobal groups, nested into **D**omain **L**ocal groups, which are assigned **P**ermissions on a resource. 
 - Accounts represent users.
@@ -198,8 +209,13 @@ A:
 A: A **Global Group** can only contain objects (users, computers) from its own domain, but can be added to resources and other groups in any trusted domain in the forest. A **Domain Local Group** can contain objects from any trusted domain (including global groups and users from other domains), but it can only be granted permissions to resources located inside its own domain.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AD OUs container hote hain jahan objects store hote hain. AD groups do type ke hote hain: Security (permissions ke liye) aur Distribution (email ke liye). AGDLP rule permissions manage karne ka best practice standards hai.*
+
+---
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]] — Logical structures and NTDS layouts.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Linking policies to OU scopes.
 - [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-02 PowerShell for Active Directory|PS-02 PowerShell for Active Directory]] — Automating object management via scripting.
-

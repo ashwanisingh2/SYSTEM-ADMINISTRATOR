@@ -1,6 +1,6 @@
-﻿---
-tags: [desktop-support, linux, filesystem, storage, L1]
-aliases: [linux-fhs, lvm-guide, fstab-guide]
+---
+tags: [desktop-support, linux, rhel, L2]
+aliases: [filesystem, filesystem]
 created: 2026-06-25
 status: #complete
 difficulty: #beginner
@@ -11,6 +11,7 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: The Linux Filesystem is a hierarchical structure starting from the root directory (`/`) that governs how data is stored, read, and managed on physical and logical storage drives. In Red Hat Enterprise Linux (RHEL), this follows the Filesystem Hierarchy Standard (FHS).
 - **Why it matters for a support engineer**: Linux hosts corporate databases, web servers, and development containers. A support engineer must know how to inspect disk usage, mount physical or network drives, configure persistent mount points, and expand logical volumes to resolve application crashes caused by out-of-disk-space conditions.
@@ -22,8 +23,8 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Filesystem Hierarchy Standard (FHS)
 Unlike Windows, which partitions data under drive letters (`C:`, `D:`), Linux represents everything as files under a single root directory (`/`):
 
@@ -72,39 +73,6 @@ To make a mounted disk persistent across system reboots, it must be added to the
 
 ---
 
-## Commands & Syntax
-
-### Bash
-```bash
-# Check disk space usage on all mounted filesystems in human-readable format
-df -h
-
-# Estimate file space usage, showing the top 10 largest folders/files in /var
-du -ah /var | sort -hr | head -n 10
-
-# List block devices (disks, partitions, and LVM logical volumes)
-lsblk
-
-# Scan for newly attached virtual disks without rebooting the system
-echo "- - -" > /sys/class/scsi_host/host0/scan
-
-# Create a Physical Volume on a raw disk
-pvcreate /dev/sdb
-
-# Create a Volume Group named vg_prod using the physical volume
-vgcreate vg_prod /dev/sdb
-
-# Create a Logical Volume named lv_data of size 20GB inside vg_prod
-lvcreate -n lv_data -L 20G vg_prod
-
-# Format the logical volume with the XFS filesystem
-mkfs.xfs /dev/mapper/vg_prod-lv_data
-
-# Mount the volume to a target directory
-mount /dev/mapper/vg_prod-lv_data /mnt/data
-```
-
----
 
 ## Real-World Scenarios
 
@@ -164,6 +132,7 @@ mount /dev/mapper/vg_prod-lv_data /mnt/data
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -187,6 +156,7 @@ mount /dev/mapper/vg_prod-lv_data /mnt/data
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -197,8 +167,82 @@ mount /dev/mapper/vg_prod-lv_data /mnt/data
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #linux #filesystem #storage #L1 #interview-topic #lab-complete #daily-use
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 **Objective:** Add a virtual disk to a running Linux VM, initialize it using LVM, format it with XFS, mount it persistently, and verify its configuration.
 **Time Required:** 30 minutes
 **Environment Needed:** A RHEL or Rocky Linux VM with an unformatted secondary virtual disk (`/dev/sdb` or `/dev/nvme1n1`).
@@ -250,8 +294,70 @@ mount /dev/mapper/vg_prod-lv_data /mnt/data
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### Bash
+```bash
+# Check disk space usage on all mounted filesystems in human-readable format
+df -h
 
+# Estimate file space usage, showing the top 10 largest folders/files in /var
+du -ah /var | sort -hr | head -n 10
+
+# List block devices (disks, partitions, and LVM logical volumes)
+lsblk
+
+# Scan for newly attached virtual disks without rebooting the system
+echo "- - -" > /sys/class/scsi_host/host0/scan
+
+# Create a Physical Volume on a raw disk
+pvcreate /dev/sdb
+
+# Create a Volume Group named vg_prod using the physical volume
+vgcreate vg_prod /dev/sdb
+
+# Create a Logical Volume named lv_data of size 20GB inside vg_prod
+lvcreate -n lv_data -L 20G vg_prod
+
+# Format the logical volume with the XFS filesystem
+mkfs.xfs /dev/mapper/vg_prod-lv_data
+
+# Mount the volume to a target directory
+mount /dev/mapper/vg_prod-lv_data /mnt/data
+```
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The hierarchical file storage structure of Linux, organized from the root directory (`/`).
+> **Why**: Critical for hosting database files, logs, and services, requiring active disk monitoring.
+> **How**: Use `df` and `du` to monitor space, partition with LVM for flexibility, and configure persistent mounts in `/etc/fstab`.
+> **Command**: `df -h` / `du -sh` / `mount -a`
+> **Interview Answer Starter**: "To manage storage in a RHEL environment, I partition drives using LVM, verify disk utilization using df and du, and configure persistent mounts using UUIDs in fstab..."
+
+**Key Numbers to Remember:**
+- Default log partition directory: `/var/log`
+- Exit status code for a successful `mount -a`: `0`
+- Number of fields in an `/etc/fstab` entry: `6`
+- Systemd mount target configuration path: `/etc/systemd/system/`
+
+**3 Things Interviewer Wants to Hear:**
+- Running `mount -a` before rebooting to test `/etc/fstab` changes
+- How to release disk space from a deleted file held open by a process (using `lsof`)
+- The benefits of LVM for dynamic online volume resizing
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is the purpose of the `/etc` directory in Linux?**
 A: The `/etc` directory contains all system-wide configuration files for the operating system and installed services. It is equivalent to the registry in Windows systems.
@@ -280,34 +386,14 @@ A: Our database server crashed due to disk space issues on `/var`. I ran `du` to
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The hierarchical file storage structure of Linux, organized from the root directory (`/`).
-> **Why**: Critical for hosting database files, logs, and services, requiring active disk monitoring.
-> **How**: Use `df` and `du` to monitor space, partition with LVM for flexibility, and configure persistent mounts in `/etc/fstab`.
-> **Command**: `df -h` / `du -sh` / `mount -a`
-> **Interview Answer Starter**: "To manage storage in a RHEL environment, I partition drives using LVM, verify disk utilization using df and du, and configure persistent mounts using UUIDs in fstab..."
-
-**Key Numbers to Remember:**
-- Default log partition directory: `/var/log`
-- Exit status code for a successful `mount -a`: `0`
-- Number of fields in an `/etc/fstab` entry: `6`
-- Systemd mount target configuration path: `/etc/systemd/system/`
-
-**3 Things Interviewer Wants to Hear:**
-- Running `mount -a` before rebooting to test `/etc/fstab` changes
-- How to release disk space from a deleted file held open by a process (using `lsof`)
-- The benefits of LVM for dynamic online volume resizing
+---
+## Seedha Simple Mein
+*Seedha simple mein: Filesystem ke bare mein seekhta hai. Yeh linux infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[01-Foundations/01-Hardware/Storage-Deep-Dive|Storage Deep Dive]] — Outlines the hardware structures (RAID, SSDs) behind Linux volumes.
 - [[02-Operating-Systems/04-Linux-RHEL/Permissions|Linux Permissions]] — Focuses on accessing directories and files inside the structure.
 - [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl]] — Explains system service managers that write to logs.
 
 ---
-
-## Tags
-#desktop-support #linux #filesystem #storage #L1 #interview-topic #lab-complete #daily-use
-

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-104, storage, azcopy]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [az104-02-azure-storage-administration, az104-02]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #az-104
 ---
 
 # AZ104-02: Azure Storage Administration
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers advanced Azure Storage engineering. It details account options, geo-redundancy profiles (RA-GRS), lifecycle management, mounting Azure Files, File Sync configurations, Shared Access Signatures (SAS), and `AzCopy` CLI data transfer.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure storage administration as managing secure data safes:
 - **Storage Access Keys** are the master combination keys to the entire building. If a developer gets a copy of this key, they can open every safe, delete databases, and steal files.
 - **Shared Access Signatures (SAS)** are temporary visitor keycards: you configure a card that only opens Safe 3 (Blob container) for exactly 4 hours, and only permits reading files, not deleting them.
 - **Azure File Sync** is a continuous delivery truck syncing your local office file servers with the master cloud safe.
 - **AzCopy** is a high-speed packing conveyor belt built to shift millions of files in and out of the storage safes at multi-gigabit speeds.
 
-*Seedha simple mein: AZ-104 storage admin security aur performance par focus karta hai. Master keys share karne ki jagah hum SAS tokens use karte hain access limit karne ke liye. local server sync ke liye File Sync use hota hai aur mass data migration ke liye AzCopy tool use hota hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Storage Account Parameters & Redundancy Profiles
 When creating a storage account:
 - **Performance Tiers:** Standard (magnetic/Standard SSD backplanes) vs. Premium (Ultra-low latency solid-state drives).
@@ -52,25 +56,9 @@ A SAS is a URI token appended to a storage URL that grants restricted access rig
 - **Storage Firewall:** Restricts access to the storage account so it is only reachable from specific Azure Virtual Networks (subnets) or designated public IP blocks.
 
 ---
-## AzCopy Command Reference
-`AzCopy` is a command-line utility optimized for copying data to and from storage accounts.
-
-```bash
-# Login to Azure using active credentials
-azcopy login
-
-# Copy local folder recursively to Azure Blob Container
-azcopy copy "C:\LocalData" "https://saalphadevlab01.blob.core.windows.net/images?[SAS_Token]" --recursive
-
-# Sync local folder with Container (only copies modified files)
-azcopy sync "C:\LocalData" "https://saalphadevlab01.blob.core.windows.net/images?[SAS_Token]"
-
-# Copy data between two Azure storage containers directly in the cloud
-azcopy copy "https://source.blob.core.windows.net/container1?[SAS]" "https://dest.blob.core.windows.net/container2?[SAS]" --recursive
-```
 
 ---
-## Lab — Step by Step
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > An active Azure Storage Account (`saalphadevlab01`), a local file `C:\LabFiles\data.txt` on your workstation, and the AzCopy executable downloaded.
 
@@ -101,8 +89,51 @@ azcopy copy "https://source.blob.core.windows.net/container1?[SAS]" "https://des
 6. **Verify:** Open File Explorer. Confirm that the drive `Z:` is mounted and points to the Azure Cloud File Share.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+`AzCopy` is a command-line utility optimized for copying data to and from storage accounts.
+
+```bash
+# Login to Azure using active credentials
+azcopy login
+
+# Copy local folder recursively to Azure Blob Container
+azcopy copy "C:\LocalData" "https://saalphadevlab01.blob.core.windows.net/images?[SAS_Token]" --recursive
+
+# Sync local folder with Container (only copies modified files)
+azcopy sync "C:\LocalData" "https://saalphadevlab01.blob.core.windows.net/images?[SAS_Token]"
+
+# Copy data between two Azure storage containers directly in the cloud
+azcopy copy "https://source.blob.core.windows.net/container1?[SAS]" "https://dest.blob.core.windows.net/container2?[SAS]" --recursive
+```
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AZ-104 storage admin security aur performance par focus karta hai. Master keys share karne ki jagah hum SAS tokens use karte hain access limit karne ke liye. local server sync ke liye File Sync use hota hai aur mass data migration ke liye AzCopy tool use hota hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-04 Azure Storage and Networking|AZ9-04 Azure Storage and Networking]] — Base storage account redundancy types.
 - [[04-Cloud-and-Security/08-Azure/AZ104-01 Azure Identity and Governance|AZ104-01 Azure Identity and Governance]] — RBAC assignment for storage access.
 - [[02-Operating-Systems/04-Linux-RHEL/L-11 File Systems and Storage in Linux|L-11 File Systems and Storage in Linux]] — Mounting network shares (NFS/SMB) in Linux.
-

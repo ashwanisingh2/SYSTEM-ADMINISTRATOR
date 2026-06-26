@@ -1,6 +1,6 @@
 ---
-tags: [linux, automation, cron, rhcsa]
-aliases: [cron-jobs, scheduling]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-16-cron-jobs-and-task-scheduling, l-16]
 created: 2026-06-25
 status: #complete
 difficulty: #beginner
@@ -14,6 +14,7 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — Cron is a time-based job scheduler daemon in Unix-like operating systems. Users and administrators use it to run commands, scripts, or programs automatically at specified times or intervals.
 - **Why it matters for a support engineer** — Manual tasks lead to human error. Automating backups, database cleanup, log rotations, and system updates ensures reliable server maintenance.
@@ -24,12 +25,11 @@ cert-relevant: #rhcsa
   - ****L2 Resolution:**** Configures user cron jobs (`crontab -e`), resolves environment path problems inside scripts, and manages access controls via `/etc/cron.allow` and `/etc/cron.deny`.
   - ****L3 Resolution:**** Implements system-wide periodic tasks in `/etc/cron.d/`, manages `/etc/anacrontab` rules for desktop environments/non-continuous servers, and designs fault-tolerant cron failovers.
 
-*Seedha simple mein: Cron jobs Windows ke Task Scheduler ki tarah kaam karti hain. Iski help se hum system ko bata sakte hain ki kaunsa script ya command kab run hona chahiye (jaise har Sunday ko backup lena ya har ghante system cache clear karna).*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Crontab Syntax
 Cron expressions are defined using 5 time/date fields followed by the command to execute:
 
@@ -66,8 +66,78 @@ Linux distinguishes between user-defined cron jobs and system-wide cron jobs:
 
 ---
 
-## Step-by-Step Lab / Configuration
+---
 
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A Linux server (RHEL 8/9).
 > - Active `crond` daemon.
@@ -136,8 +206,8 @@ sudo chmod +x /etc/cron.daily/clear_tmp.sh
 
 ---
 
-## Common Commands / Cheat Sheet
-
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `crontab -l` | List all cron jobs for the current user | `crontab -l` |
@@ -148,8 +218,8 @@ sudo chmod +x /etc/cron.daily/clear_tmp.sh
 
 ---
 
+---
 ## Troubleshooting
-
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
 | **Cron job command fails, but runs fine in terminal** | Environment paths (`PATH`) differ. Cron runs in a minimal shell. | Use absolute paths for all commands (e.g., `/usr/bin/tar` instead of `tar`). Set variables at the top of the crontab. |
@@ -158,8 +228,8 @@ sudo chmod +x /etc/cron.daily/clear_tmp.sh
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What does `*/15 2 1-10 * * /usr/local/bin/backup.sh` cron expression translate to?**
 > A: This job will run:
 > - Every 15 minutes (`*/15`)
@@ -178,6 +248,11 @@ sudo chmod +x /etc/cron.daily/clear_tmp.sh
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: Cron jobs Windows ke Task Scheduler ki tarah kaam karti hain. Iski help se hum system ko bata sakte hain ki kaunsa script ya command kab run hona chahiye (jaise har Sunday ko backup lena ya har ghante system cache clear karna).*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/03-Windows-OS/Task-Scheduler]]
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics]]

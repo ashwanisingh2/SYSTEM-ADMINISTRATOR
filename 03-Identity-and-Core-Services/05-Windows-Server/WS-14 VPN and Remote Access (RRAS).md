@@ -162,6 +162,25 @@ A:
 A: NPS acts as a central RADIUS server that handles authentication, authorization, and accounting (AAA) for VPN connection requests. When a user connects to the RRAS server, the server forwards the credentials to the NPS. The NPS checks the request against configured connection request policies and network policies. It verifies if the user belongs to the authorized AD groups, checks if the connection meets time-of-day constraints, and can execute health checks (NAP/Network Access Protection) to verify if the client has active antivirus and security updates before granting access.
 
 ---
+
+---
+## Real-World Scenario: File Server Crash (500+ Users Affected)
+Agar company ka main file server (500+ users connected) crash ho jaye, toh as a Senior Sysadmin aapka immediate action plan yeh hoga:
+1. **Identify & Isolate**: Check if the server is pingable. Verify hardware status via Dell iDRAC / HPE iLO or check virtual machine status in vCenter/Hyper-V.
+2. **Access Check & Lock**: If the storage volume is corrupt or unmapped, stop DFS Namespace referrals to the crashed target to redirect users to secondary replica servers if active.
+3. **Trigger Disaster Recovery (DR)**: Start restoring the crashed system drive or volumes from the latest VSS snapshot or Azure Backup RSV restore point.
+4. **Communication**: Broadcast status updates to the Incident Commander and helpdesk teams to manage incoming support volume.
+
+### PowerShell Automation Snippet: Verify File Shares and Access Permissions
+```powershell
+# Get all active file shares on the server
+Get-SmbShare | Format-Table -AutoSize
+
+# Test local DFS Namespace server connection health
+Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
+```
+
+---
 ## Related Notes
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]] — Resolving VPN server hostnames.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-06 Active Directory — Users Groups OUs|WS-06 Active Directory — Users Groups OUs]] — User Dial-in permissions.

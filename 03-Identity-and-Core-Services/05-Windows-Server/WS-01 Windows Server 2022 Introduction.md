@@ -161,6 +161,25 @@ A:
 A: **CALs (Client Access Licenses)** are licenses required for users or devices to connect to Windows Server services (like file sharing, printing, or Active Directory). A **User CAL** licenses an individual person, allowing them to access server resources from any number of devices (phone, laptop, desktop). It is best for companies with employees who use multiple devices. A **Device CAL** licenses a physical device, allowing any number of users to access server resources from that specific machine. It is best for shift-based companies (e.g., call centers, nurses' stations) where multiple workers share the same computer.
 
 ---
+
+---
+## Real-World Scenario: File Server Crash (500+ Users Affected)
+Agar company ka main file server (500+ users connected) crash ho jaye, toh as a Senior Sysadmin aapka immediate action plan yeh hoga:
+1. **Identify & Isolate**: Check if the server is pingable. Verify hardware status via Dell iDRAC / HPE iLO or check virtual machine status in vCenter/Hyper-V.
+2. **Access Check & Lock**: If the storage volume is corrupt or unmapped, stop DFS Namespace referrals to the crashed target to redirect users to secondary replica servers if active.
+3. **Trigger Disaster Recovery (DR)**: Start restoring the crashed system drive or volumes from the latest VSS snapshot or Azure Backup RSV restore point.
+4. **Communication**: Broadcast status updates to the Incident Commander and helpdesk teams to manage incoming support volume.
+
+### PowerShell Automation Snippet: Verify File Shares and Access Permissions
+```powershell
+# Get all active file shares on the server
+Get-SmbShare | Format-Table -AutoSize
+
+# Test local DFS Namespace server connection health
+Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
+```
+
+---
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]] — Installing directory roles on Server 2022.
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]] — Configuring base server name resolution.

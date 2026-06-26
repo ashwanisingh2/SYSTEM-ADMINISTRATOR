@@ -1,6 +1,6 @@
 ---
-tags: [linux, rhel, logging, rsyslog, journalctl]
-aliases: [linux-logs]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-17-linux-log-management, l-17]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -13,6 +13,8 @@ cert-relevant: #rhcsa
 > Linux systems generate various logs that capture kernel events, system service activities, user authentication, and application behavior. This note covers how to view, filter, configure, rotate, and forward logs using modern systemd tools (`journalctl`), traditional syslog daemons (`rsyslog`), and management utilities (`logrotate`), preparing you for both day-to-day administration and SIEM integration.
 
 ---
+
+---
 ## Concept Overview
 - **What it is** — Log management is the process of generating, collecting, storing, analyzing, rotating, and retiring system and application logs to ensure system health, security compliance, and troubleshooting capability.
 - **Why it matters** — Without proper logs, system administrators are blind. Logs are the primary forensic evidence during security breaches, system crashes, or application errors. Mismanaged logs can also fill up the root partition (`/`), causing server-wide outages.
@@ -22,9 +24,11 @@ cert-relevant: #rhcsa
   - **L2**: Configuring `rsyslog` rules, resolving "disk full" issues caused by runaway logs, setting up custom `logrotate` policies, and persisting `journald` logs.
   - **L3**: Setting up centralized log forwarding to a SIEM/Syslog server (Splunk, Elastic, Sentinel), troubleshooting corrupted binary journals, and debugging complex log filtering pipelines.
 
-*Seedha simple mein: Linux logs system system ki har choti-badi activity ko record karta hai. `rsyslog` system files mein text log likhta hai, `journalctl` memory-based binary logs check karne ke kaam aata hai, aur `logrotate` un logs ko compress aur delete karke disk space bachata hai.*
 
 ---
+
+---
+## Technical Deep Dive
 ## Real-World Analogy
 Imagine a busy corporate office building.
 - **The Security Guard's Register** is like `/var/log/secure` — every visitor (user login, sudo attempt) must sign in and show ID.
@@ -33,7 +37,6 @@ Imagine a busy corporate office building.
 - **The Head Office Security Feed** is like **SIEM forwarding** — a copy of every critical event is immediately transmitted to the headquarters' central control room for security analysis.
 
 ---
-## Technical Deep Dive
 
 ### 1. Systemd Journal and `journalctl`
 Modern systemd-based Linux systems use a binary logging daemon called `systemd-journald`. It captures logs from kernel messages, system services, and standard output/error streams.
@@ -114,8 +117,97 @@ Centralizing logs on a secure server prevents attackers from covering their trac
   ```
 
 ---
-## Step-by-Step Lab
 
+## Real-World Ticket Scenarios
+
+### Scenario 1: Disk Full due to `/var/log`
+**Ticket:** "Production Server Rocky-VM-01 is unreachable on port 80. Disk monitoring alert: Root partition is at 100%."
+**L1 Response:** SSH into the box, run `df -h` to confirm full disk. Run `du -sh /var/log/*` or `ncdu /var/log` to find the largest log file. If it is a systemd journal, run `journalctl --vacuum-size=1G` to free space immediately.
+**Escalation Trigger:** If the runaway file belongs to a third-party custom app and simple deletion could break the app daemon, or if disk usage climbs again within minutes.
+**L2 Resolution:** Analyze the custom application config to disable debug logging, write a robust logrotate policy in `/etc/logrotate.d/custom-app` that uses size-based triggers (e.g., `size 100M`), and verify `logrotate` works.
+
+---
+
+### Scenario 2: Remote Log Forwarding Failed
+**Ticket:** "Splunk Security team reports Rocky-VM-01 has stopped sending audit logs (SSH logs) to the SIEM receiver starting yesterday."
+**L1 Response:** Verify `rsyslog` service status: `systemctl status rsyslog`. Check network connectivity to Splunk port 514: `nc -zvw3 192.168.1.100 514`.
+**Escalation Trigger:** Network is reachable, but `rsyslog` errors out with socket connection warnings or fails syntax verification.
+**L2 Resolution:** Check configuration file `/etc/rsyslog.d/forward.conf`. Ensure it has double-at `@@` for TCP transmission if the firewall blocks UDP. Inspect local SELinux denials using `sealert -a /var/log/audit/audit.log` to see if SELinux is blocking outbound port 514 syslog connections, and allow it via `setsebool -P nis_enabled 1` or configuring standard syslog ports.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A running RHEL/Rocky Linux VM.
 > - Root or sudo privileges (`sudo -i`).
@@ -234,8 +326,9 @@ sudo systemctl restart rsyslog
 **Expected Output:** `rsyslogd: version 8.2102.0-xxx, config validation run (no errors found),...`
 
 ---
-## Common Commands
 
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `journalctl` | Display all system logs starting from oldest records. | `journalctl` |
@@ -250,8 +343,9 @@ sudo systemctl restart rsyslog
 | `logrotate -f /etc/logrotate.d/sys` | Manually force execution of a logrotate profile. | `logrotate -f /etc/logrotate.d/nginx` |
 
 ---
-## Troubleshooting
 
+---
+## Troubleshooting
 | Problem | Cause | Fix |
 |---------|-------|-----|
 | `/var/log/` or root partition (`/`) is 100% full. | Unrotated application logs or log levels set to debug for noisy apps. | Run `du -sh /var/log/*` to find the culprit. Empty the log (e.g., `cat /dev/null > /var/log/culprit.log`) and create/adjust `/etc/logrotate.d/` rule. |
@@ -260,25 +354,9 @@ sudo systemctl restart rsyslog
 | `rsyslog` is running but logs aren't updating. | Rsyslog service is stuck or logging directory has incorrect permissions. | Check status `systemctl status rsyslog`. Verify that `/var/log/messages` has owner/group set to `root` or `adm` with permissions `0600` or `0640`. |
 
 ---
-## Real-World Ticket Scenarios
-
-### Scenario 1: Disk Full due to `/var/log`
-**Ticket:** "Production Server Rocky-VM-01 is unreachable on port 80. Disk monitoring alert: Root partition is at 100%."
-**L1 Response:** SSH into the box, run `df -h` to confirm full disk. Run `du -sh /var/log/*` or `ncdu /var/log` to find the largest log file. If it is a systemd journal, run `journalctl --vacuum-size=1G` to free space immediately.
-**Escalation Trigger:** If the runaway file belongs to a third-party custom app and simple deletion could break the app daemon, or if disk usage climbs again within minutes.
-**L2 Resolution:** Analyze the custom application config to disable debug logging, write a robust logrotate policy in `/etc/logrotate.d/custom-app` that uses size-based triggers (e.g., `size 100M`), and verify `logrotate` works.
-
----
-
-### Scenario 2: Remote Log Forwarding Failed
-**Ticket:** "Splunk Security team reports Rocky-VM-01 has stopped sending audit logs (SSH logs) to the SIEM receiver starting yesterday."
-**L1 Response:** Verify `rsyslog` service status: `systemctl status rsyslog`. Check network connectivity to Splunk port 514: `nc -zvw3 192.168.1.100 514`.
-**Escalation Trigger:** Network is reachable, but `rsyslog` errors out with socket connection warnings or fails syntax verification.
-**L2 Resolution:** Check configuration file `/etc/rsyslog.d/forward.conf`. Ensure it has double-at `@@` for TCP transmission if the firewall blocks UDP. Inspect local SELinux denials using `sealert -a /var/log/audit/audit.log` to see if SELinux is blocking outbound port 514 syslog connections, and allow it via `setsebool -P nis_enabled 1` or configuring standard syslog ports.
 
 ---
 ## Interview Questions
-
 **Q1: What is the main difference between rsyslogd and systemd-journald?**
 > **A:** `systemd-journald` is the modern systemd logging daemon that captures structured binary logs (stored in memory/disk under `/run/log` or `/var/log/journal`). It includes rich metadata (PIDs, service names, boots). `rsyslogd` is the traditional syslog daemon that reads messages from systemd-journald and routes them into plain-text files (like `/var/log/messages`) using facility/severity selectors, and supports advanced text filtering/remote forwarding.
 
@@ -292,6 +370,12 @@ sudo systemctl restart rsyslog
 
 **Q4: How do you configure rsyslog to send security auth logs over a secure TCP port instead of UDP?**
 > **A:** In `/etc/rsyslog.conf` or a dedicated `.conf` file inside `/etc/rsyslog.d/`, use the double-at `@@` prefix to specify TCP (single `@` is UDP). For example: `authpriv.* @@siem-server-ip:514`.
+
+---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux logs system system ki har choti-badi activity ko record karta hai. `rsyslog` system files mein text log likhta hai, `journalctl` memory-based binary logs check karne ke kaam aata hai, aur `logrotate` un logs ko compress aur delete karke disk space bachata hai.*
 
 ---
 ## Related Notes

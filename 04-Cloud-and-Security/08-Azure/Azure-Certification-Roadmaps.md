@@ -1,6 +1,6 @@
-﻿---
-tags: [desktop-support, azure, certification, roadmaps, L1, L2]
-aliases: [az900-guide, az104-guide, azure-certs]
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [azure-certification-roadmaps, azure-certification-roadmaps]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -11,6 +11,7 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: The Microsoft Azure certification path validates cloud competence. **AZ-900 (Azure Fundamentals)** covers baseline cloud concepts, core services, security, privacy, and billing. **AZ-104 (Azure Administrator)** is a deep, technical certification validating skills in managing identity, governance, storage, compute, and virtual networks.
 - **Why it matters for a support engineer**: Cloud literacy is mandatory for modern IT roles. AZ-900 provides L1 engineers with structural cloud vocabulary, while AZ-104 is the gold standard for L2/L3 engineers seeking to administer corporate cloud environments.
@@ -22,8 +23,8 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Certification Breakdown: AZ-900 vs. AZ-104
 
 | Feature | AZ-900 (Azure Fundamentals) | AZ-104 (Azure Administrator Associate) |
@@ -72,32 +73,6 @@ The AZ-104 exam requires hands-on technical configuration skills across five dom
 
 ---
 
-## Tested Commands & Syntax (AZ-104 Focus)
-
-AZ-104 questions often require selecting the correct PowerShell cmdlet or Azure CLI command:
-
-### PowerShell
-```powershell
-# Create a new Storage Account with Geo-Redundant Storage (GRS)
-New-AzStorageAccount -ResourceGroupName "RG-Prod" -Name "sauniquename104" -Location "eastus" -SkuName "Standard_GRS" -Kind "StorageV2"
-
-# Create a VNet Peering connection
-Add-AzVirtualNetworkPeering -Name "Peer-Hub-to-Spoke" -VirtualNetwork $HubVNet -RemoteVirtualNetworkId $SpokeVNet.Id
-
-# Mount an Azure File Share on a local Windows PC
-net use Z: \\sauniquename104.file.core.windows.net\sharename /u:AZURE\sauniquename104 [Account_Key]
-```
-
-### Azure CLI
-```bash
-# Create a Resource Group
-az group create --name RG-Prod --location eastus
-
-# Generate a SAS token for a storage container (expires in 2 hours)
-az storage container generate-sas --account-name sauniquename104 --name blobs --permissions r --expiry 2026-06-25T18:00:00Z --output tsv
-```
-
----
 
 ## Real-World Exam Scenarios
 
@@ -134,6 +109,7 @@ az storage container generate-sas --account-name sauniquename104 --name blobs --
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -157,6 +133,7 @@ az storage container generate-sas --account-name sauniquename104 --name blobs --
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -167,8 +144,12 @@ az storage container generate-sas --account-name sauniquename104 --name blobs --
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #azure #certification #roadmaps #L1 #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Execute a standard AZ-104 command-line provisioning template to build a resource group, create a storage account with lifecycle management policies, and verify configuration.
 **Time Required:** 30 minutes
 **Environment Needed:** Azure Free Tier or Sandbox account.
@@ -222,8 +203,63 @@ az storage container generate-sas --account-name sauniquename104 --name blobs --
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+AZ-104 questions often require selecting the correct PowerShell cmdlet or Azure CLI command:
 
+### PowerShell
+```powershell
+# Create a new Storage Account with Geo-Redundant Storage (GRS)
+New-AzStorageAccount -ResourceGroupName "RG-Prod" -Name "sauniquename104" -Location "eastus" -SkuName "Standard_GRS" -Kind "StorageV2"
+
+# Create a VNet Peering connection
+Add-AzVirtualNetworkPeering -Name "Peer-Hub-to-Spoke" -VirtualNetwork $HubVNet -RemoteVirtualNetworkId $SpokeVNet.Id
+
+# Mount an Azure File Share on a local Windows PC
+net use Z: \\sauniquename104.file.core.windows.net\sharename /u:AZURE\sauniquename104 [Account_Key]
+```
+
+### Azure CLI
+```bash
+# Create a Resource Group
+az group create --name RG-Prod --location eastus
+
+# Generate a SAS token for a storage container (expires in 2 hours)
+az storage container generate-sas --account-name sauniquename104 --name blobs --permissions r --expiry 2026-06-25T18:00:00Z --output tsv
+```
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The Microsoft certification path validating Azure cloud knowledge (AZ-900: Fundamentals, AZ-104: Administrator).
+> **Why**: Critical for validation, career growth, and standardizing team operations.
+> **How**: Study exam blueprints, build active labs (using resource groups), and master PowerShell/CLI commands.
+> **Command**: `New-AzStorageAccount` / `az group create`
+> **Interview Answer Starter**: "To prepare for cloud administration, I target Microsoft's AZ-104 blueprint, focusing on virtual networks, RBAC governance, and storage accounts..."
+
+**Key Numbers to Remember:**
+- AZ-104 pass score: 700 / 1000
+- Networking weighting in AZ-104: 20-25%
+- Cloud concepts weighting in AZ-900: 25-30%
+- Free account credit window: 30 days
+
+**3 Things Interviewer Wants to Hear:**
+- Hands-on lab experience is mandatory to pass the AZ-104
+- The difference between Layer 4 (Load Balancer) and Layer 7 (App Gateway) load balancing
+- How to manage cloud billing using Resource Tags and Cost Management
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is the main difference between IaaS and PaaS in cloud computing?**
 A: IaaS (Infrastructure as a Service) provides raw hardware like virtual machines, where you manage the OS, software updates, and configuration. PaaS (Platform as a Service) provides a managed hosting environment (like Azure App Services) where Microsoft handles the OS, server patching, and scaling, and you only manage the application code.
@@ -255,34 +291,14 @@ A: Our team is migrating more workloads to the cloud. I want to ensure my skills
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The Microsoft certification path validating Azure cloud knowledge (AZ-900: Fundamentals, AZ-104: Administrator).
-> **Why**: Critical for validation, career growth, and standardizing team operations.
-> **How**: Study exam blueprints, build active labs (using resource groups), and master PowerShell/CLI commands.
-> **Command**: `New-AzStorageAccount` / `az group create`
-> **Interview Answer Starter**: "To prepare for cloud administration, I target Microsoft's AZ-104 blueprint, focusing on virtual networks, RBAC governance, and storage accounts..."
-
-**Key Numbers to Remember:**
-- AZ-104 pass score: 700 / 1000
-- Networking weighting in AZ-104: 20-25%
-- Cloud concepts weighting in AZ-900: 25-30%
-- Free account credit window: 30 days
-
-**3 Things Interviewer Wants to Hear:**
-- Hands-on lab experience is mandatory to pass the AZ-104
-- The difference between Layer 4 (Load Balancer) and Layer 7 (App Gateway) load balancing
-- How to manage cloud billing using Resource Tags and Cost Management
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure-Certification-Roadmaps ke bare mein seekhta hai. Yeh azure infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure Identity]] — Core domain (IAM / RBAC) tested in AZ-104.
 - [[04-Cloud-and-Security/08-Azure/Azure-VMs|Azure VMs]] — Core compute domain tested in AZ-104.
 - [[04-Cloud-and-Security/08-Azure/Azure-Networking|Azure Networking]] — Core networking domain (VNet/NSG) tested in AZ-104.
 
 ---
-
-## Tags
-#desktop-support #azure #certification #roadmaps #L1 #L2 #interview-topic #lab-complete #daily-use
-

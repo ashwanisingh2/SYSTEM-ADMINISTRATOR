@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, security, access-management, rbac, L3]
-aliases: [pim-guide, rbac-guide, jit-access]
+---
+tags: [desktop-support, security, threat-protection, L2]
+aliases: [access-management, access-management]
 created: 2026-06-25
 status: #complete
 difficulty: #advanced
-cert-relevant: #az-104
+cert-relevant: #none
 ---
 
 # Access Management (RBAC, PIM, and JIT)
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Access Management is the framework of security policies and technologies that controls user privileges. Key components include **Role-Based Access Control (RBAC)** (permissions linked to job roles), **Privileged Identity Management (PIM)** (time-bound administrative access), and **Just-in-Time (JIT)** access (opening management ports dynamically).
 - **Why it matters for a support engineer**: Administrators are prime targets for cyberattacks. Support engineers manage access delegation, troubleshoot PIM role activation issues, configure JIT VM rules, and ensure that the principle of least privilege is maintained.
@@ -22,8 +23,8 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Role-Based Access Control (RBAC) Design
 RBAC groups access rights into roles. Instead of assigning individual permissions to users, you assign **Roles** (like Reader, Contributor, or custom roles) to **Security Groups**:
 - **Scope Hierarchy**: Roles can be scoped at four levels: Management Group -> Subscription -> Resource Group -> Resource.
@@ -61,42 +62,6 @@ Leaving management ports (TCP `3389` for RDP, TCP `22` for SSH) open to the inte
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-Access management uses the `Az.Resources` and `Microsoft.Graph.Identity.Governance` modules.
-```powershell
-# Connect to Azure
-Connect-AzAccount
-
-# Create a new RBAC role assignment scoped to a specific Resource Group
-New-AzRoleAssignment -SignInName "admin@company.com" -RoleDefinitionName "User Access Administrator" -ResourceGroupName "RG-Prod-Services"
-
-# Request JIT VM Access for a virtual machine via PowerShell (opens port 3389 for 2 hours)
-Start-AzNetworkWatcherResourceIPFlowVerify -TargetResourceId "/subscriptions/sub-id/resourceGroups/RG-Prod/providers/Microsoft.Compute/virtualMachines/VM-App" ... # (or use MDE JIT cmdlets)
-
-# Connect to Microsoft Graph with PIM scopes
-Connect-MgGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory"
-
-# Query active PIM role schedules for Entra ID roles
-Get-MgRoleManagementDirectoryRoleAssignmentSchedule | Select-Object PrincipalId, RoleDefinitionId, Status
-```
-
-### Azure CLI
-```bash
-# Create a Contributor role assignment for a group scoped to a subscription
-az role assignment create --assignee-object-id "group-guid" --role "Contributor" --scope "/subscriptions/11111111-2222-3333-4444-555555555555"
-
-# Request JIT VM connection access using Azure CLI
-az security jit-policy request --location eastus --name "default" --resource-group RG-Prod --vm-name VM-App --port 3389 --allowed-ips "203.0.113.10"
-```
-
-### GUI Path
-- **Azure RBAC**: Azure Portal -> Resource Group -> **Access Control (IAM)** -> **Role assignments**.
-- **Entra PIM**: Entra Admin Center -> **Protection** -> **Privileged Identity Management**.
-- **JIT VM Access**: Azure Portal -> **Microsoft Defender for Cloud** -> **Cloud Security** -> **Just-in-time VM access**.
-
----
 
 ## Real-World Scenarios
 
@@ -141,6 +106,7 @@ az security jit-policy request --location eastus --name "default" --resource-gro
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -164,6 +130,7 @@ az security jit-policy request --location eastus --name "default" --resource-gro
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -174,8 +141,12 @@ az security jit-policy request --location eastus --name "default" --resource-gro
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #security #access-management #rbac #L3 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Configure a resource group, create a custom RBAC role using PowerShell, assign it to a test user, and verify scope inheritance.
 **Time Required:** 30 minutes
 **Environment Needed:** Azure Free Tier or Sandbox account.
@@ -226,8 +197,73 @@ az security jit-policy request --location eastus --name "default" --resource-gro
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+Access management uses the `Az.Resources` and `Microsoft.Graph.Identity.Governance` modules.
+```powershell
+# Connect to Azure
+Connect-AzAccount
 
+# Create a new RBAC role assignment scoped to a specific Resource Group
+New-AzRoleAssignment -SignInName "admin@company.com" -RoleDefinitionName "User Access Administrator" -ResourceGroupName "RG-Prod-Services"
+
+# Request JIT VM Access for a virtual machine via PowerShell (opens port 3389 for 2 hours)
+Start-AzNetworkWatcherResourceIPFlowVerify -TargetResourceId "/subscriptions/sub-id/resourceGroups/RG-Prod/providers/Microsoft.Compute/virtualMachines/VM-App" ... # (or use MDE JIT cmdlets)
+
+# Connect to Microsoft Graph with PIM scopes
+Connect-MgGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory"
+
+# Query active PIM role schedules for Entra ID roles
+Get-MgRoleManagementDirectoryRoleAssignmentSchedule | Select-Object PrincipalId, RoleDefinitionId, Status
+```
+
+### Azure CLI
+```bash
+# Create a Contributor role assignment for a group scoped to a subscription
+az role assignment create --assignee-object-id "group-guid" --role "Contributor" --scope "/subscriptions/11111111-2222-3333-4444-555555555555"
+
+# Request JIT VM connection access using Azure CLI
+az security jit-policy request --location eastus --name "default" --resource-group RG-Prod --vm-name VM-App --port 3389 --allowed-ips "203.0.113.10"
+```
+
+### GUI Path
+- **Azure RBAC**: Azure Portal -> Resource Group -> **Access Control (IAM)** -> **Role assignments**.
+- **Entra PIM**: Entra Admin Center -> **Protection** -> **Privileged Identity Management**.
+- **JIT VM Access**: Azure Portal -> **Microsoft Defender for Cloud** -> **Cloud Security** -> **Just-in-time VM access**.
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The security framework managing user privileges, utilizing RBAC for job roles, PIM for JIT admin access, and JIT VM port controls.
+> **Why**: Critical for preventing credential abuse, stopping lateral movement, and enforcing least privilege.
+> **How**: Scoping roles to groups (IAM), configuring eligible roles in PIM, and securing RDP/SSH ports via JIT policies.
+> **Command**: `New-AzRoleAssignment` / `az security jit-policy request`
+> **Interview Answer Starter**: "To implement access management, I enforce Role-Based Access Control to eliminate direct user assignments, combining it with PIM for JIT admin access..."
+
+**Key Numbers to Remember:**
+- Default duration for JIT port access: 2 - 3 hours
+- Levels in RBAC hierarchy: 4
+- Standard port for RDP: TCP 3389 / SSH: TCP 22
+- Target Emergency Accounts: Minimum of 2 Break-Glass accounts recommended
+
+**3 Things Interviewer Wants to Hear:**
+- Standing administrative access is a major security risk and should be replaced by PIM
+- Using JIT VM Access blocks public RDP ports (3389) from constant scanner attacks
+- The setup and testing process for emergency Break-Glass accounts
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is the principle of Least Privilege?**
 A: The principle of least privilege is a security rule stating that users should only be granted the minimum access levels (permissions) necessary to complete their job tasks. This limits the potential damage if an account is compromised.
@@ -256,34 +292,14 @@ A: I conducted an audit of our Azure storage permissions and found that our deve
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The security framework managing user privileges, utilizing RBAC for job roles, PIM for JIT admin access, and JIT VM port controls.
-> **Why**: Critical for preventing credential abuse, stopping lateral movement, and enforcing least privilege.
-> **How**: Scoping roles to groups (IAM), configuring eligible roles in PIM, and securing RDP/SSH ports via JIT policies.
-> **Command**: `New-AzRoleAssignment` / `az security jit-policy request`
-> **Interview Answer Starter**: "To implement access management, I enforce Role-Based Access Control to eliminate direct user assignments, combining it with PIM for JIT admin access..."
-
-**Key Numbers to Remember:**
-- Default duration for JIT port access: 2 - 3 hours
-- Levels in RBAC hierarchy: 4
-- Standard port for RDP: TCP 3389 / SSH: TCP 22
-- Target Emergency Accounts: Minimum of 2 Break-Glass accounts recommended
-
-**3 Things Interviewer Wants to Hear:**
-- Standing administrative access is a major security risk and should be replaced by PIM
-- Using JIT VM Access blocks public RDP ports (3389) from constant scanner attacks
-- The setup and testing process for emergency Break-Glass accounts
+---
+## Seedha Simple Mein
+*Seedha simple mein: Access-Management ke bare mein seekhta hai. Yeh security infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure Identity]] — Details resource scopes and IAM bindings.
 - [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft Entra ID]] — The identity system managing administrative users.
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — Covers the Least Privilege concept.
 
 ---
-
-## Tags
-#desktop-support #security #access-management #rbac #L3 #interview-topic #lab-complete #daily-use
-

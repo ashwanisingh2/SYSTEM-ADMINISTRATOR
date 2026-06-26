@@ -184,6 +184,25 @@ A:
 2. **Rebinding State (T2 at $87.5\%$ lease time):** If the original server does not respond (e.g., it is offline), the client waits until $87.5\%$ of the lease has elapsed. It then enters the rebinding state and sends a broadcast `DHCPREQUEST` to *any* available DHCP server on the network. If a server responds, the lease is renewed. If the lease expires completely ($100\%$), the client drops the IP and defaults to APIPA.
 
 ---
+
+---
+## Real-World Scenario: File Server Crash (500+ Users Affected)
+Agar company ka main file server (500+ users connected) crash ho jaye, toh as a Senior Sysadmin aapka immediate action plan yeh hoga:
+1. **Identify & Isolate**: Check if the server is pingable. Verify hardware status via Dell iDRAC / HPE iLO or check virtual machine status in vCenter/Hyper-V.
+2. **Access Check & Lock**: If the storage volume is corrupt or unmapped, stop DFS Namespace referrals to the crashed target to redirect users to secondary replica servers if active.
+3. **Trigger Disaster Recovery (DR)**: Start restoring the crashed system drive or volumes from the latest VSS snapshot or Azure Backup RSV restore point.
+4. **Communication**: Broadcast status updates to the Incident Commander and helpdesk teams to manage incoming support volume.
+
+### PowerShell Automation Snippet: Verify File Shares and Access Permissions
+```powershell
+# Get all active file shares on the server
+Get-SmbShare | Format-Table -AutoSize
+
+# Test local DFS Namespace server connection health
+Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
+```
+
+---
 ## Related Notes
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — The core network services protocol flows.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]] — AD DS authorization processes.

@@ -1,8 +1,10 @@
 ---
-tags: [sysadmin, troubleshooting, flowchart, reference]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+tags: [desktop-support, systems, troubleshooting, L2]
+aliases: [troubleshooting-decision-trees, ref-03]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # REF-03: Troubleshooting Decision Trees
@@ -102,7 +104,89 @@ graph TD
 ```
 
 ---
-## Lab — Step by Step
+
+### 5. Slow Internet Diagnostic Flowchart
+This flowchart details how to diagnose slow internet connectivity for a user.
+
+```mermaid
+graph TD
+    A["User reports slow internet"] --> B{"Is DNS resolution slow?"}
+    B -- "Yes" --> C["Check local DNS server response / Switch to 8.8.8.8 for test"]
+    B -- "No" --> D{"Is a proxy server configured?"}
+    D -- "Yes" --> E["Bypass proxy server in settings / Verify proxy server latency"]
+    D -- "No" --> F{"Is network bandwidth saturated?"}
+    F -- "Yes" --> G["Identify heavy downloaders via firewall / Apply Quality of Service (QoS) rules"]
+    F -- "No" --> H["Check local Wi-Fi latency, run traceroute to identify external routing hops"]
+```
+
+---
+
+### 6. Domain Trust Relationship Failure Flowchart
+This flowchart details how to troubleshoot Domain Trust failed errors on domain-joined workstations.
+
+```mermaid
+graph TD
+    A["Domain Trust Failed on Workstation"] --> B{"Is System Time synchronized with DC?"}
+    B -- "No" --> C["Sync system clock using net time or w32tm / Fix local timezone settings"]
+    B -- "Yes" --> D{"Is DNS resolution to DC working?"}
+    D -- "No" --> E["Check client IP DNS configuration / Flush DNS cache / Verify DC DNS records"]
+    D -- "Yes" --> F{"Is secure channel broken?"}
+    F -- "Yes" --> G["Reset machine password in Active Directory via Reset-ComputerMachinePassword / Test-ComputerSecureChannel -Repair"]
+    F -- "No" --> H["Rejoin computer to domain / Check AD replication state"]
+```
+
+---
+
+### 7. Email Delivery Failure Flowchart
+This flowchart details how to diagnose outbound emails failing to deliver or getting rejected by external recipients.
+
+```mermaid
+graph TD
+    A["Outbound Email not delivering (Bounces)"] --> B{"Is SPF record valid?"}
+    B -- "No" --> C["Add target sending IP to SPF TXT record on DNS server"]
+    B -- "Yes" --> D{"Is DKIM signature present and valid?"}
+    D -- "No" --> E["Generate and publish DKIM keys in DNS / Enable DKIM on mail server"]
+    D -- "Yes" --> F{"Does DMARC policy reject the email?"}
+    F -- "Yes" --> G["Align Mail-From domain with SPF/DKIM domains / Adjust DMARC policy from reject to quarantine/none"]
+    F -- "No" --> H{"Is the sending IP listed on an RBL (Blacklist)?"}
+    H -- "Yes" --> I["Request removal from blacklist / Route outgoing mail via smart host relay"]
+    H -- "No" --> J["Check mail gateway logs / Verify recipient mailbox is active"]
+```
+
+---
+
+### 8. RDP Connection Failure Flowchart
+This flowchart details how to diagnose RDP connection failures on local or remote servers.
+
+```mermaid
+graph TD
+    A["RDP Connection Failed"] --> B{"Is port 3389 blocked by firewall?"}
+    B -- "Yes" --> C["Allow port 3389 in local Windows Firewall and network security groups"]
+    B -- "No" --> D{"Is Network Level Authentication (NLA) blocking?"}
+    D -- "Yes" --> E["Disable NLA on remote host via System Properties or registry / Connect using NLA-supported client"]
+    D -- "No" --> F{"Is RDP self-signed certificate invalid or expired?"}
+    F -- "Yes" --> G["Clear old RDP certificates in RSA MachineKeys and restart TermService"]
+    F -- "No" --> H["Verify RDP host service is running / Check local resource limits (RAM/CPU)"]
+```
+
+---
+
+### 9. Container Startup Failure Flowchart
+This flowchart details how to diagnose containers failing to launch or exiting immediately.
+
+```mermaid
+graph TD
+    A["Container won't start / Exits immediately"] --> B{"Is image missing or corrupt?"}
+    B -- "Yes" --> C["Run docker pull to fetch the correct image tag"]
+    B -- "No" --> D{"Is target port already bound on host?"}
+    D -- "Yes" --> E["Change port mapping in docker run/compose or terminate conflicting host service"]
+    D -- "No" --> F{"Is container hitting CPU/Memory resource limits?"}
+    F -- "Yes" --> G["Adjust memory/CPU limits in docker run/compose / Clean host disk space"]
+    F -- "No" --> H["Check container logs via docker logs to debug internal application errors"]
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to a Windows client machine and a Domain Controller (or virtual equivalent) to test Secure Channel diagnostic commands.
 
@@ -193,6 +277,10 @@ A:
 
 **Q3: How does clear-CMOS resolve a POST loop on a system after RAM upgrades?**
 A: Clearing the CMOS battery resets the BIOS configuration back to factory default parameters. When hardware changes (like adding RAM) occur, the BIOS may attempt to boot using the timing profiles and voltages of the old hardware, causing a POST boot loop. Clearing the CMOS forces the system to perform a clean hardware scan and rebuild the hardware timing configuration.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Yeh note sysadmin ke common troubleshootings (POST failure, slow internet, Domain trust loss, email blockages, container restart blocks, RDP failure) ke step-by-step Mermaid flowcharts provides karta hai, jisse failure paths ko locate karna aur errors ko narrow down karna easy ho jata hai.*
 
 ---
 ## Related Notes

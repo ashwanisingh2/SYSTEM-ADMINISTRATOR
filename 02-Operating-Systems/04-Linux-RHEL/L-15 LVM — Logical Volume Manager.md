@@ -1,6 +1,6 @@
 ---
-tags: [linux, storage, lvm, rhcsa]
-aliases: [logical-volume-manager]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-15-lvm-logical-volume-manager, l-15]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -14,6 +14,7 @@ cert-relevant: #rhcsa
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — LVM is a layer of abstraction between physical storage devices (hard disks) and the operating system's filesystem, enabling online resizing, snapshots, and disk spanning.
 - **Why it matters for a support engineer** — Production servers constantly run out of disk space. LVM enables administrators to add new storage drives and expand active partitions (like `/var` or `/home`) with zero downtime.
@@ -24,12 +25,11 @@ cert-relevant: #rhcsa
   - ****L2 Resolution:**** Initialized new storage drives as PVs, extends Volume Groups, creates/extends Logical Volumes, and resizes XFS or ext4 filesystems.
   - ****L3 Resolution:**** Handles LVM thin provisioning, configures automated system snapshots, performs volume migrations across physical disks, and resolves root partition extension failures.
 
-*Seedha simple mein: LVM storage manage karne ka ek flexible tareeka hai. Isme hum alag-alag hard disks ko mila kar ek bada storage pool (Volume Group) bana lete hain aur us pool se apni marzi ke size ke partitions (Logical Volumes) banate hain. In logical partitions ka size hum jab chahein live server par extend kar sakte hain.*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. LVM Architecture & Components
 LVM works on a three-tier hierarchy that pools physical storage:
 
@@ -57,8 +57,78 @@ Resizing LVM is a two-step process. First, the Logical Volume boundary is expand
 
 ---
 
-## Step-by-Step Lab / Configuration
+---
 
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A Red Hat Enterprise Linux system.
 > - An unformatted secondary hard disk attached (e.g., `/dev/sdb`).
@@ -137,8 +207,8 @@ df -hT /mnt/app
 
 ---
 
-## Common Commands / Cheat Sheet
-
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `pvcreate` | Initialize disk for LVM | `sudo pvcreate /dev/sdc` |
@@ -152,8 +222,8 @@ df -hT /mnt/app
 
 ---
 
+---
 ## Troubleshooting
-
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
 | **`pvcreate` fails with device busy error** | Disk already has an active partition table or is mounted. | Verify disk utilization with `lsblk`. Run `wipefs -a /dev/sdb` to clean disk signature if sure. |
@@ -162,8 +232,8 @@ df -hT /mnt/app
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What are the three core layers of LVM storage architecture?**
 > A: The three core layers are:
 > 1. **Physical Volumes (PV)**: Physical disks or partitions.
@@ -181,6 +251,11 @@ df -hT /mnt/app
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: LVM storage manage karne ka ek flexible tareeka hai. Isme hum alag-alag hard disks ko mila kar ek bada storage pool (Volume Group) bana lete hain aur us pool se apni marzi ke size ke partitions (Logical Volumes) banate hain. In logical partitions ka size hum jab chahein live server par extend kar sakte hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management]]
 - [[02-Operating-Systems/04-Linux-RHEL/L-11 File Systems and Storage in Linux]]

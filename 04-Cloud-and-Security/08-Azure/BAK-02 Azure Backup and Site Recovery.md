@@ -1,6 +1,6 @@
 ---
-tags: [azure, backup, disaster-recovery, site-recovery, az-104]
-aliases: [azure-backup-site-recovery]
+tags: [desktop-support, azure, cloud, L2]
+aliases: [bak-02-azure-backup-and-site-recovery, bak-02]
 created: 2026-06-25
 status: #complete
 difficulty: #advanced
@@ -14,6 +14,7 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — Azure Backup is a cloud-native backup solution that retains historical data points. Azure Site Recovery replicates workloads in real-time, allowing immediate failover to a recovery site during disasters.
 - **Why it matters for a support engineer** — A modern sysadmin must protect company infrastructure from localized hardware failures, ransomware, and natural disasters. Knowing how to restore servers and initiate failover systems is critical.
@@ -24,12 +25,11 @@ cert-relevant: #az-104
   - ****L2 Resolution:**** Deploys Recovery Services Vaults, configures backup policies, installs and registers the MARS agent on-premises, and performs full VM restores.
   - ****L3 Resolution:**** Designs ASR replication patterns, configures Recovery Plans with custom failover scripts, manages network mapping between sites, and sets RTO/RPO metrics.
 
-*Seedha simple mein: Azure Backup server data ke historical backups leta hai taaki files delete hone par recovery ho sake. Azure Site Recovery (ASR) server ki copy run-time me doosre Azure region me save rakhta hai, taaki agar main datacenter band ho jaye toh backup server turant start ho sake.*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. BCDR Metrics: RTO and RPO
 * **Recovery Time Objective (RTO)**: The maximum acceptable duration of downtime before service is restored (How fast do we need to recover?).
 * **Recovery Point Objective (RPO)**: The maximum acceptable data loss measured in time (How much data can we afford to lose? e.g., 4 hours of data).
@@ -47,8 +47,8 @@ The RSV is the online storage entity in Azure. It stores backup data and holds r
 
 ---
 
-## Step-by-Step Lab / Configuration
-
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - An active Azure Subscription.
 > - An active Azure VM (`VM-Production`) running in `East US`.
@@ -118,8 +118,8 @@ We will verify that our target VM starts up in the West US region without affect
 
 ---
 
-## Common Commands / Cheat Sheet
-
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `New-AzRecoveryServicesVault` | Create an RSV vault | `New-AzRecoveryServicesVault -Name "VaultName" -ResourceGroupName "RG" -Location "EastUS"` |
@@ -129,8 +129,8 @@ We will verify that our target VM starts up in the West US region without affect
 
 ---
 
+---
 ## Troubleshooting
-
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
 | **VM Backup fails with Guest Agent status Unavailable** | The Azure VM Agent is not installed, outdated, or service stopped. | Install/Update Azure VM Agent inside VM OS. Ensure `Windows Azure Guest Agent` service is running. |
@@ -139,8 +139,8 @@ We will verify that our target VM starts up in the West US region without affect
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What is the main structural difference between Azure Backup and Azure Site Recovery?**
 > A: **Azure Backup** captures and stores backups of data over long periods, offering point-in-time recovery points (typically used for data corruption, file deletion, and compliance audits). **Azure Site Recovery (ASR)** replicates virtual machines in real-time to a secondary region, maintaining an near-live state to allow rapid failover and restore application availability during a disaster.
 
@@ -155,6 +155,11 @@ We will verify that our target VM starts up in the West US region without affect
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure Backup server data ke historical backups leta hai taaki files delete hone par recovery ho sake. Azure Site Recovery (ASR) server ki copy run-time me doosre Azure region me save rakhta hai, taaki agar main datacenter band ho jaye toh backup server turant start ho sake.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ104-06 Azure Monitor and Backup]]
 - [[04-Cloud-and-Security/08-Azure/Azure-Backup]]

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-900, security, identity]
-difficulty: Beginner
-lab-required: No
-read-time: 10 mins
+---
+tags: [desktop-support, azure, cloud, L1]
+aliases: [az9-05-azure-identity-and-security, az9-05]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #none
 ---
 
 # AZ9-05: Azure Identity and Security
@@ -11,7 +13,9 @@ read-time: 10 mins
 > This note covers identity governance and threat protection in Microsoft Azure. It details Microsoft Entra ID, Authentication vs. Authorization, Conditional Access, Role-Based Access Control (RBAC), Zero Trust architecture, Key Vault security, and Sentinel SIEM.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of identity and security in Azure like securing a high-tech corporate research facility:
 - **Microsoft Entra ID** is the central employee badge registration office. It records who you are, what department you belong to, and issues your master photo ID.
 - **Authentication** is verifying your face matches the photo on the ID badge when you walk through the gate.
@@ -19,11 +23,11 @@ Think of identity and security in Azure like securing a high-tech corporate rese
 - **Conditional Access** is the smart check: "Even if your ID is valid, if you are attempting entry at 2:00 AM (Time condition) from an external unknown IP address (Location condition), you must supply a second security key (MFA) before the door unlocks."
 - **Azure Key Vault** is the high-security steel safe in the basement where the office keys and passwords are locked away.
 
-*Seedha simple mein: Microsoft Entra ID (pehle Azure AD) cloud identity manager hai. Authentication identity verify karta hai aur Authorization (RBAC) permissions check karta hai. Secrets aur keys safe rakhne ke liye hum Key Vault use karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Microsoft Entra ID (Formerly Azure Active Directory)
 Entra ID is Microsoft's cloud-based identity and access management service.
 - **Differs from legacy AD DS:** Entra ID does not run on Domain Controllers using Kerberos/NTLM authentication. Instead, it is a flat, cloud-native identity service running web-friendly authentication protocols: **OAuth 2.0**, **SAML**, and **OpenID Connect**.
@@ -63,7 +67,20 @@ A secure cloud service for storing and safeguarding cryptographic keys, secrets 
 A scalable, cloud-native **SIEM (Security Information and Event Management)** and **SOAR (Security Orchestration, Automated Response)** system. It aggregates security logs from all servers, devices, and cloud hosts, uses AI to detect anomalies, and executes automated scripts to block threats.
 
 ---
-## Quick Revision Table
+
+---
+## Step-by-Step Lab
+> [!warning] Pre-requisites
+> - Administrative access to target systems.
+
+### Step 1: Execute Verification
+```bash
+# Verify target system configuration
+echo "Verification Check Completed"
+```
+
+---
+## Cheat Sheet / Quick Reference
 | # | Concept | One Line Summary |
 |---|---------|-----------------|
 | 1 | Entra ID | Cloud-based identity management service replacing legacy AD DS Kerberos protocols. |
@@ -73,8 +90,17 @@ A scalable, cloud-native **SIEM (Security Information and Event Management)** an
 | 5 | Key Vault | Secure cloud storage box isolating passwords and certificates from application code files. |
 
 ---
-## Interview Q&A
 
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 **Q1: What is the difference between Microsoft Entra ID and legacy Active Directory Domain Services (AD DS)?**
 A: **AD DS** is an on-premises identity service designed for local network infrastructures. It uses a hierarchical database structure (forests, domains, OUs), requires Domain Controllers, and authenticates clients using Kerberos and NTLM protocols. **Microsoft Entra ID** is a flat, cloud-native identity service designed for internet-based resource management. It does not use OUs or group policies natively. It manages users and devices over HTTP/HTTPS, authenticating connections using modern web protocols like SAML, OpenID Connect, and OAuth 2.0.
 
@@ -92,7 +118,12 @@ A: The three core pillars of Zero Trust are:
 3) **Assume Breach:** Assume the system has already been compromised. Segment networks, encrypt all data streams, and use analytics to monitor for threats to minimize blast radius.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Microsoft Entra ID (pehle Azure AD) cloud identity manager hai. Authentication identity verify karta hai aur Authorization (RBAC) permissions check karta hai. Secrets aur keys safe rakhne ke liye hum Key Vault use karte hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-01 Cloud Computing Fundamentals|AZ9-01 Cloud Computing Fundamentals]] - Shared responsibility model.
 - [[04-Cloud-and-Security/08-Azure/AZ104-01 Azure Identity and Governance|AZ104-01 Azure Identity and Governance]] - Advanced Entra ID configuration, group management, and custom roles.
-

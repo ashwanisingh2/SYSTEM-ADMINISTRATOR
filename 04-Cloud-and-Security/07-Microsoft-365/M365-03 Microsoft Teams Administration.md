@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, m365, teams]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [m365-03-microsoft-teams-administration, m365-03]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # M365-03: Microsoft Teams Administration
@@ -11,13 +13,15 @@ read-time: 15 mins
 > This note covers the architecture, administrative controls, and connectivity models of Microsoft Teams. It details how to govern collaboration, manage external and guest communication, and troubleshoot performance/logistical issues.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Microsoft Teams as a modern office building. Each "Team" is a dedicated department floor. "Channels" are specialized conference rooms or bulletin boards on that floor (General, Projects, Budget). "Tabs" are the whiteboards and displays mounted in those rooms, while "Apps" are the tools and calculators brought into the rooms to help work get done.
-*Seedha simple mein: Microsoft Teams aapke organizational communication ka hub hai, jahan teams, channels aur custom messaging policies ke zariye admin access control aur integration settings set ki jaati hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Teams Architecture & Storage
 Teams is not a standalone storage engine; it is a unified interface built on top of multiple M365 services:
 - **Team Creation**: Behind every Team is a hidden Microsoft 365 Group, which provisions a SharePoint Online Team Site, an Exchange Online group mailbox, and a OneNote notebook.
@@ -42,7 +46,24 @@ Policies define what features are available to users. They can be applied global
 - **Operator Connect**: A hybrid model where you select a participating third-party operator from the Teams Admin Center to manage PSTN calling over managed network pipelines.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Confusing External Access (Federation) with Guest Access. Disabling external access will prevent communication with foreign organizations, while guest access control is what governs outside vendors getting inside your teams.
+> Allowing uncontrolled Team creation by all users. This leads to "Teams Sprawl," producing dozens of empty teams, duplicate SharePoint sites, and fragmented document storage.
+> Deploying Teams without setting up Microsoft 365 Group naming policies, leading to confusing or duplicate names (e.g., "HR" vs "Human Resources Department").
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Restrict Microsoft 365 Group creation to a designated security group (e.g., "Group Creators"). Require users to submit a ticket/request form for new Teams. This keeps your SharePoint environment clean and organized.
+> Use the **Call Quality Dashboard (CQD)** to monitor tenant-wide network health trends. It identifies whether call quality problems are localized to specific offices, Wi-Fi networks, or ISP routes.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Microsoft 365 Tenant with Teams Administrator permissions and Microsoft Teams PowerShell Module installed.
 
@@ -87,7 +108,9 @@ Grant-CsTeamsMeetingPolicy -Identity "user@yourtenant.onmicrosoft.com" -PolicyNa
 ```
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 Get-Team                                               # Lists all Teams in the tenant
 Get-TeamUser -GroupId "your-group-id"                 # Lists members and owners of a Team
@@ -97,8 +120,18 @@ Set-Team -GroupId "id" -AllowCreateUpdateChannels $false # Disables channel crea
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Standard Channel | Collaboration space visible and accessible to all members of the Team. |
+| 2 | Private Channel | Restricted space inside a Team accessible only to a selected subset of members. |
+| 3 | Guest Access | Enables external users to participate in chats, meetings, and co-author files. |
+| 4 | External Access | Federation enabling text/call communication with external domains without tenant entry. |
+| 5 | Call Quality Dashboard | Analytics portal aggregating call and network performance data across the organization. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: Users report that external guests are unable to collaborate on files inside a Teams channel, despite guest access being enabled. They see a "You don't have access to this file" error.
 - Root Cause: SharePoint external sharing settings are set more restrictively than Teams guest access settings. SharePoint must allow sharing with external users for Teams file-sharing to work.
@@ -118,31 +151,9 @@ Set-Team -GroupId "id" -AllowCreateUpdateChannels $false # Disables channel crea
   4. Configure DSCP markings (EF for voice, AF41 for video) on switches and firewalls.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Confusing External Access (Federation) with Guest Access. Disabling external access will prevent communication with foreign organizations, while guest access control is what governs outside vendors getting inside your teams.
-> Allowing uncontrolled Team creation by all users. This leads to "Teams Sprawl," producing dozens of empty teams, duplicate SharePoint sites, and fragmented document storage.
-> Deploying Teams without setting up Microsoft 365 Group naming policies, leading to confusing or duplicate names (e.g., "HR" vs "Human Resources Department").
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Restrict Microsoft 365 Group creation to a designated security group (e.g., "Group Creators"). Require users to submit a ticket/request form for new Teams. This keeps your SharePoint environment clean and organized.
-> Use the **Call Quality Dashboard (CQD)** to monitor tenant-wide network health trends. It identifies whether call quality problems are localized to specific offices, Wi-Fi networks, or ISP routes.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Standard Channel | Collaboration space visible and accessible to all members of the Team. |
-| 2 | Private Channel | Restricted space inside a Team accessible only to a selected subset of members. |
-| 3 | Guest Access | Enables external users to participate in chats, meetings, and co-author files. |
-| 4 | External Access | Federation enabling text/call communication with external domains without tenant entry. |
-| 5 | Call Quality Dashboard | Analytics portal aggregating call and network performance data across the organization. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Where does Teams store its files, chats, and meeting recordings? Explain the architectural components.**
 A: Teams uses existing M365 infrastructure for storage. Files shared in channels are stored in the Team's SharePoint site document library. Files shared in 1:1 or group chats are stored in the sender's OneDrive for Business. Chat messages are written to hidden folders inside Exchange Online mailboxes for compliance indexing. Modern meeting recordings are stored directly in the SharePoint site folder (for channels) or the OneDrive "Recordings" folder of the user who initiated the recording.
 
@@ -157,8 +168,13 @@ A:
 A: QoS is configured by enabling DSCP markings in the Teams Admin Center under Meetings -> Meeting Settings -> Network. You must mark Audio traffic as DSCP EF (Expedited Forwarding), Video as AF41, and Application Sharing as AF31. On the local network firewalls and switches, you must prioritize UDP ports 3478 through 3481, ensuring they are not routed through deep packet inspection (DPI) proxies which introduce latency.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Microsoft Teams aapke organizational communication ka hub hai, jahan teams, channels aur custom messaging policies ke zariye admin access control aur integration settings set ki jaati hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-01 Microsoft 365 Administration|M365-01 Microsoft 365 Administration]] — Manages tenant-wide licensing and basic user roles.
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-04 SharePoint Online Administration|M365-04 SharePoint Online Administration]] — Governs the storage layer underpinning Teams channels.
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-05 Security and Compliance|M365-05 Security and Compliance]] — Controls retention, DLP, and eDiscovery for Teams data.
-

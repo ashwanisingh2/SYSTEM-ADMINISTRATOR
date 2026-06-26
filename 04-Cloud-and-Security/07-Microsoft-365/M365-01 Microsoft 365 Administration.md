@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, m365, tenant-admin, licensing]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 12 mins
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [m365-01-microsoft-365-administration, m365-01]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # M365-01: Microsoft 365 Administration
@@ -11,18 +13,20 @@ read-time: 12 mins
 > This note covers Microsoft 365 tenant administration. It details subscription licensing plans, admin center scopes, custom domain configuration (DNS requirements), identity management, RBAC administrator roles, and auditing.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of a Microsoft 365 Tenant as renting a complete virtual corporate office building in the Microsoft cloud:
 - **Licensing Plans** are the desk rental packages: you can rent a basic desk with a phone (Business Basic), a standard desk with physical office tools (Business Standard), or a high-security executive suite with armored files and encryption keys (Business Premium/E5).
 - **Custom Domain Setup** is putting your company logo and signpost on the front of the building (DNS records pointing mail and verification to your tenant).
 - **Global Administrator** is the building owner holding the master key ring.
 - **Service Health** is the dashboard showing if the city water main or power line (Microsoft servers) has an outage.
 
-*Seedha simple mein: M365 tenant setup karne ke liye hum custom domain add karte hain aur DNS records (MX, SPF, DKIM) verify karte hain. Licensing assignment and RBAC roles (Global Admin, User Admin) administrative boundaries ko regulate karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Microsoft 365 Licensing Plans
 M365 plans are categorized into Business (under 300 users) and Enterprise (unlimited users):
 
@@ -58,7 +62,9 @@ To send and receive emails using a custom domain (e.g., `user@company.com`) inst
 - **SharePoint Administrator:** Manage site collections, file storage, and OneDrive policies.
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to a new Microsoft 365 Tenant (or a free developer account from `developer.microsoft.com/en-us/microsoft-365/dev-program`).
 
@@ -89,8 +95,40 @@ To send and receive emails using a custom domain (e.g., `user@company.com`) inst
 5. Click **Finish adding**.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: M365 tenant setup karne ke liye hum custom domain add karte hain aur DNS records (MX, SPF, DKIM) verify karte hain. Licensing assignment and RBAC roles (Global Admin, User Admin) administrative boundaries ko regulate karte hain.*
+
+---
 ## Related Notes
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — DNS records configurations.
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online Administration|M365-02 Exchange Online Administration]] — Advanced mailbox provisioning.
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-05 Security and Compliance|M365-05 Security and Compliance]] — Conditional Access and MFA security.
-

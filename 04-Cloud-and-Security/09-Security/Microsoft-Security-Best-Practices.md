@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, security, best-practices, compliance, L2]
-aliases: [secure-score, security-baselines, cis-benchmarks]
+---
+tags: [desktop-support, security, threat-protection, L2]
+aliases: [microsoft-security-best-practices, microsoft-security-best-practices]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # Microsoft Security Best Practices
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Microsoft Security Best Practices are standard configurations recommended to secure Windows endpoints and cloud environments. These are evaluated using **Microsoft Secure Score** (an audit percentage indicating security posture), and implemented using **Security Baselines** (pre-configured groups of Microsoft settings) and **CIS Benchmarks** (independent hardening standards).
 - **Why it matters for a support engineer**: A support engineer must know how to maintain workstation security compliance. This requires applying standard Group Policy (GPO) baselines, auditing devices for configuration drift, and resolving user issues caused by hardened security rules.
@@ -22,8 +23,8 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Microsoft Secure Score
 Microsoft Secure Score evaluates your tenant across four key categories: Identity, Devices, Applications, and Data. It provides:
 - **Improvement Actions**: Recommendations to raise your score (e.g., "Require MFA for administrative roles").
@@ -42,39 +43,6 @@ CIS Benchmarks are globally recognized, vendor-neutral security guidelines devel
 
 ---
 
-## Commands & Syntax
-
-### CMD / Run Box (`secedit` tool)
-`secedit` is the command-line utility used to configure, analyze, and audit local security policies on a Windows client.
-```cmd
-:: Export the current local security policy settings to a text file for analysis
-secedit /export /cfg C:\Temp\local_policy.inf
-
-:: Analyze the current system configuration against a template policy database
-secedit /analyze /db C:\Windows\security\database\secedit.sdb /cfg C:\Temp\security_template.inf /log C:\Temp\analysis_log.txt
-
-:: Import and apply a security template configuration to the local machine immediately
-secedit /configure /db C:\Windows\security\database\secedit.sdb /cfg C:\Temp\security_template.inf /log C:\Temp\configure_log.txt
-
-:: Force the system to reapply all local security configurations immediately
-secedit /configure /db C:\Windows\security\database\secedit.sdb /apply
-```
-
-### PowerShell
-```powershell
-# Check if Credential Guard is active (a key Microsoft Security Baseline requirement)
-(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard).SecurityServicesRunning
-
-# Query local password complexity configuration using secedit export parsing
-secedit /export /cfg C:\Temp\sec.inf | Out-Null
-Select-String -Path C:\Temp\sec.inf -Pattern "PasswordComplexity"
-```
-
-### GUI Path
-- **Secure Score Dashboard**: Go to **security.microsoft.com** -> **Microsoft Secure Score**.
-- **Intune Baselines**: Go to **intune.microsoft.com** -> **Endpoint security** -> **Security baselines** -> Select target baseline (e.g., Windows 10 and later Security Baseline).
-
----
 
 ## Real-World Scenarios
 
@@ -125,6 +93,7 @@ Select-String -Path C:\Temp\sec.inf -Pattern "PasswordComplexity"
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -148,6 +117,7 @@ Select-String -Path C:\Temp\sec.inf -Pattern "PasswordComplexity"
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -158,8 +128,12 @@ Select-String -Path C:\Temp\sec.inf -Pattern "PasswordComplexity"
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #security #best-practices #compliance #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Use `secedit` to export the current local security policy on Windows, locate the password history setting, simulate a policy modification, and verify configuration.
 **Time Required:** 30 minutes
 **Environment Needed:** A Windows 10/11 client VM.
@@ -194,8 +168,70 @@ Select-String -Path C:\Temp\sec.inf -Pattern "PasswordComplexity"
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### CMD / Run Box (`secedit` tool)
+`secedit` is the command-line utility used to configure, analyze, and audit local security policies on a Windows client.
+```cmd
+:: Export the current local security policy settings to a text file for analysis
+secedit /export /cfg C:\Temp\local_policy.inf
 
+:: Analyze the current system configuration against a template policy database
+secedit /analyze /db C:\Windows\security\database\secedit.sdb /cfg C:\Temp\security_template.inf /log C:\Temp\analysis_log.txt
+
+:: Import and apply a security template configuration to the local machine immediately
+secedit /configure /db C:\Windows\security\database\secedit.sdb /cfg C:\Temp\security_template.inf /log C:\Temp\configure_log.txt
+
+:: Force the system to reapply all local security configurations immediately
+secedit /configure /db C:\Windows\security\database\secedit.sdb /apply
+```
+
+### PowerShell
+```powershell
+# Check if Credential Guard is active (a key Microsoft Security Baseline requirement)
+(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard).SecurityServicesRunning
+
+# Query local password complexity configuration using secedit export parsing
+secedit /export /cfg C:\Temp\sec.inf | Out-Null
+Select-String -Path C:\Temp\sec.inf -Pattern "PasswordComplexity"
+```
+
+### GUI Path
+- **Secure Score Dashboard**: Go to **security.microsoft.com** -> **Microsoft Secure Score**.
+- **Intune Baselines**: Go to **intune.microsoft.com** -> **Endpoint security** -> **Security baselines** -> Select target baseline (e.g., Windows 10 and later Security Baseline).
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The standard configuration baselines (Intune, GPO, CIS) used to harden Windows and Microsoft 365 environments.
+> **Why**: Standardizes security, prevents configuration gaps, and meets audit compliance.
+> **How**: Review Secure Score recommendation actions, deploy GPO/Intune Security Baselines, and audit local systems using `secedit`.
+> **Command**: `secedit /export` / `secedit /configure` / `gpupdate /force`
+> **Interview Answer Starter**: "To implement security best practices, I deploy Microsoft Security Baselines in Intune, verify device settings against CIS Benchmarks, and use secedit to audit..."
+
+**Key Numbers to Remember:**
+- Standard password history size recommendation: 24 passwords
+- Default CIS Level 1 lock screen timeout: 15 minutes
+- Command-line tool for local security databases: `secedit.exe`
+- SECEDIT configuration file format: `.inf`
+
+**3 Things Interviewer Wants to Hear:**
+- Secure Score is a guide for prioritization, not a race to 100% at the cost of operations
+- Microsoft Security Baselines simplify deployment of vetted configurations in Intune
+- Using `secedit` to analyze and configure offline Windows devices
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is Microsoft Secure Score and how do you use it?**
 A: Microsoft Secure Score is a security measurement dashboard in the Microsoft Defender portal. It gives a percentage rating of the organization's security posture and provides a list of recommended actions (like enabling MFA) to help improve security.
@@ -224,34 +260,14 @@ A: We implemented an Intune Security Baseline that locked computers after 10 min
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The standard configuration baselines (Intune, GPO, CIS) used to harden Windows and Microsoft 365 environments.
-> **Why**: Standardizes security, prevents configuration gaps, and meets audit compliance.
-> **How**: Review Secure Score recommendation actions, deploy GPO/Intune Security Baselines, and audit local systems using `secedit`.
-> **Command**: `secedit /export` / `secedit /configure` / `gpupdate /force`
-> **Interview Answer Starter**: "To implement security best practices, I deploy Microsoft Security Baselines in Intune, verify device settings against CIS Benchmarks, and use secedit to audit..."
-
-**Key Numbers to Remember:**
-- Standard password history size recommendation: 24 passwords
-- Default CIS Level 1 lock screen timeout: 15 minutes
-- Command-line tool for local security databases: `secedit.exe`
-- SECEDIT configuration file format: `.inf`
-
-**3 Things Interviewer Wants to Hear:**
-- Secure Score is a guide for prioritization, not a race to 100% at the cost of operations
-- Microsoft Security Baselines simplify deployment of vetted configurations in Intune
-- Using `secedit` to analyze and configure offline Windows devices
+---
+## Seedha Simple Mein
+*Seedha simple mein: Microsoft-Security-Best-Practices ke bare mein seekhta hai. Yeh security infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — The security principles behind baseline configurations.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Outlines the primary deployment engine for Windows baselines.
 - [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional Access]] — The cloud policy gatekeeper enforcing compliance standards.
 
 ---
-
-## Tags
-#desktop-support #security #best-practices #compliance #L2 #interview-topic #lab-complete #daily-use
-

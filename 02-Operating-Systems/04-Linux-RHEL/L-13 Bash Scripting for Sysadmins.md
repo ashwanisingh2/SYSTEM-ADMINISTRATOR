@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, scripting, bash, automation]
-difficulty: Advanced
-lab-required: Yes
-read-time: 18 mins
+---
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-13-bash-scripting-for-sysadmins, l-13]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #rhcsa
 ---
 
 # L-13: Bash Scripting for Sysadmins
@@ -11,7 +13,9 @@ read-time: 18 mins
 > This note covers Bash shell scripting fundamentals, including variables, control structures (conditionals, loops), file operators, functions, and arrays. It contains five production-ready administrative scripts with deployment step-guides.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of writing a bash script like training an automated kitchen assistant:
 - The **Shebang (`#!/bin/bash`)** is the instruction booklet telling the operating system: "Use the BASH interpreter to read this recipe."
 - **Variables** are labels on storage containers (e.g., set variable `TEMP_DIR="/tmp"`).
@@ -19,11 +23,11 @@ Think of writing a bash script like training an automated kitchen assistant:
 - **Loops (`for/while`)** are repetitive labor orders: "Check every server in this list and report if they are awake."
 - **Functions** are pre-configured recipes: instead of writing the same 20 lines of code every time you back up a folder, you package them under a single order named `run_backup`.
 
-*Seedha simple mein: Bash scripting multiple Linux commands ko ek file mein daal kar automation rules build karne ka process hai. Hum variables, loops aur condition matching ka use karke auto backup, user creation, aur disk space monitoring scripts design karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Script Structure & Execution
 - **Shebang:** The very first line of the script. Specifies the path to the interpreter:
   `#!/bin/bash`
@@ -97,6 +101,7 @@ fi
   - Iterate all: `for S in "${SERVERS[@]}"; do ...`
 
 ---
+
 ## Five Practical Sysadmin Scripts
 
 ### Script 1: Backup Script with Date
@@ -256,7 +261,79 @@ echo "Log rotation cleanup completed."
 ```
 
 ---
-## Lab — Step by Step
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A running Linux VM terminal console with root access, and a directory `/data/source_files` containing dummy text files.
 
@@ -299,8 +376,40 @@ echo "Log rotation cleanup completed."
    ```
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Bash scripting multiple Linux commands ko ek file mein daal kar automation rules build karne ka process hai. Hum variables, loops aur condition matching ka use karke auto backup, user creation, aur disk space monitoring scripts design karte hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Shell navigation and basics.
 - [[02-Operating-Systems/04-Linux-RHEL/L-04 Text Editors and File Viewing|L-04 Text Editors and File Viewing]] — File redirections and Vim usage.
 - [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]] — Wrapping scripts inside systemd units.
-

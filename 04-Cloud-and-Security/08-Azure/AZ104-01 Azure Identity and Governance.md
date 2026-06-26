@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-104, identity, governance]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [az104-01-azure-identity-and-governance, az104-01]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #az-104
 ---
 
 # AZ104-01: Azure Identity and Governance
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers advanced Azure identity management and resource governance. It details Entra ID profiles (B2B, B2C), Dynamic Group membership rules, Administrative Units, custom RBAC definitions, policy initiatives, and management group hierarchies.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure Identity and Governance like managing access and rules in a massive multi-tenant skyscraper:
 - **Entra ID Tenant** is the entire building dedicated to your company.
 - **B2B (Business-to-Business)** is giving a temporary contractor badge to a guest from another company (they use their own company's credentials to log in, but can enter your rooms).
@@ -19,11 +23,11 @@ Think of Azure Identity and Governance like managing access and rules in a massi
 - **Dynamic Groups** are automatic door permissions: "If your file says your department is Sales (User attribute), you are automatically assigned to the Sales Group and given access cards."
 - **Administrative Units (AUs)** are branch management desks: instead of making someone a Global Manager of the entire building, you make them the Branch Manager of the 4th Floor only (scoping admin permissions).
 
-*Seedha simple mein: AZ-104 level par identity governance secure RBAC scopes (Subscription to Resource) aur dynamic groups par chalta hai. Administrative Units helpdesk teams ko localized control dete hain bina global access diye.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Entra ID Profiles: B2B vs. B2C
 - **Entra ID B2B (Collaboration):** Allows you to invite guest users from other organizations to access your internal resources (teams, folders, apps). Authentication is handled by the guest's home identity provider (e.g., their own Entra ID or Google).
 - **Entra ID B2C (Customer Identity):** A separate directory infrastructure designed for customer-facing web applications. Allows users to sign up and create profiles using personal emails or social logins (Facebook, Google, Microsoft accounts). Completely isolated from your internal corporate directory.
@@ -67,32 +71,9 @@ If built-in roles (Owner, Contributor, Reader) do not fit requirements, create a
 - **Remediation Task:** When a policy evaluates a resource as non-compliant, a remediation task can run automatically to fix the configuration (e.g., installing missing monitoring agents using DeployIfNotExist).
 
 ---
-## PowerShell Administration Commands
-
-### Creating Users via PowerShell
-```powershell
-# Authenticate to Entra ID
-Connect-MgGraph
-
-# Create a new user account
-$PasswordProfile = @{ Password = "UserP@ssword123!" }
-New-MgUser -DisplayName "Alice Smith" `
-           -UserPrincipalName "asmith@company.onmicrosoft.com" `
-           -MailNickName "asmith" `
-           -AccountEnabled `
-           -PasswordProfile $PasswordProfile
-```
-
-### Assigning RBAC Roles via CLI
-```azurecli
-# Assign Contributor role to user at Resource Group scope
-az role assignment create --assignee "asmith@company.com" \
-                          --role "Contributor" \
-                          --resource-group "rg-prod-web"
-```
 
 ---
-## Lab — Step by Step
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal with Owner permissions on a subscription.
 
@@ -124,8 +105,57 @@ az role assignment create --assignee "asmith@company.com" \
 5. The user can now view storage accounts within that resource group but has no other administrative rights.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+### Creating Users via PowerShell
+```powershell
+# Authenticate to Entra ID
+Connect-MgGraph
+
+# Create a new user account
+$PasswordProfile = @{ Password = "UserP@ssword123!" }
+New-MgUser -DisplayName "Alice Smith" `
+           -UserPrincipalName "asmith@company.onmicrosoft.com" `
+           -MailNickName "asmith" `
+           -AccountEnabled `
+           -PasswordProfile $PasswordProfile
+```
+
+### Assigning RBAC Roles via CLI
+```azurecli
+# Assign Contributor role to user at Resource Group scope
+az role assignment create --assignee "asmith@company.com" \
+                          --role "Contributor" \
+                          --resource-group "rg-prod-web"
+```
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AZ-104 level par identity governance secure RBAC scopes (Subscription to Resource) aur dynamic groups par chalta hai. Administrative Units helpdesk teams ko localized control dete hain bina global access diye.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-02 Azure Global Infrastructure|AZ9-02 Azure Global Infrastructure]] — Resource group containers and tenant models.
 - [[04-Cloud-and-Security/08-Azure/AZ9-05 Azure Identity and Security|AZ9-05 Azure Identity and Security]] — Base RBAC roles and Entra ID basics.
 - [[04-Cloud-and-Security/08-Azure/AZ104-02 Azure Storage Administration|AZ104-02 Azure Storage Administration]] — Granting permissions to storage keys.
-

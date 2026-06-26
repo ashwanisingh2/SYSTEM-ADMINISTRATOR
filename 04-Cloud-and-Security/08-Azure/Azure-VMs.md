@@ -1,24 +1,17 @@
-﻿---
-tags:
-  - desktop-support
-  - azure
-  - virtual-machines
-  - infrastructure
-  - L2
-aliases:
-  - azure-vms-guide
-  - vm-diagnostics
-  - vm-redeploy
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [azure-vms, azure-vms]
 created: 2026-06-25
-status:
-difficulty:
-cert-relevant:
+status: #complete
+difficulty: #intermediate
+cert-relevant: #az-104
 ---
 
 # Azure Virtual Machines
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Azure Virtual Machines (VMs) are on-demand, scalable, virtualized computing resources (IaaS) hosted in Microsoft's global data centers, running operating systems like Windows Server, Windows 10/11, or Linux.
 - **Why it matters for a support engineer**: Organizations host servers, databases, and remote desktops (Azure Virtual Desktop) in Azure. Support engineers manage VM lifecycle actions, expand virtual disks, and troubleshoot boot failures or connection drops.
@@ -30,8 +23,8 @@ cert-relevant:
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. VM Sizing & Families
 Azure categorizes VM sizes by workload performance:
 - **A-Series / B-Series (Burstable)**: General purpose, budget-friendly. B-series is ideal for workloads (like development servers) that run idle but need occasional high CPU bursts.
@@ -67,46 +60,6 @@ A standard Azure VM has three default disk categories:
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-VM management uses the `Az.Compute` module.
-```powershell
-# Connect to Azure
-Connect-AzAccount
-
-# Start a stopped Virtual Machine
-Start-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01"
-
-# Stop and deallocate a Virtual Machine (Force parameter releases billing charges)
-Stop-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01" -Force -Confirm:$false
-
-# Resize a VM to Standard_D4s_v5 size
-$VM = Get-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01"
-$VM.HardwareProfile.VmSize = "Standard_D4s_v5"
-Update-AzVM -ResourceGroupName "RG-Prod-Servers" -VM $VM
-
-# Redeploy a stuck VM to a new hardware host
-Restart-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01" -Redeploy
-```
-
-### Azure CLI
-```bash
-# Start a Virtual Machine
-az vm start --resource-group RG-Prod-Servers --name VM-Web-01
-
-# Stop and deallocate a VM
-az vm deallocate --resource-group RG-Prod-Servers --name VM-Web-01
-
-# Redeploy the VM
-az vm redeploy --resource-group RG-Prod-Servers --name VM-Web-01
-```
-
-### GUI Path
-- **Power & Redeploy**: Azure Portal -> Go to **Virtual Machines** -> Select VM -> Overview page -> Click **Start / Stop / Restart** or **Redeploy + reapply** under Help.
-- **Diagnostics**: Select VM -> Scroll to Help section -> Click **Boot diagnostics**.
-
----
 
 ## Real-World Scenarios
 
@@ -159,6 +112,7 @@ az vm redeploy --resource-group RG-Prod-Servers --name VM-Web-01
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -182,6 +136,7 @@ az vm redeploy --resource-group RG-Prod-Servers --name VM-Web-01
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -192,8 +147,12 @@ az vm redeploy --resource-group RG-Prod-Servers --name VM-Web-01
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #azure #virtual-machines #infrastructure #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Use PowerShell to query VM status, resize a VM, attach a new virtual data disk, and check boot diagnostics.
 **Time Required:** 30 minutes
 **Environment Needed:** Azure subscription / Sandbox.
@@ -231,8 +190,77 @@ az vm redeploy --resource-group RG-Prod-Servers --name VM-Web-01
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+VM management uses the `Az.Compute` module.
+```powershell
+# Connect to Azure
+Connect-AzAccount
 
+# Start a stopped Virtual Machine
+Start-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01"
+
+# Stop and deallocate a Virtual Machine (Force parameter releases billing charges)
+Stop-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01" -Force -Confirm:$false
+
+# Resize a VM to Standard_D4s_v5 size
+$VM = Get-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01"
+$VM.HardwareProfile.VmSize = "Standard_D4s_v5"
+Update-AzVM -ResourceGroupName "RG-Prod-Servers" -VM $VM
+
+# Redeploy a stuck VM to a new hardware host
+Restart-AzVM -ResourceGroupName "RG-Prod-Servers" -Name "VM-Web-01" -Redeploy
+```
+
+### Azure CLI
+```bash
+# Start a Virtual Machine
+az vm start --resource-group RG-Prod-Servers --name VM-Web-01
+
+# Stop and deallocate a VM
+az vm deallocate --resource-group RG-Prod-Servers --name VM-Web-01
+
+# Redeploy the VM
+az vm redeploy --resource-group RG-Prod-Servers --name VM-Web-01
+```
+
+### GUI Path
+- **Power & Redeploy**: Azure Portal -> Go to **Virtual Machines** -> Select VM -> Overview page -> Click **Start / Stop / Restart** or **Redeploy + reapply** under Help.
+- **Diagnostics**: Select VM -> Scroll to Help section -> Click **Boot diagnostics**.
+
+---
+
+> [!info] 60-Second Summary
+> **What**: Scalable, on-demand virtualized computing servers hosted in Azure (IaaS).
+> **Why**: Hosts application servers, Active Directory DCs, and virtual desktops.
+> **How**: Provision appropriate VM sizes, manage persistent OS/Data disks, avoid the temporary disk trap, and utilize Boot Diagnostics for recovery.
+> **Command**: `Restart-AzVM -Redeploy` / `Stop-AzVM -Force`
+> **Interview Answer Starter**: "To provision and support Azure VMs, I ensure workloads are sized correctly, map databases to persistent Premium SSDs, and monitor health using Boot Diagnostics..."
+
+**Key Numbers to Remember:**
+- Ephemeral Drive letter: `D:` (Temporary Storage)
+- Default VM shutdown state that stops billing: Stopped (Deallocated)
+- Max IOPS for Premium SSD v2: Up to 80,000 IOPS
+- Port required for SSH: TCP 22 / RDP: TCP 3389
+
+**3 Things Interviewer Wants to Hear:**
+- Never save persistent data on the D: drive
+- Stopping a VM inside the guest OS does not stop billing; it must be deallocated in Azure
+- Using Redeploy to resolve virtual machine hypervisor errors
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is the default temporary disk (usually D: drive) on an Azure VM, and what is its main restriction?**
 A: The temporary disk is local storage built directly on the physical host hypervisor server. Its main restriction is that it is ephemeral; if the VM is stopped, deallocated, or moved to a new host during maintenance, all data stored on the temporary disk is permanently deleted.
@@ -261,34 +289,14 @@ A: A developer deleted our staging database files because they had saved them on
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: Scalable, on-demand virtualized computing servers hosted in Azure (IaaS).
-> **Why**: Hosts application servers, Active Directory DCs, and virtual desktops.
-> **How**: Provision appropriate VM sizes, manage persistent OS/Data disks, avoid the temporary disk trap, and utilize Boot Diagnostics for recovery.
-> **Command**: `Restart-AzVM -Redeploy` / `Stop-AzVM -Force`
-> **Interview Answer Starter**: "To provision and support Azure VMs, I ensure workloads are sized correctly, map databases to persistent Premium SSDs, and monitor health using Boot Diagnostics..."
-
-**Key Numbers to Remember:**
-- Ephemeral Drive letter: `D:` (Temporary Storage)
-- Default VM shutdown state that stops billing: Stopped (Deallocated)
-- Max IOPS for Premium SSD v2: Up to 80,000 IOPS
-- Port required for SSH: TCP 22 / RDP: TCP 3389
-
-**3 Things Interviewer Wants to Hear:**
-- Never save persistent data on the D: drive
-- Stopping a VM inside the guest OS does not stop billing; it must be deallocated in Azure
-- Using Redeploy to resolve virtual machine hypervisor errors
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure-VMs ke bare mein seekhta hai. Yeh azure infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure Identity]] — Manages the RBAC roles to administer virtual machines.
 - [[04-Cloud-and-Security/08-Azure/Azure-Networking|Azure Networking]] — Outlines the virtual subnets and NSG rules connecting VMs.
 - [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker Deep Dive]] — Discusses VM disk encryption keys backed up to Azure.
 
 ---
-
-## Tags
-#desktop-support #azure #virtual-machines #infrastructure #L2 #interview-topic #lab-complete #daily-use
-

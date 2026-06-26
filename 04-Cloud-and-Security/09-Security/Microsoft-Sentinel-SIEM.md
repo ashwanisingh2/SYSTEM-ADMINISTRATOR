@@ -1,6 +1,6 @@
 ---
-tags: [security, siem, sentinel, cloud, az-104]
-aliases: [microsoft-sentinel-siem]
+tags: [desktop-support, security, threat-protection, L3]
+aliases: [microsoft-sentinel-siem, microsoft-sentinel-siem]
 created: 2026-06-25
 status: #complete
 difficulty: #advanced
@@ -14,6 +14,7 @@ cert-relevant: #none
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — Sentinel is Microsoft's cloud platform for security analytics, collecting logs, correlating events, generating incident alerts, and orchestrating automated response workflows.
 - **Why it matters for a support engineer** — Desktop support and sysadmins are the first line of defense. Knowing how logs are collected, how alert indicators relate to target endpoints, and how to verify security breaches is essential.
@@ -24,12 +25,11 @@ cert-relevant: #none
   - ****L2 Resolution:**** Configures data connectors, builds monitoring Workbooks (dashboards), and writes basic KQL log queries to trace events.
   - ****L3 Resolution:**** Writes custom Analytics detection rules, designs automated SOAR Playbooks (Logic Apps) to disable users, and hunts for advanced persistent threats.
 
-*Seedha simple mein: Microsoft Sentinel ek Cloud-based security tool hai. Yeh pure company ke logs (Windows, Office 365, Firewall) ko scan karta hai. Agar koi hacker system hack karne ki koshish kare, toh yeh automated alert generate karta hai aur automated commands run karke attack ko rok deta hai.*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. SIEM vs SOAR
 * **SIEM (Security Information and Event Management)**: Collects logs, index data, detects patterns, and alerts analysts when rules match (correlating separate logs).
 * **SOAR (Security Orchestration, Automation, and Response)**: Takes SIEM alerts and automatically runs scripts or playbooks (e.g., disabling user accounts, blocking IP addresses in firewalls) to respond immediately.
@@ -52,8 +52,8 @@ Sentinel ingests data using **Data Connectors**. Common sources:
 
 ---
 
-## Step-by-Step Lab / Configuration
-
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - An active Azure Subscription.
 > - A Log Analytics Workspace configured.
@@ -128,8 +128,8 @@ SigninLogs
 
 ---
 
-## Common Commands / KQL Snippets
-
+---
+## Cheat Sheet / Quick Reference
 | KQL Operator | Description | Example |
 |--------------|-------------|---------|
 | `where` | Filters records based on condition | `| where ResultType == 0` |
@@ -139,8 +139,8 @@ SigninLogs
 
 ---
 
+---
 ## Troubleshooting
-
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
 | **Data Connector status shows disconnected** | Diagnostic settings deleted or permissions changed. | Verify target diagnostic settings are sending data to the Log Analytics workspace. Ensure Sentinel has Reader/Contributor roles. |
@@ -149,8 +149,8 @@ SigninLogs
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What is the primary role of a SIEM, and how does Microsoft Sentinel fit in?**
 > A: A SIEM (Security Information and Event Management) aggregates security logs from multiple disparate systems (servers, firewalls, applications), correlates events, and alerts security analysts. Microsoft Sentinel is a cloud-native SIEM that runs on top of Azure, enabling rapid cloud-scale logging and AI-driven analysis without needing server infrastructure.
 
@@ -165,6 +165,11 @@ SigninLogs
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: Microsoft Sentinel ek Cloud-based security tool hai. Yeh pure company ke logs (Windows, Office 365, Firewall) ko scan karta hai. Agar koi hacker system hack karne ki koshish kare, toh yeh automated alert generate karta hai aur automated commands run karke attack ko rok deta hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-05 Security and Compliance]]
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust]]

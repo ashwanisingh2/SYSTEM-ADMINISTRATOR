@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-900, infrastructure]
-difficulty: Beginner
-lab-required: Yes
-read-time: 10 mins
+---
+tags: [desktop-support, azure, cloud, L1]
+aliases: [az9-02-azure-global-infrastructure, az9-02]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #none
 ---
 
 # AZ9-02: Azure Global Infrastructure
@@ -11,18 +13,20 @@ read-time: 10 mins
 > This note covers the physical and logical organizational structure of Microsoft Azure. It details Regions, Region Pairs, Availability Zones, logical subscription hierarchies, and tagging standards.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure's global infrastructure like a worldwide logistics and retail corporation:
 - **Geographies** are the sovereign countries (USA, Germany, India) that have strict laws about where data must reside (Data Residency).
 - **Regions** are major warehouse distribution hubs located in specific cities (e.g., East US in Virginia, West Europe in Amsterdam).
 - **Availability Zones** are three separate, independent buildings inside the same warehouse hub, each running on its own power generators, water cooling, and network links. If one building floods, the other two keep shipping orders.
 - **Resource Groups** are the shipping boxes: you group all items for a single order (a database, web server, and storage disk) in one box so they are easy to label, track, and bill.
 
-*Seedha simple mein: Azure ke 60+ regions hote hain jo physical data centers ko group karte hain. Ek region ke andar 3 Availability Zones hote hain redundant power aur connectivity ke sath. Logical resources ko organize karne ke liye hum resource hierarchy (Management Groups, Subscriptions, Resource Groups) use karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Physical Infrastructure Hierarchy
 
 #### Geographies (Country Boundaries)
@@ -83,7 +87,9 @@ Azure organizes resources hierarchically to manage security (RBAC) and billing:
   - *Example tags:* `Department : Finance`, `Environment : Production`, `Owner : sysadmin@company.com`.
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal (`portal.azure.com`) and a free tier subscription.
 
@@ -106,7 +112,39 @@ Azure organizes resources hierarchically to manage security (RBAC) and billing:
 5. Click **Review + create**, then click **Create**.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure ke 60+ regions hote hain jo physical data centers ko group karte hain. Ek region ke andar 3 Availability Zones hote hain redundant power aur connectivity ke sath. Logical resources ko organize karne ke liye hum resource hierarchy (Management Groups, Subscriptions, Resource Groups) use karte hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-01 Cloud Computing Fundamentals|AZ9-01 Cloud Computing Fundamentals]] — Base virtualization concepts.
 - [[04-Cloud-and-Security/08-Azure/AZ104-01 Azure Identity and Governance|AZ104-01 Azure Identity and Governance]] — Managing subscriptions and resource locks.
-

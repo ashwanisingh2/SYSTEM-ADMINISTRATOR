@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, security, permissions]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-06-file-permissions-and-ownership, l-06]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #rhcsa
 ---
 
 # L-06: File Permissions and Ownership
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers the Linux file permission model, detailing standard rwx permissions for files and directories, octal/symbolic notation, default umask calculations, special permissions (SUID, SGID, Sticky Bit), and Access Control Lists (ACLs).
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of file permissions in Linux like a keycard security gate:
 - Every file has three groups of users: the **Owner** (you), the **Group** (your team), and **Others** (guests).
 - For **Files**, the rules are simple: **Read** allows you to open and view the document, **Write** allows you to edit it, and **Execute** allows you to run it (if it's a program).
@@ -20,11 +24,11 @@ Think of file permissions in Linux like a keycard security gate:
   - **Write (`w`)** is the authority to add or delete files *inside* the folder.
   - **Execute (`x`)** is the authority to enter the folder (run `cd` to make it your current path). Without `x`, you cannot read files inside even if you have read keys to the files themselves.
 
-*Seedha simple mein: Linux mein har file and folder par User, Group, aur Others ke liye Read (4), Write (2), aur Execute (1) permissions set hoti hain. Special permissions jaise SUID/SGID/Sticky Bit aur Advanced ACLs (setfacl) complex permission requirements ko manage karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Permissions: Files vs. Directories
 The standard permissions (Read, Write, Execute) have different meanings depending on whether they are applied to files or directories:
 
@@ -92,7 +96,92 @@ Standard Linux permissions are limited to Owner-Group-Others. If a file needs cu
 - *Visual Indicator:* A file with active ACLs displays a `+` symbol at the end of the permissions string in `ls -l` (e.g., `-rw-r--r--+`).
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Setting 777 permissions to solve access errors:** Running `chmod -R 777 /var/www` to fix application read errors. This allows any local user or compromised service to modify, overwrite, or inject malicious code into your web application files.
+> **Correct approach:** Identify the specific service user (e.g., `nginx`), chown the directory owner to that user, and set secure permissions (`755` for directories, `644` for files).
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When configuring SGID on shared folders, always set the directory's **default ACL** as well. While SGID ensures correct group ownership, it does not guarantee file write permissions for group members if a user's umask defaults to `022`. Setting a default ACL ensures all new files get explicit `rw` access for group members: `setfacl -d -m g:marketing:rw /shared_marketing`.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A running Linux VM with root access, and a standard user `sysadmin` and group `marketing` created.
 
@@ -140,7 +229,9 @@ Standard Linux permissions are limited to Owner-Group-Others. If a file needs cu
 4. Confirm `user:jdoe:r--` is listed. Note that `ls -l` now displays a `+` sign.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```bash
 # Set SUID on script to run with owner privileges
 chmod u+s script.sh
@@ -153,8 +244,18 @@ setfacl -b config.txt
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Directory Exec | The execute (`x`) permission on a directory is required to enter it and read metadata. |
+| 2 | SGID on Dir | Forces new files created inside to inherit the parent directory's group owner automatically. |
+| 3 | Sticky Bit | Restricts file deletion/renaming inside a folder to the file owner, directory owner, or root. |
+| 4 | umask | System mask subtracted from default permissions (777/666) to determine new file permissions. |
+| 5 | setfacl | Configuration utility used to assign granular user/group permissions outside standard owners. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** A web server (Apache/NGINX) throws `HTTP 403 Forbidden` errors when clients try to open web pages. The index file `/var/www/html/index.html` has permissions `644` (`rw-r--r--`) and is owned by `root`.
 - **Root Cause:** Directory permission failure. The web server process runs under the `apache` or `nginx` user. While the user has read access to `index.html` itself, one of the parent directories (e.g., `/var/www/html`) lacks execute (`x`) permissions for Others, blocking the service from entering the directory to read the file.
@@ -182,29 +283,9 @@ setfacl -b config.txt
   3. Alternatively, use the `newgrp` tool to change active group scope: `newgrp developers`.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Setting 777 permissions to solve access errors:** Running `chmod -R 777 /var/www` to fix application read errors. This allows any local user or compromised service to modify, overwrite, or inject malicious code into your web application files.
-> **Correct approach:** Identify the specific service user (e.g., `nginx`), chown the directory owner to that user, and set secure permissions (`755` for directories, `644` for files).
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When configuring SGID on shared folders, always set the directory's **default ACL** as well. While SGID ensures correct group ownership, it does not guarantee file write permissions for group members if a user's umask defaults to `022`. Setting a default ACL ensures all new files get explicit `rw` access for group members: `setfacl -d -m g:marketing:rw /shared_marketing`.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Directory Exec | The execute (`x`) permission on a directory is required to enter it and read metadata. |
-| 2 | SGID on Dir | Forces new files created inside to inherit the parent directory's group owner automatically. |
-| 3 | Sticky Bit | Restricts file deletion/renaming inside a folder to the file owner, directory owner, or root. |
-| 4 | umask | System mask subtracted from default permissions (777/666) to determine new file permissions. |
-| 5 | setfacl | Configuration utility used to assign granular user/group permissions outside standard owners. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What does it mean if a directory has permissions drwxrwxrwt? Explain the significance of the 't' bit.**
 A: The `t` at the end indicates that the directory has **Sticky Bit** enabled alongside full read-write-execute permissions for everyone (such as `/tmp`). The sticky bit is a security mechanism that restricts deletion and renaming of files inside the directory. Even if others have write (`w`) access on the directory (which normally allows deleting any file inside), they can only delete or rename files that they physically own. This prevents users from deleting each other's temporary files.
 
@@ -227,8 +308,13 @@ A:
 This is a highly restrictive umask configuration typical in high-security environments.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux mein har file and folder par User, Group, aur Others ke liye Read (4), Write (2), aur Execute (1) permissions set hoti hain. Special permissions jaise SUID/SGID/Sticky Bit aur Advanced ACLs (setfacl) complex permission requirements ko manage karte hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — Directory structures and `ls -l` metadata reading.
 - [[02-Operating-Systems/04-Linux-RHEL/L-05 User and Group Management|L-05 User and Group Management]] — Managing UIDs and GIDs.
 - [[02-Operating-Systems/04-Linux-RHEL/L-11 File Systems and Storage in Linux|L-11 File Systems and Storage in Linux]] — Formatting and mounting volumes.
-

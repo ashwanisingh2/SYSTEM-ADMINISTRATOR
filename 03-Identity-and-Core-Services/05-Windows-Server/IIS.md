@@ -251,6 +251,25 @@ A: Our company intranet went offline with a 503 error. I logged in, checked the 
 
 ---
 
+
+---
+## Real-World Scenario: File Server Crash (500+ Users Affected)
+Agar company ka main file server (500+ users connected) crash ho jaye, toh as a Senior Sysadmin aapka immediate action plan yeh hoga:
+1. **Identify & Isolate**: Check if the server is pingable. Verify hardware status via Dell iDRAC / HPE iLO or check virtual machine status in vCenter/Hyper-V.
+2. **Access Check & Lock**: If the storage volume is corrupt or unmapped, stop DFS Namespace referrals to the crashed target to redirect users to secondary replica servers if active.
+3. **Trigger Disaster Recovery (DR)**: Start restoring the crashed system drive or volumes from the latest VSS snapshot or Azure Backup RSV restore point.
+4. **Communication**: Broadcast status updates to the Incident Commander and helpdesk teams to manage incoming support volume.
+
+### PowerShell Automation Snippet: Verify File Shares and Access Permissions
+```powershell
+# Get all active file shares on the server
+Get-SmbShare | Format-Table -AutoSize
+
+# Test local DFS Namespace server connection health
+Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
+```
+
+---
 ## Related Notes
 - [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows Services]] — Details the World Wide Web Publishing Service (`W3SVC`).
 - [[03-Identity-and-Core-Services/05-Windows-Server/Roles|Roles]] — Details server role deployment settings.

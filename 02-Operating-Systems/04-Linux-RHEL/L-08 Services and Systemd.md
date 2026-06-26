@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, systemd, services]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-08-services-and-systemd, l-08]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #rhcsa
 ---
 
 # L-08: Services and Systemd
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers Linux service management using the `systemd` initialization framework. It details systemctl controls, unit file profiles, target runlevels, journalctl logging, and custom service creation.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of `systemd` as the central automation engine and dispatcher of the Linux operating system. 
 In older systems (SysVinit), starting services was like a single line of soldiers marching one by one: service A had to finish loading before service B could start, which was slow. 
 
@@ -20,11 +24,11 @@ In older systems (SysVinit), starting services was like a single line of soldier
 - **systemctl** is your console dashboard: you start, stop, or permanently schedule services to start on boot.
 - **journalctl** is the centralized flight data recorder, cataloging all errors and outputs from all services into one indexed, searchable database.
 
-*Seedha simple mein: `systemd` modern Linux distributions ka service manager hai jo boot time and services execution ko handle karta hai. `systemctl` command ke zariye hum services manage karte hain aur `journalctl` se logs check karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Why systemd Replaced SysVinit
 - **Parallelization:** Starts services concurrently on boot, speeding up startup times.
 - **Dependency Management:** Automatically tracks and resolves requirements (e.g., won't start Web Server until Network Link is UP).
@@ -94,7 +98,79 @@ systemd routes all stdout/stderr from services to the systemd-journald database 
 - `journalctl -u nginx --since "2026-06-25 08:00:00" --until "2026-06-25 10:00:00"` — Granular search.
 
 ---
-## Lab — Step by Step
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A running Linux VM with root access.
 
@@ -159,8 +235,40 @@ systemd routes all stdout/stderr from services to the systemd-journald database 
    **Verify:** Confirm that timestamp entries are printed every 10 seconds.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: `systemd` modern Linux distributions ka service manager hai jo boot time and services execution ko handle karta hai. `systemctl` command ke zariye hum services manage karte hain aur `journalctl` se logs check karte hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-04 Text Editors and File Viewing|L-04 Text Editors and File Viewing]] — Writing configurations and reading logs.
 - [[02-Operating-Systems/04-Linux-RHEL/L-07 Process Management|L-07 Process Management]] — Monitoring process IDs generated by systemd.
 - [[02-Operating-Systems/04-Linux-RHEL/L-13 Bash Scripting for Sysadmins|L-13 Bash Scripting for Sysadmins]] — Writing scripts used in ExecStart.
-

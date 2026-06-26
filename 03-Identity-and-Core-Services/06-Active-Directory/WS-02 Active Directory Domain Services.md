@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, windows-server, active-directory, domain-controller]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, active-directory, identity, L2]
+aliases: [ws-02-active-directory-domain-services, ws-02]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # WS-02: Active Directory Domain Services (AD DS)
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers Active Directory Domain Services logical and physical architectures, Domain Controller promotion protocols, replication topologies, and directory databases (NTDS.dit).
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Active Directory as the centralized identity registry and security office of a massive corporation. 
 
 Before AD, every computer had its own local registry of keys. If a new employee joined, the sysadmin had to physically walk to every single computer, desk, and server to create a local username and password for them (Workgroup environment). 
 
 With Active Directory, there is a central corporate registry database (**NTDS.dit**) managed by security offices (**Domain Controllers**). When a user plugs their laptop into the network and logs in, their laptop asks the Domain Controller, "Is this password valid?" The DC checks the central registry, verifies the identity, and grants access to files, emails, and printers throughout the entire corporate network without the user needing local accounts on any of those individual resources.
 
-*Seedha simple mein: Active Directory pure organization ke users, computers, aur permissions ko ek jagah se manage karne ka centralized management tool hai. Domain Controller woh server hota hai jo is directory database (NTDS.dit) ko run karta hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Active Directory Logical vs. Physical Structures
 
 #### Logical Components (Logical Architecture)
@@ -47,7 +51,22 @@ Advanced content only — basics in [[Basic AD user management]]
 For standard user modifications, password resets, and account unlocking, refer to the ADUC snap-in or active directories commands.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Setting dynamic IPs on Domain Controllers:** Allowing a Domain Controller to obtain its IP address via DHCP. If the IP address changes on DHCP lease renewal, all member workstations lose connection to the DC, breaking domain logins, group policies, and DNS lookups.
+> **Correct approach:** Always assign a fixed, static IP address to every Domain Controller before installing the AD DS role.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When designing an Active Directory environment, never name your internal domain identical to your public website (e.g., using `company.com` for both internal and external). This creates a "Split-Brain DNS" nightmare where internal users cannot resolve the external corporate website unless you manually duplicate web server A-records on the AD DNS zone. Use a dedicated sub-domain (e.g., `corp.company.com` or `ad.company.com`).
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A clean virtual machine running Windows Server 2022 (Desktop Experience) with a static IP (`192.168.10.10`) and hostname set to `SVR-DC01`.
 
@@ -87,7 +106,9 @@ For standard user modifications, password resets, and account unlocking, refer t
    It should return your DC's static IP `192.168.10.10`.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 Active Directory management command sequences:
 
 ```powershell
@@ -103,8 +124,18 @@ Get-ADDomainController -Identity "SVR-DC01"
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Forest | The top-level administrative and security boundary within an Active Directory hierarchy. |
+| 2 | NTDS.dit | The core database file storing all directory objects, user accounts, and password hashes. |
+| 3 | SYSVOL | Replicated share folder storing GPOs, logon scripts, and AD system template configurations. |
+| 4 | Sites | Logical groups of subnets defining physical network boundaries for replication control. |
+| 5 | DSRM | Boot mode used to restore or repair the offline Active Directory database files. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** Attempting to promote a second domain controller to an existing domain fails, returning error: "Active Directory Domain Services could not locate a Domain Controller for the domain company.local."
 - **Root Cause:** DNS configuration mismatch. The new server is targeting an external DNS server (e.g., `8.8.8.8`) on its network adapter, so it cannot resolve the internal `company.local` SRV records that point to the primary DC.
@@ -134,29 +165,9 @@ Get-ADDomainController -Identity "SVR-DC01"
   4. Reboot the DC normally. If recovery fails, restore from a System State backup.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Setting dynamic IPs on Domain Controllers:** Allowing a Domain Controller to obtain its IP address via DHCP. If the IP address changes on DHCP lease renewal, all member workstations lose connection to the DC, breaking domain logins, group policies, and DNS lookups.
-> **Correct approach:** Always assign a fixed, static IP address to every Domain Controller before installing the AD DS role.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When designing an Active Directory environment, never name your internal domain identical to your public website (e.g., using `company.com` for both internal and external). This creates a "Split-Brain DNS" nightmare where internal users cannot resolve the external corporate website unless you manually duplicate web server A-records on the AD DNS zone. Use a dedicated sub-domain (e.g., `corp.company.com` or `ad.company.com`).
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Forest | The top-level administrative and security boundary within an Active Directory hierarchy. |
-| 2 | NTDS.dit | The core database file storing all directory objects, user accounts, and password hashes. |
-| 3 | SYSVOL | Replicated share folder storing GPOs, logon scripts, and AD system template configurations. |
-| 4 | Sites | Logical groups of subnets defining physical network boundaries for replication control. |
-| 5 | DSRM | Boot mode used to restore or repair the offline Active Directory database files. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What is the difference between a Workgroup and an Active Directory Domain environment?**
 A: In a **Workgroup**, the network is decentralized. Every computer maintains its own local security database (SAM) containing local user accounts. There is no centralized management; if a user needs access to three computers, they must have accounts created manually on all three. In an **Active Directory Domain**, the network is centralized. A central database (NTDS.dit) on a Domain Controller stores all accounts and permissions. Users authenticate once against the DC, and can access any authorized domain member workstation or server.
 
@@ -171,9 +182,14 @@ A:
 A: The Global Catalog is a Domain Controller that stores a full replica of all objects in its local domain, plus a partial, read-only replica of all objects in all other domains in the forest. It indexes commonly searched attributes (like logon names, emails, and phone numbers). The GC is critical because: 1) It enables users to search for directory information across the entire forest regardless of which domain they are in, and 2) It verifies Universal Group memberships during the logon process to generate the user's security token.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Active Directory pure organization ke users, computers, aur permissions ko ek jagah se manage karne ka centralized management tool hai. Domain Controller woh server hota hai jo is directory database (NTDS.dit) ko run karta hai.*
+
+---
 ## Related Notes
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-01 Windows Server 2022 Introduction|WS-01 Windows Server 2022 Introduction]] — Base server setup and Admin Center tools.
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]] — Resolving DC SRV records.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-06 Active Directory — Users Groups OUs|WS-06 Active Directory — Users Groups OUs]] — User accounts and security structures.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-08 FSMO Roles|WS-08 FSMO Roles]] — Directory role management.
-

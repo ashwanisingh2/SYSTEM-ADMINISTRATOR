@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, security, mfa, identity-protection, L2]
-aliases: [identity-protection-guide, user-risk, sign-in-risk]
+---
+tags: [desktop-support, security, threat-protection, L2]
+aliases: [mfa-and-identity-protection, mfa-and-identity-protection]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
-cert-relevant: #az-104
+cert-relevant: #none
 ---
 
 # MFA and Identity Protection
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Microsoft Entra ID Identity Protection is a cloud service that automates the detection, investigation, and remediation of identity-based risks. It analyzes trillions of daily sign-in signals to flag anomalous behavior, categorizing threats into **User Risk** (compromised credentials) and **Sign-in Risk** (suspicious session characteristics).
 - **Why it matters for a support engineer**: Attackers constantly target corporate logins. A support engineer must understand identity protection metrics to troubleshoot risk-based account lockouts, investigate "impossible travel" alerts, and clear risk flags to restore user access.
@@ -22,8 +23,8 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. User Risk vs. Sign-in Risk
 Microsoft Entra ID divides security anomalies into two distinct risk classifications:
 
@@ -58,35 +59,6 @@ Instead of prompting users for MFA constantly, organizations enforce risk-based 
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-Identity Protection management uses the `Microsoft.Graph.Identity.SignIns` and `Microsoft.Graph.Users` modules.
-```powershell
-# Connect to Microsoft Graph with Security Administration scopes
-Connect-MgGraph -Scopes "IdentityRiskyUser.ReadWrite.All", "Directory.Read.All"
-
-# Query the top 10 active risky users in the tenant
-Get-MgRiskyUser -Top 10 | Select-Object Id, DisplayName, UserPrincipalName, RiskState, RiskLevel, RiskDetail
-
-# Dismiss a risk flag for a user after confirming the activity was legitimate (e.g., user on vacation)
-Confirm-MgRiskyUserCompromised -UserIds @("user-object-id-12345")
-
-# List sign-ins flagged with active risk states
-Get-MgSignIn -Filter "RiskState eq 'atRisk'" -Top 5 | Select-Object Id, UserDisplayName, CreatedDateTime, IPAddress, RiskLevelDuringSignIn
-```
-
-### CMD / Run Box
-```cmd
-:: Check routing hops to verify public egress IPs
-tracert login.microsoftonline.com
-```
-
-### GUI Path
-> Open browser -> Go to **entra.microsoft.com** -> **Protection** -> **Identity Protection** -> **Risky users** or **Risky sign-ins**.
-> To configure: Go to **Identity Protection** -> **User risk policy** or **Sign-in risk policy**.
-
----
 
 ## Real-World Scenarios
 
@@ -140,6 +112,7 @@ tracert login.microsoftonline.com
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -163,6 +136,7 @@ tracert login.microsoftonline.com
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -173,8 +147,12 @@ tracert login.microsoftonline.com
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #security #mfa #identity-protection #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Connect to Microsoft Graph via PowerShell, query all risky users in the tenant, filter sign-in logs for active risk events, and simulate risk flag dismissal.
 **Time Required:** 20 minutes
 **Environment Needed:** A computer with internet access and a Microsoft 365 Developer tenant.
@@ -206,8 +184,66 @@ tracert login.microsoftonline.com
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+Identity Protection management uses the `Microsoft.Graph.Identity.SignIns` and `Microsoft.Graph.Users` modules.
+```powershell
+# Connect to Microsoft Graph with Security Administration scopes
+Connect-MgGraph -Scopes "IdentityRiskyUser.ReadWrite.All", "Directory.Read.All"
 
+# Query the top 10 active risky users in the tenant
+Get-MgRiskyUser -Top 10 | Select-Object Id, DisplayName, UserPrincipalName, RiskState, RiskLevel, RiskDetail
+
+# Dismiss a risk flag for a user after confirming the activity was legitimate (e.g., user on vacation)
+Confirm-MgRiskyUserCompromised -UserIds @("user-object-id-12345")
+
+# List sign-ins flagged with active risk states
+Get-MgSignIn -Filter "RiskState eq 'atRisk'" -Top 5 | Select-Object Id, UserDisplayName, CreatedDateTime, IPAddress, RiskLevelDuringSignIn
+```
+
+### CMD / Run Box
+```cmd
+:: Check routing hops to verify public egress IPs
+tracert login.microsoftonline.com
+```
+
+### GUI Path
+> Open browser -> Go to **entra.microsoft.com** -> **Protection** -> **Identity Protection** -> **Risky users** or **Risky sign-ins**.
+> To configure: Go to **Identity Protection** -> **User risk policy** or **Sign-in risk policy**.
+
+---
+
+> [!info] 60-Second Summary
+> **What**: Microsoft's identity security engine that automates threat detection and remediation.
+> **Why**: Protects corporate identities from credential theft, brute-force attacks, and session hijacks.
+> **How**: Categorize risks into User Risk and Sign-in Risk, and enforce self-remediation via Conditional Access.
+> **Command**: `Confirm-MgRiskyUserCompromised` / `Get-MgRiskyUser`
+> **Interview Answer Starter**: "To manage identity security, I leverage Microsoft Entra ID Identity Protection to evaluate User and Sign-in risks, automating unblocks using SSPR..."
+
+**Key Numbers to Remember:**
+- Default period to retain risk log details: 30 days
+- Minimum license SKU required for Identity Protection: Entra ID P2
+- Port required for connection: TCP 443 (HTTPS)
+- SSPR reset unblocks user risk state: Yes (Remediated)
+
+**3 Things Interviewer Wants to Hear:**
+- User Risk is offline (identity compromised), Sign-in Risk is real-time (session compromised)
+- Enabling self-remediation (MFA/SSPR) reduces helpdesk tickets while keeping security high
+- Always revoke active sessions (`Revoke-MgUserSignInSession`) during account remediation
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is "Impossible Travel" in Microsoft Entra ID?**
 A: Impossible travel is a security risk detection that occurs when a user logs in from two geographically distant locations within a time frame that is physically impossible to travel between (e.g., logging in from New York and then London 15 minutes later).
@@ -236,34 +272,14 @@ A: I received an alert indicating our CEO's account had flagged a High User Risk
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: Microsoft's identity security engine that automates threat detection and remediation.
-> **Why**: Protects corporate identities from credential theft, brute-force attacks, and session hijacks.
-> **How**: Categorize risks into User Risk and Sign-in Risk, and enforce self-remediation via Conditional Access.
-> **Command**: `Confirm-MgRiskyUserCompromised` / `Get-MgRiskyUser`
-> **Interview Answer Starter**: "To manage identity security, I leverage Microsoft Entra ID Identity Protection to evaluate User and Sign-in risks, automating unblocks using SSPR..."
-
-**Key Numbers to Remember:**
-- Default period to retain risk log details: 30 days
-- Minimum license SKU required for Identity Protection: Entra ID P2
-- Port required for connection: TCP 443 (HTTPS)
-- SSPR reset unblocks user risk state: Yes (Remediated)
-
-**3 Things Interviewer Wants to Hear:**
-- User Risk is offline (identity compromised), Sign-in Risk is real-time (session compromised)
-- Enabling self-remediation (MFA/SSPR) reduces helpdesk tickets while keeping security high
-- Always revoke active sessions (`Revoke-MgUserSignInSession`) during account remediation
+---
+## Seedha Simple Mein
+*Seedha simple mein: MFA-and-Identity-Protection ke bare mein seekhta hai. Yeh security infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/MFA|MFA]] — The verification tool used to resolve Sign-in risk challenges.
 - [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional Access]] — The rules engine that evaluates risk levels.
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — Explains the core identity security theory.
 
 ---
-
-## Tags
-#desktop-support #security #mfa #identity-protection #L2 #interview-topic #lab-complete #daily-use
-

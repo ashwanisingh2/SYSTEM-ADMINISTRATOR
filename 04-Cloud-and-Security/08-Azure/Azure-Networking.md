@@ -1,6 +1,6 @@
-﻿---
-tags: [desktop-support, azure, networking, nsg, L2]
-aliases: [azure-networking-guide, vnet-guide, nsg-rules]
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [azure-networking, azure-networking]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -11,6 +11,7 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Azure Networking provides the virtualized infrastructure to connect Azure resources (like VMs, databases, and App Services) to each other, to on-premises office networks, and to the internet. The core building blocks are Virtual Networks (VNets), Subnets, and Network Security Groups (NSGs).
 - **Why it matters for a support engineer**: A server cannot function without network connectivity. Support engineers configure network interfaces, troubleshoot firewall blocks on specific ports (e.g., HTTP 80, RDP 3389, SQL 1433), manage VNet peering, and set up remote developer VPNs.
@@ -22,8 +23,8 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Virtual Networks (VNets) & Subnets
 - **VNet**: A representation of your own network in the cloud. It is a logical isolation of the Azure cloud dedicated to your subscription. You define the private IP address space using CIDR notation (e.g., `10.0.0.0/16`).
 - **Subnets**: Subdivisions of a VNet (e.g., `10.0.1.0/24`). Subnets allow you to group related resources (like a web tier and a database tier) and isolate them using network security boundaries.
@@ -47,38 +48,6 @@ VNet Peering connects two separate Virtual Networks seamlessly:
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-Networking management uses the `Az.Network` module.
-```powershell
-# Connect to Azure
-Connect-AzAccount
-
-# Create a new Virtual Network and a default subnet
-New-AzVirtualNetwork -ResourceGroupName "RG-Prod-Network" -Name "VNet-EastUS" -AddressPrefix "10.10.0.0/16" -Location "eastus"
-Add-AzVirtualNetworkSubnetConfig -Name "Subnet-Web" -AddressPrefix "10.10.1.0/24" -VirtualNetwork (Get-AzVirtualNetwork -ResourceGroupName "RG-Prod-Network" -Name "VNet-EastUS")
-
-# Add an inbound security rule (Allow RDP Port 3389) to an existing NSG
-$NSG = Get-AzNetworkSecurityGroup -ResourceGroupName "RG-Prod-Network" -Name "NSG-Web-Rules"
-Add-AzNetworkSecurityRuleConfig -Name "Allow-RDP-Inbound" -NetworkSecurityGroup $NSG -Protocol TCP -Direction Inbound -Priority 100 -SourceAddressPrefix "*" -SourcePortRange "*" -DestinationAddressPrefix "*" -DestinationPortRange 3389 -Access Allow
-Set-AzNetworkSecurityGroup -NetworkSecurityGroup $NSG
-```
-
-### Azure CLI
-```bash
-# Create a Network Security Group (NSG)
-az network nsg create --resource-group RG-Prod-Network --name NSG-Web-Rules
-
-# Create an inbound rule to allow HTTP (Port 80) traffic
-az network nsg rule create --resource-group RG-Prod-Network --nsg-name NSG-Web-Rules --name Allow-HTTP-Inbound --priority 110 --source-address-prefixes '*' --destination-port-ranges 80 --direction Inbound --access Allow --protocol Tcp
-```
-
-### GUI Path
-- **VNet/Subnets**: Azure Portal -> Search **Virtual Networks** -> Click target network -> Select **Subnets**.
-- **NSG Rules**: Search **Network security groups** -> Click target NSG -> Select **Inbound security rules** or **Outbound security rules**.
-
----
 
 ## Real-World Scenarios
 
@@ -137,6 +106,7 @@ az network nsg rule create --resource-group RG-Prod-Network --nsg-name NSG-Web-R
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -160,6 +130,7 @@ az network nsg rule create --resource-group RG-Prod-Network --nsg-name NSG-Web-R
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -170,8 +141,12 @@ az network nsg rule create --resource-group RG-Prod-Network --nsg-name NSG-Web-R
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #azure #networking #nsg #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Use PowerShell to create two virtual networks with non-overlapping IP ranges, configure VNet Peering between them, and verify the peering status.
 **Time Required:** 30 minutes
 **Environment Needed:** Azure Free Tier or Sandbox account.
@@ -209,8 +184,69 @@ az network nsg rule create --resource-group RG-Prod-Network --nsg-name NSG-Web-R
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+Networking management uses the `Az.Network` module.
+```powershell
+# Connect to Azure
+Connect-AzAccount
 
+# Create a new Virtual Network and a default subnet
+New-AzVirtualNetwork -ResourceGroupName "RG-Prod-Network" -Name "VNet-EastUS" -AddressPrefix "10.10.0.0/16" -Location "eastus"
+Add-AzVirtualNetworkSubnetConfig -Name "Subnet-Web" -AddressPrefix "10.10.1.0/24" -VirtualNetwork (Get-AzVirtualNetwork -ResourceGroupName "RG-Prod-Network" -Name "VNet-EastUS")
+
+# Add an inbound security rule (Allow RDP Port 3389) to an existing NSG
+$NSG = Get-AzNetworkSecurityGroup -ResourceGroupName "RG-Prod-Network" -Name "NSG-Web-Rules"
+Add-AzNetworkSecurityRuleConfig -Name "Allow-RDP-Inbound" -NetworkSecurityGroup $NSG -Protocol TCP -Direction Inbound -Priority 100 -SourceAddressPrefix "*" -SourcePortRange "*" -DestinationAddressPrefix "*" -DestinationPortRange 3389 -Access Allow
+Set-AzNetworkSecurityGroup -NetworkSecurityGroup $NSG
+```
+
+### Azure CLI
+```bash
+# Create a Network Security Group (NSG)
+az network nsg create --resource-group RG-Prod-Network --name NSG-Web-Rules
+
+# Create an inbound rule to allow HTTP (Port 80) traffic
+az network nsg rule create --resource-group RG-Prod-Network --nsg-name NSG-Web-Rules --name Allow-HTTP-Inbound --priority 110 --source-address-prefixes '*' --destination-port-ranges 80 --direction Inbound --access Allow --protocol Tcp
+```
+
+### GUI Path
+- **VNet/Subnets**: Azure Portal -> Search **Virtual Networks** -> Click target network -> Select **Subnets**.
+- **NSG Rules**: Search **Network security groups** -> Click target NSG -> Select **Inbound security rules** or **Outbound security rules**.
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The network infrastructure providing virtual routers, subnets, and firewalls in Azure.
+> **Why**: Connects VMs, secures ports, enables hybrid local network connections, and routes cloud traffic.
+> **How**: Define non-overlapping VNets/Subnets, manage NSG rule priorities, establish VNet Peering, and use Network Watcher.
+> **Command**: `Add-AzNetworkSecurityRuleConfig` / `az network nsg rule create`
+> **Interview Answer Starter**: "To manage Azure networks, I define private subnets, apply stateful NSG firewalls, and use VNet Peering for internal routing, ensuring no IP address ranges overlap..."
+
+**Key Numbers to Remember:**
+- Default RDP Port: 3389
+- Default SSH Port: 22
+- NSG priority number range: 100 - 65000
+- Maximum peered VNets: VNet peering is non-transitive
+
+**3 Things Interviewer Wants to Hear:**
+- VNet Peering requires non-overlapping IP spaces
+- Network Watcher IP Flow Verify simplifies NSG troubleshooting
+- Disabling public RDP/SSH access in favor of Azure Bastion/VPN
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is a Network Security Group (NSG) in Azure?**
 A: An NSG is a virtual firewall that controls inbound and outbound network traffic to Azure network interfaces (NICs) or subnets. It contains security rules where you specify source, destination, port, and protocol to allow or deny traffic.
@@ -239,34 +275,14 @@ A: During a client product demo, our web application server suddenly lost connec
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The network infrastructure providing virtual routers, subnets, and firewalls in Azure.
-> **Why**: Connects VMs, secures ports, enables hybrid local network connections, and routes cloud traffic.
-> **How**: Define non-overlapping VNets/Subnets, manage NSG rule priorities, establish VNet Peering, and use Network Watcher.
-> **Command**: `Add-AzNetworkSecurityRuleConfig` / `az network nsg rule create`
-> **Interview Answer Starter**: "To manage Azure networks, I define private subnets, apply stateful NSG firewalls, and use VNet Peering for internal routing, ensuring no IP address ranges overlap..."
-
-**Key Numbers to Remember:**
-- Default RDP Port: 3389
-- Default SSH Port: 22
-- NSG priority number range: 100 - 65000
-- Maximum peered VNets: VNet peering is non-transitive
-
-**3 Things Interviewer Wants to Hear:**
-- VNet Peering requires non-overlapping IP spaces
-- Network Watcher IP Flow Verify simplifies NSG troubleshooting
-- Disabling public RDP/SSH access in favor of Azure Bastion/VPN
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure-Networking ke bare mein seekhta hai. Yeh azure infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[01-Foundations/02-Networking/Subnetting|Subnetting]] — Core IP subnet planning theory.
 - [[04-Cloud-and-Security/08-Azure/Azure-VMs|Azure VMs]] — Explains resources that connect to VNets.
 - [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure Identity]] — Manages access to network security group configurations.
 
 ---
-
-## Tags
-#desktop-support #azure #networking #nsg #L2 #interview-topic #lab-complete #daily-use
-

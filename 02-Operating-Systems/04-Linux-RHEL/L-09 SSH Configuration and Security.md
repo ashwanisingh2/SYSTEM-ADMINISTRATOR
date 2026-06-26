@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, security, ssh]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-09-ssh-configuration-and-security, l-09]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #rhcsa
 ---
 
 # L-09: SSH Configuration and Security
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers Secure Shell (SSH) remote management, server hardening parameters, key-based authentication setups, port forwarding tunnels, and brute-force protection (fail2ban).
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of SSH as a highly secure, digital diplomatic courier tunnel. 
 By default, the gate is open on Port 22. 
 - **Password Authentication** is like entry via a password key-phrase: if someone guesses your phrase, they get in (brute-force vulnerability).
 - **Key-Based Authentication** is like a custom physical vault lock system. You generate a padlock (Public Key) and its matching key (Private Key). You put the padlock on the server's door. Anyone can see the lock, but only you, holding the physical private key on your laptop, can unlock it and enter.
 - **Fail2ban** is the armed security guard hiding in the bushes. If someone tries to pick the lock 5 times rapidly with bad keys, the guard locks them in a jail (Firewall block) for 10 minutes.
 
-*Seedha simple mein: SSH remote servers ko securely manage karne ka standard tool hai. Security best practices ke liye hum default port 22 change karte hain, direct root login block karte hain, aur password logins ko disable karke key-based authentication configure karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. SSH Server Configuration Hardening (/etc/ssh/sshd_config)
 The SSH daemon configuration controls authentication and transport rules. Important parameters to secure:
 - **`Port 2222`** — Changes default port from 22 to mitigate automated bot scans.
@@ -58,8 +62,92 @@ Fail2ban scans system logs (e.g., `/var/log/secure`) for repeated authentication
   - `maxretry = 5` — Failed attempts allowed before block.
 
 ---
-## Windows/Linux SSH Configuration Commands
 
+## Common Mistakes
+> [!warning] Avoid These
+> **Disabling password authentication before verifying key login:** Modifying `PasswordAuthentication no` and restarting SSH without having an active terminal session open to test the keys. If the keys fail, you are locked out of the remote server.
+> **Correct approach:** Always keep your current SSH connection active. Open a *second* terminal window and test the key login. If it fails, you can correct the configuration in your active session.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When generating SSH keys, use **Ed25519** (`ssh-keygen -t ed25519`) instead of legacy RSA. Ed25519 keys are physically shorter (easier to copy), computationally faster, and offer significantly higher security than standard 2048-bit or 4096-bit RSA keys.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 ### Generating and Copying Keys
 ```bash
 # Generate a modern, secure Ed25519 SSH key pair on client
@@ -76,7 +164,6 @@ ssh -p 2222 sysadmin@192.168.10.20
 ```
 
 ---
-## Lab — Step by Step
 > [!info] Lab Setup Needed
 > Two Linux VMs: Client VM (`Rocky-Client`) and Server VM (`Rocky-Server` at `192.168.10.20`).
 
@@ -138,8 +225,21 @@ ssh -p 2222 sysadmin@192.168.10.20
    **Verify:** Connection is rejected by the server immediately.
 
 ---
-## Troubleshooting Scenarios
 
+---
+## Cheat Sheet / Quick Reference
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Port 22 | Default SSH port; should be changed to a custom port to mitigate brute-force bots scans. |
+| 2 | ssh-copy-id | Script that securely copies your public key to the remote server's `authorized_keys` file. |
+| 3 | Key Permissions | The `~/.ssh` directory must be set to `700` and `authorized_keys` to `600` or key login fails. |
+| 4 | Visudo / Sudoers| Elevation configs; visudo should be used to edit rights before restricting direct root login. |
+| 5 | fail2ban | Security tool that dynamically blocks IP addresses exhibiting repeated login failures. |
+
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** Copying the SSH key fails, or SSH key authentication is ignored. The server still prompts for password login, despite public keys being copied to `authorized_keys`.
 - **Root Cause:** Secure directory permissions violation. SSH strictly rejects key logins if the client or server `~/.ssh` directory or `authorized_keys` file has write access granted to Group or Others.
@@ -169,29 +269,9 @@ ssh -p 2222 sysadmin@192.168.10.20
   5. Restart SSH to confirm stability.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Disabling password authentication before verifying key login:** Modifying `PasswordAuthentication no` and restarting SSH without having an active terminal session open to test the keys. If the keys fail, you are locked out of the remote server.
-> **Correct approach:** Always keep your current SSH connection active. Open a *second* terminal window and test the key login. If it fails, you can correct the configuration in your active session.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When generating SSH keys, use **Ed25519** (`ssh-keygen -t ed25519`) instead of legacy RSA. Ed25519 keys are physically shorter (easier to copy), computationally faster, and offer significantly higher security than standard 2048-bit or 4096-bit RSA keys.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Port 22 | Default SSH port; should be changed to a custom port to mitigate brute-force bots scans. |
-| 2 | ssh-copy-id | Script that securely copies your public key to the remote server's `authorized_keys` file. |
-| 3 | Key Permissions | The `~/.ssh` directory must be set to `700` and `authorized_keys` to `600` or key login fails. |
-| 4 | Visudo / Sudoers| Elevation configs; visudo should be used to edit rights before restricting direct root login. |
-| 5 | fail2ban | Security tool that dynamically blocks IP addresses exhibiting repeated login failures. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain how SSH key-based authentication works using asymmetric encryption.**
 A: SSH key-based authentication uses public-private key cryptography. The client has a private key, and the server holds the corresponding public key inside `~/.ssh/authorized_keys`. 
 1. The client requests a connection.
@@ -211,8 +291,13 @@ A:
 A: **Local Port Forwarding** (`ssh -L`) redirects traffic from a port on the client (local) machine to a port on the remote server. It allows you to access a service running on the server (like a database or web dashboard) that is not exposed to the public network. **Remote Port Forwarding** (`ssh -R`) redirects traffic from a port on the remote server to a port on the client machine. It allows a remote server on the internet to access a local service running on your local computer, bypassing local NAT firewalls.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: SSH remote servers ko securely manage karne ka standard tool hai. Security best practices ke liye hum default port 22 change karte hain, direct root login block karte hain, aur password logins ko disable karke key-based authentication configure karte hain.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-02 Command Line Basics|L-02 Command Line Basics]] — Standard terminal network diagnostics.
 - [[02-Operating-Systems/04-Linux-RHEL/L-05 User and Group Management|L-05 User and Group Management]] — Wheel group configurations and visudo controls.
 - [[02-Operating-Systems/04-Linux-RHEL/L-12 Network Configuration in Linux|L-12 Network Configuration in Linux]] — Configuration of firewalld ports.
-

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-104, monitoring, backup, kql]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [az104-06-azure-monitor-and-backup, az104-06]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #az-104
 ---
 
 # AZ104-06: Azure Monitor and Backup
@@ -11,18 +13,20 @@ read-time: 15 mins
 > This note covers Azure monitoring, logging, and disaster recovery. It details metrics, Log Analytics workspaces, Kusto Query Language (KQL) queries, Action Group notifications, Service/Resource Health checks, and Recovery Services Vault restores.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of monitoring and backups in Azure like the health monitoring and backup black box on a commercial spaceship:
 - **Metrics** are the real-time gauges on the dashboard (speed, temperature, engine load). They update every few seconds so you can react immediately if something goes red (Metric Alerts).
 - **Logs** are the detailed black-box logbooks. Every action, error message, and warning is recorded in a massive database ledger (**Log Analytics Workspace**). 
 - **KQL (Kusto Query Language)** is your search computer: you write queries to scan millions of log lines and find the exact second a specific system crashed.
 - **Recovery Services Vault** is the escape pod and emergency backup bank. If the spaceship gets hit by space debris (ransomware or hardware failure), you use the vault to restore a complete, healthy copy of the ship to its exact last-saved coordinates.
 
-*Seedha simple mein: Azure Monitor metrics (real-time telemetry) aur logs (historical data) collect karta hai. Log analysis ke liye hum KQL queries use karte hain. Disaster recovery aur VM backups ko manage karne ke liye Recovery Services Vault use hota hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Azure Monitor: Metrics vs. Logs
 - **Metrics:** Numerical values representing the state of a resource at a point in time (e.g., CPU percentage, network out bytes). Collected at regular intervals, stored in a time-series database. Ideal for real-time alerting.
 - **Logs:** Contain different kinds of data organized into records with different sets of properties (e.g., system event logs, application logs). Stored in a Log Analytics Workspace. Ideal for complex historical analysis.
@@ -71,7 +75,9 @@ Heartbeat
   - *File Recovery:* Mounts the backup snapshot disk directly as a local drive letter on a recovery server, allowing you to browse and copy individual files.
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal, a deployed VM `vm-web-dev`, and a Recovery Services Vault `rsv-lab-backup`.
 
@@ -107,7 +113,39 @@ Heartbeat
 7. Click **Unmount Disks** in the Azure Portal when finished.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure Monitor metrics (real-time telemetry) aur logs (historical data) collect karta hai. Log analysis ke liye hum KQL queries use karte hain. Disaster recovery aur VM backups ko manage karne ke liye Recovery Services Vault use hota hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines|AZ104-03 Azure Virtual Machines]] — Base backup policy mappings.
 - [[04-Cloud-and-Security/08-Azure/AZ104-04 Azure Virtual Networking|AZ104-04 Azure Virtual Networking]] — Diagnostic logs for NSG flows.
-

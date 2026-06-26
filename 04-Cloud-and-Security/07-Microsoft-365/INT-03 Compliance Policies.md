@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, compliance]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-03-compliance-policies, int-03]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #md-102
 ---
 
 # INT-03: Compliance Policies
@@ -11,13 +13,15 @@ read-time: 15 mins
 > This note covers Intune Device Compliance Policies, detailing how to evaluate device health parameters (BitLocker, OS updates, passcode strength), set up non-compliance actions, and integrate with Conditional Access to block non-compliant devices.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Compliance Policies as a health check for cars parking in a secure corporate garage. The security guard has a checklist: the car must have working brakes, an active alarm system (BitLocker), a secure steering wheel lock (passcode), and registration tags that aren't expired (OS updates). If a car fails the check, it is flagged as "Non-compliant." The guard might give them a 3-day warning ticket (Grace Period), but if they don't fix the issues, they are blocked from entering the garage (Conditional Access Block).
-*Seedha simple mein: Compliance Policies woh rules hain jinse device ki security health measure ki jaati hai (jaise antivirus enabled hai ya nahi). Agar rules fail hote hain toh device "Not Compliant" mark hota hai aur user ka corporate login block kar diya jata hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Device Compliance Framework
 - Compliance is a binary status: a device is either **Compliant** or **Not Compliant**.
 - By default, devices that have not received a compliance policy can be marked as Compliant or Non-Compliant based on the tenant's global settings (the secure option is to mark them as Non-Compliant).
@@ -37,7 +41,24 @@ When a device fails evaluation, you can trigger sequential actions:
 - **Retire the non-compliant device**: Wipes corporate data from the device if it remains out of compliance for an extended period (e.g., 30 days).
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Deploying a Conditional Access policy requiring device compliance before deploying any compliance policies in Intune. This marks all devices as non-compliant and blocks all users from signing in.
+> Setting the grace period to `0` days for critical updates without warning users. This immediately blocks users from logging in when an update releases, flooding the helpdesk.
+> Forgetting to exclude break-glass accounts from Conditional Access policies, risking a lockout if a policy is configured incorrectly.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Set the global tenant compliance policy to "Mark devices with no compliance policy assigned as: **Not Compliant**". This ensures that any rogue or unmanaged device that manages to join the network is blocked from accessing data until an administrator applies a policy.
+> Provide clear instruction templates in non-compliance notification emails. Include links to self-help guides on how to enable BitLocker or run Windows Updates so users can resolve issues on their own.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Microsoft Intune Admin Center with Intune Administrator permissions, and an enrolled Windows 11 device.
 
@@ -78,7 +99,9 @@ To verify the policy:
 4. The status will update to **Not compliant**, showing which settings failed the health check.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 # Check client local MDM policy diagnostics registry path
 Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Provisioning\Diagnostics\Autopilot"
@@ -87,8 +110,18 @@ Get-ScheduledTask -TaskPath "\Microsoft\Windows\EnterpriseMgmt\*" | Start-Schedu
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Compliance | Binary health status checking settings like BitLocker, TPM, and OS updates. |
+| 2 | Grace Period | Specified timeframe giving users room to fix security issues before access is blocked. |
+| 3 | Non-Compliance Action | Response actions like sending warning emails, locking screens, or wiping data. |
+| 4 | Conditional Access | Entra rules engine that blocks logins if a device is marked non-compliant. |
+| 5 | Sync Client | Triggers local health re-evaluation, sending updated status to the Intune portal. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: An administrator configures a compliance policy requiring BitLocker, but all newly enrolled Windows devices report as "Error" or "Not Applicable" for the BitLocker check, even though the drives are encrypted.
 - Root Cause: The policy is evaluating BitLocker status before the encryption process completes, or it is checking for hardware TPM configurations that are disabled in the BIOS.
@@ -106,31 +139,9 @@ Get-ScheduledTask -TaskPath "\Microsoft\Windows\EnterpriseMgmt\*" | Start-Schedu
   3. Alternatively, trigger a remote sync from the **Intune Admin Center**: Navigate to `Devices` -> `All devices` -> Select the device -> Click **Sync** on the top toolbar.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Deploying a Conditional Access policy requiring device compliance before deploying any compliance policies in Intune. This marks all devices as non-compliant and blocks all users from signing in.
-> Setting the grace period to `0` days for critical updates without warning users. This immediately blocks users from logging in when an update releases, flooding the helpdesk.
-> Forgetting to exclude break-glass accounts from Conditional Access policies, risking a lockout if a policy is configured incorrectly.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Set the global tenant compliance policy to "Mark devices with no compliance policy assigned as: **Not Compliant**". This ensures that any rogue or unmanaged device that manages to join the network is blocked from accessing data until an administrator applies a policy.
-> Provide clear instruction templates in non-compliance notification emails. Include links to self-help guides on how to enable BitLocker or run Windows Updates so users can resolve issues on their own.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Compliance | Binary health status checking settings like BitLocker, TPM, and OS updates. |
-| 2 | Grace Period | Specified timeframe giving users room to fix security issues before access is blocked. |
-| 3 | Non-Compliance Action | Response actions like sending warning emails, locking screens, or wiping data. |
-| 4 | Conditional Access | Entra rules engine that blocks logins if a device is marked non-compliant. |
-| 5 | Sync Client | Triggers local health re-evaluation, sending updated status to the Intune portal. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: How do Intune Compliance Policies work with Entra ID Conditional Access to protect corporate resources?**
 A: Intune Compliance Policies act as a health assessment tool. They evaluate device parameters (e.g., BitLocker, Antivirus, OS version). If the device meets all requirements, Intune flags it as "Compliant" and syncs this status to Microsoft Entra ID. Conditional Access acts as the gatekeeper. When a user tries to sign in, the CA policy checks their Entra ID device status. If the policy requires a compliant device and the device is flagged as "Not Compliant", the login is blocked.
 
@@ -145,8 +156,13 @@ A:
 A: If set to "Compliant", any newly enrolled device (including personal devices or machines with no security policies applied) is flagged as compliant. This allows them to bypass Conditional Access checks and access corporate data. This represents a significant security risk, as unmanaged devices with no encryption or passcode requirements can download sensitive company data.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Compliance Policies woh rules hain jinse device ki security health measure ki jaati hai (jaise antivirus enabled hai ya nahi). Agar rules fail hote hain toh device "Not Compliant" mark hota hai aur user ka corporate login block kar diya jata hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Establishes identity joins and console controls.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-02 Device Enrollment|INT-02 Device Enrollment]] — Controls how devices are onboarded before evaluation.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-04 Configuration Profiles|INT-04 Configuration Profiles]] — Details configuration policies like BitLocker settings.
-

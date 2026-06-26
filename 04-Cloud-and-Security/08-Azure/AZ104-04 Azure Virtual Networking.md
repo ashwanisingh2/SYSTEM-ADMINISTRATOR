@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-104, networking, peering]
-difficulty: Advanced
-lab-required: Yes
-read-time: 18 mins
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [az104-04-azure-virtual-networking, az104-04]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #az-104
 ---
 
 # AZ104-04: Azure Virtual Networking
@@ -11,18 +13,20 @@ read-time: 18 mins
 > This note covers advanced Azure networking. It details VNet IP planning, subnet allocations (including Microsoft reserved IPs), Application Security Groups (ASG), User Defined Routes (UDR), VNet Peering transit, Azure Bastion, Private/Service Endpoints, and Private DNS zones.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure virtual networking as designing a secure multi-department corporate office campus:
 - **VNet Peering** is building a private corridor between the Sales building (VNet A) and the HR building (VNet B) so employees can walk back and forth without going out onto the public street (the Internet).
 - **Azure Bastion** is a secure, armored visitor check-in desk at the entrance. Instead of letting remote administrators RDP directly to servers over public ports (a major security risk), administrators log into a web browser SSL portal, and Bastion projects a secure console inside the browser.
 - **Private Endpoints** are running a private, dedicated telephone line straight to a secure remote cloud database (PaaS), completely bypassing public network routing.
 - **ASG (Application Security Groups)** allow you to group servers logically: instead of writing NSG rules for 50 different IP addresses, you label the servers "WebServers" and write one rule for the group.
 
-*Seedha simple mein: AZ-104 networking Hub-Spoke topology, NSG/ASG security filtering, VNet Peering, and Private Endpoints par based hota hai. Subnets design karte waqt yaad rakhna chahiye ki Azure har subnet mein 5 IPs reserve karta hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. VNet IP Address Planning & Subnet Sizing
 - **VNet Allocation:** Choose non-overlapping address spaces (e.g., `10.1.0.0/16`). If subnets overlap, you cannot establish VNet Peering later.
 - **Reserved IP Addresses:** For every subnet created, **Azure reserves 5 IP addresses** automatically:
@@ -57,7 +61,9 @@ Provides secure RDP/SSH access to VMs directly over SSL (port 443) via the Azure
 - **Private Endpoint:** Creates a physical network interface (NIC) with a **private IP address** from your subnet inside the VNet, linking it directly to the PaaS resource. The PaaS resource behaves as a local VM, completely removing public IP accessibility.
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal.
 
@@ -97,9 +103,41 @@ Provides secure RDP/SSH access to VMs directly over SSL (port 443) via the Azure
 8. Public IP: Create new. Click **Review + create**, then **Create** (Deployment takes 5-10 mins). You can now RDP/SSH securely to any VM in the VNet using the Bastion option in the portal.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: AZ-104 networking Hub-Spoke topology, NSG/ASG security filtering, VNet Peering, and Private Endpoints par based hota hai. Subnets design karte waqt yaad rakhna chahiye ki Azure har subnet mein 5 IPs reserve karta hai.*
+
+---
 ## Related Notes
 - [[01-Foundations/02-Networking/N-04 IPv4 Addressing Complete Guide|N-04 IPv4 Addressing Complete Guide]] — Dynamic subnetting calculations.
 - [[04-Cloud-and-Security/08-Azure/AZ9-04 Azure Storage and Networking|AZ9-04 Azure Storage and Networking]] — Base Virtual Network basics.
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines|AZ104-03 Azure Virtual Machines]] — Connecting VMs to subnet interfaces.
 - [[04-Cloud-and-Security/08-Azure/AZ104-05 Azure Load Balancing|AZ104-05 Azure Load Balancing]] — Integrating Load Balancers into VNets.
-

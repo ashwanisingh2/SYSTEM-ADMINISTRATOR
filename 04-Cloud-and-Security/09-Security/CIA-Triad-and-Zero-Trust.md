@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, security, zero-trust, cryptography, L1]
-aliases: [cia-triad, zero-trust-guide, integrity-hashing]
+---
+tags: [desktop-support, security, threat-protection, L2]
+aliases: [cia-triad-and-zero-trust, cia-triad-and-zero-trust]
 created: 2026-06-25
 status: #complete
 difficulty: #beginner
-cert-relevant: #az-900
+cert-relevant: #none
 ---
 
 # CIA Triad and Zero Trust
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: The **CIA Triad** is the foundational security model consisting of Confidentiality (protecting data from unauthorized access), Integrity (ensuring data is accurate and not altered), and Availability (guaranteeing reliable access to data). **Zero Trust** is a modern security framework based on three principles: Verify explicitly, Use least privilege access, and Assume breach.
 - **Why it matters for a support engineer**: A support engineer is the first line of defense. Every action—from resetting a password (confidentiality) to restoring a backup (availability) or validating a file hash (integrity)—is mapped directly to the CIA Triad. Zero Trust dictates how support engineers manage remote users and verify client devices.
@@ -22,8 +23,8 @@ cert-relevant: #az-900
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. The CIA Triad in Enterprise Operations
 The CIA Triad is a balancing act; increasing security in one pillar can occasionally impact another (e.g., heavy encryption protects confidentiality but can slow down availability).
 
@@ -62,41 +63,6 @@ Zero Trust integrates controls across six critical infrastructure domains:
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-PowerShell includes built-in cmdlets to verify file integrity and audit security configurations.
-```powershell
-# Calculate the SHA-256 cryptographic hash of a file to verify its integrity
-Get-FileHash -Path "C:\Downloads\update-agent.msi" -Algorithm SHA256
-
-# Compare a calculated file hash against an expected vendor hash
-$Hash = (Get-FileHash -Path "C:\Downloads\update-agent.msi" -Algorithm SHA256).Hash
-$ExpectedHash = "A567BCE902F1C34A999DB88F45D10E34F5C02D1E2A34F5678BCEF90D1C2A34B2"
-if ($Hash -eq $ExpectedHash) {
-    Write-Host "Integrity Verified: The file has not been modified." -ForegroundColor Green
-} else {
-    Write-Warning "INTEGRITY FAILURE: The file has been modified or corrupted!"
-}
-
-# Verify BitLocker volume encryption status (Confidentiality control)
-Get-BitLockerVolume -MountPoint "C:"
-```
-
-### CMD / Run Box
-```cmd
-:: Check local network availability routing to DNS servers
-ping 8.8.8.8
-
-:: Verify certificate path verification for web endpoints
-certutil -verify C:\Temp\corporate_root.cer
-```
-
-### GUI Path
-- **Security Portal**: Go to **security.microsoft.com** -> **Microsoft Secure Score** to audit Zero Trust compliance metrics.
-- **Entra Center**: Go to **entra.microsoft.com** -> **Identity** -> **Users** -> **Sign-in logs** to verify explicit authentication signals.
-
----
 
 ## Real-World Scenarios
 
@@ -144,6 +110,7 @@ certutil -verify C:\Temp\corporate_root.cer
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -167,6 +134,7 @@ certutil -verify C:\Temp\corporate_root.cer
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -177,8 +145,12 @@ certutil -verify C:\Temp\corporate_root.cer
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #security #zero-trust #cryptography #L1 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Calculate SHA-256 file hashes in PowerShell, modify a file, recalculate to verify integrity failure, and inspect Zero Trust compliance status.
 **Time Required:** 20 minutes
 **Environment Needed:** A Windows 11 workstation.
@@ -217,8 +189,72 @@ certutil -verify C:\Temp\corporate_root.cer
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+PowerShell includes built-in cmdlets to verify file integrity and audit security configurations.
+```powershell
+# Calculate the SHA-256 cryptographic hash of a file to verify its integrity
+Get-FileHash -Path "C:\Downloads\update-agent.msi" -Algorithm SHA256
 
+# Compare a calculated file hash against an expected vendor hash
+$Hash = (Get-FileHash -Path "C:\Downloads\update-agent.msi" -Algorithm SHA256).Hash
+$ExpectedHash = "A567BCE902F1C34A999DB88F45D10E34F5C02D1E2A34F5678BCEF90D1C2A34B2"
+if ($Hash -eq $ExpectedHash) {
+    Write-Host "Integrity Verified: The file has not been modified." -ForegroundColor Green
+} else {
+    Write-Warning "INTEGRITY FAILURE: The file has been modified or corrupted!"
+}
+
+# Verify BitLocker volume encryption status (Confidentiality control)
+Get-BitLockerVolume -MountPoint "C:"
+```
+
+### CMD / Run Box
+```cmd
+:: Check local network availability routing to DNS servers
+ping 8.8.8.8
+
+:: Verify certificate path verification for web endpoints
+certutil -verify C:\Temp\corporate_root.cer
+```
+
+### GUI Path
+- **Security Portal**: Go to **security.microsoft.com** -> **Microsoft Secure Score** to audit Zero Trust compliance metrics.
+- **Entra Center**: Go to **entra.microsoft.com** -> **Identity** -> **Users** -> **Sign-in logs** to verify explicit authentication signals.
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The core security structures: CIA Triad (Confidentiality, Integrity, Availability) and the Zero Trust model (Verify explicitly, Least privilege, Assume breach).
+> **Why**: Foundation of all IT security; prevents data leaks, system compromises, and credential theft.
+> **How**: Enforce encryption (Confidentiality), use hashing (Integrity), configure backups (Availability), and require MFA + compliance (Zero Trust).
+> **Command**: `Get-FileHash` / `Get-BitLockerVolume`
+> **Interview Answer Starter**: "To implement secure IT operations, I align all controls with the CIA Triad—using encryption for confidentiality, SHA-256 hashing for integrity, and backups for availability—under a Zero Trust model..."
+
+**Key Numbers to Remember:**
+- Zero Trust principles: `3` (Verify, Least Privilege, Assume Breach)
+- Zero Trust architecture pillars: `6`
+- Default hash algorithm for file checks: SHA-256
+- Port required for secure web verification: TCP 443 (HTTPS)
+
+**3 Things Interviewer Wants to Hear:**
+- Trust is never granted based on network location under Zero Trust
+- Using file hashing (SHA-256) to verify software integrity before installation
+- How the CIA Triad pillars balance security and usability
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What does the CIA Triad stand for in IT security?**
 A: The CIA Triad stands for Confidentiality (ensuring only authorized users can see data), Integrity (ensuring data is accurate and not altered), and Availability (guaranteeing users can access data when needed).
@@ -247,34 +283,14 @@ A: A director wanted to bypass MFA for their team because they claimed it was sl
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The core security structures: CIA Triad (Confidentiality, Integrity, Availability) and the Zero Trust model (Verify explicitly, Least privilege, Assume breach).
-> **Why**: Foundation of all IT security; prevents data leaks, system compromises, and credential theft.
-> **How**: Enforce encryption (Confidentiality), use hashing (Integrity), configure backups (Availability), and require MFA + compliance (Zero Trust).
-> **Command**: `Get-FileHash` / `Get-BitLockerVolume`
-> **Interview Answer Starter**: "To implement secure IT operations, I align all controls with the CIA Triad—using encryption for confidentiality, SHA-256 hashing for integrity, and backups for availability—under a Zero Trust model..."
-
-**Key Numbers to Remember:**
-- Zero Trust principles: `3` (Verify, Least Privilege, Assume Breach)
-- Zero Trust architecture pillars: `6`
-- Default hash algorithm for file checks: SHA-256
-- Port required for secure web verification: TCP 443 (HTTPS)
-
-**3 Things Interviewer Wants to Hear:**
-- Trust is never granted based on network location under Zero Trust
-- Using file hashing (SHA-256) to verify software integrity before installation
-- How the CIA Triad pillars balance security and usability
+---
+## Seedha Simple Mein
+*Seedha simple mein: CIA-Triad-and-Zero-Trust ke bare mein seekhta hai. Yeh security infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional Access]] — The primary policy engine enforcing Zero Trust rules.
 - [[04-Cloud-and-Security/09-Security/Access-Management|Access Management]] — Focuses on the Least Privilege principle.
 - [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA and Identity Protection]] — Details Identity verification controls.
 
 ---
-
-## Tags
-#desktop-support #security #zero-trust #cryptography #L1 #interview-topic #lab-complete #daily-use
-

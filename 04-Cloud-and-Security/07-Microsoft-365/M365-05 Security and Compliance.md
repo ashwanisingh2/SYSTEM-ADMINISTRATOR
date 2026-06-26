@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, m365, security, compliance]
-difficulty: Advanced
-lab-required: Yes
-read-time: 20 mins
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [m365-05-security-and-compliance, m365-05]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #none
 ---
 
 # M365-05: Security and Compliance
@@ -11,13 +13,15 @@ read-time: 20 mins
 > This note details Microsoft 365 security and compliance tools, focusing on Defender for Office 365, Data Loss Prevention (DLP), Information Protection (Sensitivity Labels), eDiscovery, and identity protection via Conditional Access.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Microsoft 365 Security and Compliance as a high-security corporate facility. **Conditional Access** acts as the security guards checking IDs and health passes at the gate. **Defender for Office 365** behaves like the automated scan tunnel checking mail packages for explosives (Safe Attachments) and verifying sender badges (Anti-Phishing). **DLP** functions as guards monitoring the exits to make sure staff don't walk out with confidential blueprints, while **Sensitivity Labels** stamp physical documents with security levels like "SECRET" that restrict who can open them even after they leave the building.
-*Seedha simple mein: M365 Security aur Compliance system identities (Conditional Access, MFA), data channels (Defender, Safe Links), aur document boundaries (DLP, Sensitivity Labels) ko protect karne ka ek unified framework hai.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Microsoft Defender for Office 365
 Protects email, files, and collaboration channels (Teams, SharePoint, OneDrive) from cyber threats:
 - **Plan 1**: Focuses on core prevention. Includes Safe Attachments (detonating attachments in sandboxes), Safe Links (rewriting URLs to scan them at time-of-click), and Anti-Phishing protection (validating SPF/DKIM/DMARC and scanning for impersonation).
@@ -42,7 +46,24 @@ Protects email, files, and collaboration channels (Teams, SharePoint, OneDrive) 
 - **Conditional Access (Modern)**: Dynamic. Requires MFA only when signals indicate a need (e.g., accessing from an unfamiliar IP address, unmanaged device, or during a high-risk logon event).
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Enabling Conditional Access policies targeting "All Users" to require MFA without excluding a "Break-Glass" (Emergency Access) account. If the Azure identity service encounters a configuration loop, you risk locking yourself out of the tenant permanently.
+> Creating sensitivity labels and choosing to encrypt files without training users first. This results in users locking themselves out of their own documents, or sharing encrypted attachments that external vendors cannot open.
+> Overlapping broad Retention Policies with granular Retention Labels. The longest retention period and the most restrictive deletion rules always win, causing confusion when files fail to purge.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Always implement a Report-Only period (using `State = reportOnly`) for at least 14 days before enforcing any new Conditional Access policy. Use the Entra Sign-in logs to review exactly which users will be impacted by the changes before they go live.
+> Enable **DKIM** and **DMARC** alongside SPF for outbound mail flow. Without these, your outbound emails will fail phishing evaluation filters on target domains (like Gmail or Yahoo) and land in the recipient's spam folder.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Microsoft 365 Tenant with Global Administrator or Compliance/Security Administrator roles. Access to the Microsoft Purview portal.
 
@@ -101,7 +122,9 @@ New-MgIdentityConditionalAccessPolicy -BodyParameter $policy
 ```
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 Get-DlpCompliancePolicy                             # Retrieves all active DLP policies
 Get-RetentionCompliancePolicy                        # Lists data retention policies
@@ -110,8 +133,18 @@ Get-MgIdentityConditionalAccessPolicy               # Lists Entra Conditional Ac
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Safe Links | Rewrites and scans URLs at time-of-click to block malicious targets. |
+| 2 | DLP | Scans data formats to prevent unauthorized exfiltration of sensitive information. |
+| 3 | Sensitivity Label | Classification tag that embeds encryption and access permissions inside files. |
+| 4 | eDiscovery | Discovery tool to search, hold, and export data across Microsoft 365 locations. |
+| 5 | Conditional Access | Rules engine evaluating logon signals to grant or deny system access. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: Users complain they cannot open legitimate invoices sent by customers because the links inside the email are replaced with long `nam06.safelinks.protection.outlook.com` URLs, and clicking them redirects to a Microsoft warning page.
 - Root Cause: Defender for Office 365 Safe Links has flagged the destination domain due to bad sender reputation, or it is a false-positive detection.
@@ -131,31 +164,9 @@ Get-MgIdentityConditionalAccessPolicy               # Lists Entra Conditional Ac
   4. Rerun the search and monitor progress under the `Status` column until it reads `Completed`.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Enabling Conditional Access policies targeting "All Users" to require MFA without excluding a "Break-Glass" (Emergency Access) account. If the Azure identity service encounters a configuration loop, you risk locking yourself out of the tenant permanently.
-> Creating sensitivity labels and choosing to encrypt files without training users first. This results in users locking themselves out of their own documents, or sharing encrypted attachments that external vendors cannot open.
-> Overlapping broad Retention Policies with granular Retention Labels. The longest retention period and the most restrictive deletion rules always win, causing confusion when files fail to purge.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Always implement a Report-Only period (using `State = reportOnly`) for at least 14 days before enforcing any new Conditional Access policy. Use the Entra Sign-in logs to review exactly which users will be impacted by the changes before they go live.
-> Enable **DKIM** and **DMARC** alongside SPF for outbound mail flow. Without these, your outbound emails will fail phishing evaluation filters on target domains (like Gmail or Yahoo) and land in the recipient's spam folder.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Safe Links | Rewrites and scans URLs at time-of-click to block malicious targets. |
-| 2 | DLP | Scans data formats to prevent unauthorized exfiltration of sensitive information. |
-| 3 | Sensitivity Label | Classification tag that embeds encryption and access permissions inside files. |
-| 4 | eDiscovery | Discovery tool to search, hold, and export data across Microsoft 365 locations. |
-| 5 | Conditional Access | Rules engine evaluating logon signals to grant or deny system access. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain the difference between SPF, DKIM, and DMARC. How do they prevent email spoofing?**
 A: SPF (Sender Policy Framework) is a DNS TXT record listing all IP addresses authorized to send emails on behalf of your domain. DKIM (DomainKeys Identified Mail) adds a cryptographic signature to the email header, validating that the mail was sent by the domain owner and not altered in transit. DMARC (Domain-based Message Authentication, Reporting, and Conformance) uses both SPF and DKIM checks to instruct the receiving server on what to do with failures (e.g., none, quarantine, or reject).
 
@@ -170,8 +181,13 @@ A:
 A: Conditional Access evaluates all applicable policies simultaneously. If a user matches the criteria of multiple policies, the controls of *all* matching policies must be satisfied. For example, if Policy A requires MFA, and Policy B requires a compliant device, the user must perform MFA *and* use a compliant device to successfully authenticate. If any policy results in a "Block" control, access is immediately blocked regardless of other policies.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: M365 Security aur Compliance system identities (Conditional Access, MFA), data channels (Defender, Safe Links), aur document boundaries (DLP, Sensitivity Labels) ko protect karne ka ek unified framework hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-01 Microsoft 365 Administration|M365-01 Microsoft 365 Administration]] — Sets up tenant-wide user and billing scopes.
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online Administration|M365-02 Exchange Online Administration]] — Manages mail flow routing and basic connectors.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-07 Endpoint Security in Intune|INT-07 Endpoint Security in Intune]] — Manages Windows Defender and compliance metrics.
-

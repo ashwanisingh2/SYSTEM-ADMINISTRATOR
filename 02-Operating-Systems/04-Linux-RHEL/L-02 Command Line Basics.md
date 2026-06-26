@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, CLI, commands]
-difficulty: Beginner
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-02-command-line-basics, l-02]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #rhcsa
 ---
 
 # L-02: Command Line Basics
@@ -11,17 +13,19 @@ read-time: 15 mins
 > This note covers the basics of the Linux Command Line Interface (CLI). It details command syntax rules, active terminal shortcuts, and provides a reference matrix of fifty essential Linux commands.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of the Command Line Interface (CLI) as a direct, written conversation with your computer. 
 Using a Graphical User Interface (GUI) is like ordering food at a restaurant by pointing to pictures on a menu: it is easy, but you are limited to what the pictures show. 
 
 Using the CLI is like talking directly to the head chef: you write out exactly what ingredients you want (options/flags) and what dish you want them applied to (arguments). It requires learning the recipe terms, but it allows you to customize and automate any dish imaginable.
 
-*Seedha simple mein: CLI computer se direct keyboard ke zariye baat karne ka tool hai. Command execution ka basic format hota hai: `command [options] [arguments]`. Tab key aur history shortcuts work speed ko improve karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Command Syntax Structure
 Linux commands follow a strict case-sensitive pattern:
 $$\text{command} \quad \text{--options} \quad \text{arguments}$$
@@ -38,8 +42,130 @@ $$\text{command} \quad \text{--options} \quad \text{arguments}$$
   - `!sudo` — Repeats the last command that started with `sudo`.
 
 ---
-## 50 Essential Linux Commands Matrix
 
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
+> [!info] Lab Setup Needed
+> A running Rocky Linux VM and access to the terminal console interface.
+
+### Step 1: Directory Exercises
+1. Log in. Open terminal.
+2. Verify your current folder location:
+   ```bash
+   pwd
+   ```
+3. Create a test nested folder:
+   ```bash
+   mkdir -p ~/lab_temp/sub_folder
+   ```
+4. Change directory to the new subfolder:
+   ```bash
+   cd ~/lab_temp/sub_folder
+   ```
+5. Verify location: `pwd` should return `/home/[user]/lab_temp/sub_folder`.
+
+### Step 2: File Creation and Viewing
+1. Create an empty file:
+   ```bash
+   touch my_note.txt
+   ```
+2. Write text into the file using output redirection:
+   ```bash
+   echo "This is line 1 of my test note." > my_note.txt
+   echo "This is line 2 of my test note." >> my_note.txt
+   ```
+   *(Note: `>` overwrites; `>>` appends).*
+3. Verify file contents:
+   ```bash
+   cat my_note.txt
+   ```
+
+### Step 3: Search and Clean up
+1. Search for the word "line" inside your note:
+   ```bash
+   grep "line" my_note.txt
+   ```
+2. Go back home: `cd ~`.
+3. Remove the entire test directory recursively:
+   ```bash
+   rm -rf ~/lab_temp
+   ```
+4. Verify deletion: `ls ~/lab_temp` should return an error stating no such directory exists.
+
+---
+
+---
+## Cheat Sheet / Quick Reference
 ### Directory Navigation & Manipulation
 1. `pwd` — Print working directory. E.g., `pwd` returns `/home/sysadmin`.
 2. `ls -la` — List directory contents with long format (permissions, owner, size) and hidden files.
@@ -107,57 +233,31 @@ $$\text{command} \quad \text{--options} \quad \text{arguments}$$
 50. `exit` — Close the active terminal session.
 
 ---
-## Lab — Step by Step
-> [!info] Lab Setup Needed
-> A running Rocky Linux VM and access to the terminal console interface.
 
-### Step 1: Directory Exercises
-1. Log in. Open terminal.
-2. Verify your current folder location:
-   ```bash
-   pwd
-   ```
-3. Create a test nested folder:
-   ```bash
-   mkdir -p ~/lab_temp/sub_folder
-   ```
-4. Change directory to the new subfolder:
-   ```bash
-   cd ~/lab_temp/sub_folder
-   ```
-5. Verify location: `pwd` should return `/home/[user]/lab_temp/sub_folder`.
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
 
-### Step 2: File Creation and Viewing
-1. Create an empty file:
-   ```bash
-   touch my_note.txt
-   ```
-2. Write text into the file using output redirection:
-   ```bash
-   echo "This is line 1 of my test note." > my_note.txt
-   echo "This is line 2 of my test note." >> my_note.txt
-   ```
-   *(Note: `>` overwrites; `>>` appends).*
-3. Verify file contents:
-   ```bash
-   cat my_note.txt
-   ```
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
 
-### Step 3: Search and Clean up
-1. Search for the word "line" inside your note:
-   ```bash
-   grep "line" my_note.txt
-   ```
-2. Go back home: `cd ~`.
-3. Remove the entire test directory recursively:
-   ```bash
-   rm -rf ~/lab_temp
-   ```
-4. Verify deletion: `ls ~/lab_temp` should return an error stating no such directory exists.
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: CLI computer se direct keyboard ke zariye baat karne ka tool hai. Command execution ka basic format hota hai: `command [options] [arguments]`. Tab key aur history shortcuts work speed ko improve karte hain.*
 
 ---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-01 Linux Introduction and Architecture|L-01 Linux Introduction and Architecture]] — Operating system base architectures.
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — FHS and directories layout specifications.
 - [[02-Operating-Systems/04-Linux-RHEL/L-04 Text Editors and File Viewing|L-04 Text Editors and File Viewing]] — Editing files inside terminal CLI.
-

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, linux, security, user-management]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, linux, rhel, L1]
+aliases: [l-05-user-and-group-management, l-05]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #rhcsa
 ---
 
 # L-05: User and Group Management
@@ -11,7 +13,9 @@ read-time: 15 mins
 > This note covers Linux identity administration, including file formats (`/etc/passwd`, `/etc/shadow`, `/etc/group`), user/group lifecycle commands, privilege elevation models (`su` vs. `sudo`), and password aging configurations.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of user management in Linux like organizing security permissions in a apartment complex:
 - **`/etc/passwd`** is the public directory board in the lobby. Anyone can read it to see who lives in which room number (UID) and where their mailbox is located (Home Directory).
 - **`/etc/shadow`** is the locked security safe behind the manager's desk. Only the building manager (root) can open it to verify the biometric key hashes (passwords) and check if rent is overdue (password expiration).
@@ -19,11 +23,11 @@ Think of user management in Linux like organizing security permissions in a apar
 - **`su`** is climbing into the manager's office and changing into their uniform completely (unsecure, hard to track).
 - **`sudo`** is having the manager sign a guest pass card allowing you to execute a single task with their authority, logged at the front desk (secure, fully audited).
 
-*Seedha simple mein: Linux multi-user OS hai jahan users aur groups ki information text files (/etc/passwd, /etc/shadow) mein store hoti hai. Privilege management ke liye hum user ko sudo group mein add karte hain visudo tool ka use karke.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Identity File Formats
 
 #### Parsing `/etc/passwd` (Readable by Everyone)
@@ -103,7 +107,92 @@ wheel:x:10:sysadmin,jdoe
   - `%wheel  ALL=(ALL)   NOPASSWD: ALL` — Run all commands without prompting for password.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> **Running usermod without the append flag:** Executing `usermod -G devs jdoe` to add user `jdoe` to the `devs` group. Failing to specify the `-a` (append) flag will remove `jdoe` from all other supplementary groups (including `wheel` or `sudo`), stripping their admin privileges.
+> **Correct approach:** Always specify the append flag together with groups: `usermod -aG devs jdoe`.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> When deleting old employee accounts, never use `userdel` immediately. First, lock the account (`usermod -L [user]`) and change their login shell to `/sbin/nologin`. Keep the account deactivated for 30 days. This allows you to verify if any running production cron scripts, databases, or API integrations depend on that user ID before deleting their home directory files.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > A running Linux VM and root terminal access.
 
@@ -153,7 +242,9 @@ wheel:x:10:sysadmin,jdoe
    **Verify:** The service restarts successfully without asking for root or user passwords. Attempting any other sudo command (e.g., `sudo systemctl stop firewalld`) should prompt for password and return access denied.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```bash
 # Display active password aging policy for user jdoe
 chage -l jdoe
@@ -166,8 +257,18 @@ groups jdoe
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | /etc/passwd | Text file storing user accounts, UID, home directory paths, and default shell configurations. |
+| 2 | /etc/shadow | Root-only file storing encrypted password hashes and password expiration thresholds. |
+| 3 | visudo | Safe editor tool that locks and validates the sudoers configuration file before saving. |
+| 4 | su vs sudo | su switches environment to target user (root); sudo executes single commands under user audit. |
+| 5 | chage | Password aging utility; configures warning times and maximum password validity days. |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - **Problem:** When attempting to run `sudo`, a standard user receives: `sysadmin is not in the sudoers file. This incident will be reported.`
 - **Root Cause:** The user account is not a member of the administrative group (`wheel` on RHEL, `sudo` on Debian), or has no explicit rule in `/etc/sudoers`.
@@ -198,29 +299,9 @@ groups jdoe
   5. Run `visudo` to repair the syntax error. Save, remount read-only, and reboot.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Running usermod without the append flag:** Executing `usermod -G devs jdoe` to add user `jdoe` to the `devs` group. Failing to specify the `-a` (append) flag will remove `jdoe` from all other supplementary groups (including `wheel` or `sudo`), stripping their admin privileges.
-> **Correct approach:** Always specify the append flag together with groups: `usermod -aG devs jdoe`.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When deleting old employee accounts, never use `userdel` immediately. First, lock the account (`usermod -L [user]`) and change their login shell to `/sbin/nologin`. Keep the account deactivated for 30 days. This allows you to verify if any running production cron scripts, databases, or API integrations depend on that user ID before deleting their home directory files.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | /etc/passwd | Text file storing user accounts, UID, home directory paths, and default shell configurations. |
-| 2 | /etc/shadow | Root-only file storing encrypted password hashes and password expiration thresholds. |
-| 3 | visudo | Safe editor tool that locks and validates the sudoers configuration file before saving. |
-| 4 | su vs sudo | su switches environment to target user (root); sudo executes single commands under user audit. |
-| 5 | chage | Password aging utility; configures warning times and maximum password validity days. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: Explain what happens when you run the command `sudo -i`. How does it differ from `su`?**
 A: **`su`** (Switch User) prompts for the target user's (usually root) password and starts a new shell. **`sudo -i`** prompts for the *current user's* password, validates their sudo rights against `/etc/sudoers`, and if permitted, simulates a login shell for the root user. It imports root's environment variables (`PATH`, home directory `/root`, shell). It is preferred because it logs the escalation under the administrator's own account, avoiding the need to share the raw root password.
 
@@ -236,8 +317,13 @@ A:
 A: In Linux, the operating system kernel does not care about the text name "root." Instead, it checks the User Identifier (UID). Any account assigned **UID 0** is treated by the kernel as the superuser (root), granting it complete bypass of all filesystem permissions, access to all memory blocks, and rights to execute any system calls. If a hacker modifies a standard user account in `/etc/passwd` to have GID/UID 0, that user becomes a root administrator.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Linux multi-user OS hai jahan users aur groups ki information text files (/etc/passwd, /etc/shadow) mein store hoti hai. Privilege management ke liye hum user ko sudo group mein add karte hain visudo tool ka use karke.*
+
+---
 ## Related Notes
 - [[02-Operating-Systems/04-Linux-RHEL/L-03 File System Management|L-03 File System Management]] — Owner metadata and directory lists.
 - [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership|L-06 File Permissions and Ownership]] — Controlling file access based on UID/GID.
 - [[02-Operating-Systems/04-Linux-RHEL/L-09 SSH Configuration and Security|L-09 SSH Configuration and Security]] — Hardening remote admin logins.
-

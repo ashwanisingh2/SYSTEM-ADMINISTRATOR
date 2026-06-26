@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, m365, onedrive, file-storage, L1]
-aliases: [onedrive-guide, onedrive-reset, sync-issues]
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [onedrive-administration, onedrive-administration]
 created: 2026-06-25
 status: #complete
 difficulty: #beginner
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # OneDrive Administration
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: OneDrive for Business is a cloud-based personal file storage and sharing service provided to corporate users in Microsoft 365. It allows employees to store files securely, synchronize them across devices, and collaborate on documents.
 - **Why it matters for a support engineer**: OneDrive sync client failures are one of the most common user tickets. Support engineers resolve sync stagnation, file name conflicts, red "X" error icons, and recover accidentally deleted documents.
@@ -22,8 +23,8 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Files On-Demand Architecture & Status Icons
 OneDrive uses **Files On-Demand** to save local disk space by streaming files on access rather than downloading the entire library:
 
@@ -47,52 +48,6 @@ When a user is deleted from Microsoft 365:
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-OneDrive management is integrated into the SharePoint Online (`Microsoft.Online.SharePoint.PowerShell`) module.
-```powershell
-# Install and connect to SharePoint Online service
-Install-Module -Name Microsoft.Online.SharePoint.PowerShell -Force
-Connect-SPOService -Url "https://company-admin.sharepoint.com"
-
-# Increase a user's OneDrive storage quota to 5TB (5242880 MB)
-Set-SPOUser -Site "https://company-my.sharepoint.com/personal/jdoe_company_com" -StorageQuota 5242880
-
-# Get details on a user's OneDrive site usage
-Get-SPOSite -Identity "https://company-my.sharepoint.com/personal/jdoe_company_com" | Select-Object Url, StorageUsageCurrent, StorageQuota
-```
-
-### CMD / Run Box (Sync Client Reset)
-When OneDrive hangs, fails to start, or displays constant syncing animations:
-```cmd
-:: Kill and reset the OneDrive client cache (Run in the CMD run dialog)
-%localappdata%\Microsoft\OneDrive\onedrive.exe /reset
-
-:: If using the machine-wide installer (x64)
-%ProgramFiles%\Microsoft OneDrive\onedrive.exe /reset
-
-:: Restart OneDrive after 2 minutes if it doesn't open automatically
-start %localappdata%\Microsoft\OneDrive\onedrive.exe
-```
-
-### GUI Path
-- **Admin Quotas**: M365 Admin Center -> **Users** -> **Active Users** -> Select User -> **OneDrive** tab -> **Edit Storage Limit**.
-- **Client Settings**: Right-click the OneDrive cloud icon in the taskbar -> Click **Settings** (Gear icon) -> **Pause syncing** or **Manage Backup** (for KFM).
-
-### Important Registry Paths
-- Enforcing OneDrive Files On-Demand via GPO:
-  ```
-  HKLM\SOFTWARE\Policies\Microsoft\OneDrive
-  (Create DWORD "FilesOnDemandEnabled" set to 1)
-  ```
-- Silent configuration of user accounts (AD credential pass-through):
-  ```
-  HKLM\SOFTWARE\Policies\Microsoft\OneDrive
-  (Create DWORD "SilentAccountConfig" set to 1)
-  ```
-
----
 
 ## Real-World Scenarios
 
@@ -139,6 +94,7 @@ start %localappdata%\Microsoft\OneDrive\onedrive.exe
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -162,6 +118,7 @@ start %localappdata%\Microsoft\OneDrive\onedrive.exe
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -172,8 +129,12 @@ start %localappdata%\Microsoft\OneDrive\onedrive.exe
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #m365 #onedrive #file-storage #L1 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Troubleshoot a simulated hung OneDrive client, clear local cache databases via PowerShell/Command Prompt, and verify Known Folder Move settings.
 **Time Required:** 20 minutes
 **Environment Needed:** A Windows 11 client computer running OneDrive.
@@ -200,8 +161,83 @@ start %localappdata%\Microsoft\OneDrive\onedrive.exe
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+OneDrive management is integrated into the SharePoint Online (`Microsoft.Online.SharePoint.PowerShell`) module.
+```powershell
+# Install and connect to SharePoint Online service
+Install-Module -Name Microsoft.Online.SharePoint.PowerShell -Force
+Connect-SPOService -Url "https://company-admin.sharepoint.com"
 
+# Increase a user's OneDrive storage quota to 5TB (5242880 MB)
+Set-SPOUser -Site "https://company-my.sharepoint.com/personal/jdoe_company_com" -StorageQuota 5242880
+
+# Get details on a user's OneDrive site usage
+Get-SPOSite -Identity "https://company-my.sharepoint.com/personal/jdoe_company_com" | Select-Object Url, StorageUsageCurrent, StorageQuota
+```
+
+### CMD / Run Box (Sync Client Reset)
+When OneDrive hangs, fails to start, or displays constant syncing animations:
+```cmd
+:: Kill and reset the OneDrive client cache (Run in the CMD run dialog)
+%localappdata%\Microsoft\OneDrive\onedrive.exe /reset
+
+:: If using the machine-wide installer (x64)
+%ProgramFiles%\Microsoft OneDrive\onedrive.exe /reset
+
+:: Restart OneDrive after 2 minutes if it doesn't open automatically
+start %localappdata%\Microsoft\OneDrive\onedrive.exe
+```
+
+### GUI Path
+- **Admin Quotas**: M365 Admin Center -> **Users** -> **Active Users** -> Select User -> **OneDrive** tab -> **Edit Storage Limit**.
+- **Client Settings**: Right-click the OneDrive cloud icon in the taskbar -> Click **Settings** (Gear icon) -> **Pause syncing** or **Manage Backup** (for KFM).
+
+### Important Registry Paths
+- Enforcing OneDrive Files On-Demand via GPO:
+  ```
+  HKLM\SOFTWARE\Policies\Microsoft\OneDrive
+  (Create DWORD "FilesOnDemandEnabled" set to 1)
+  ```
+- Silent configuration of user accounts (AD credential pass-through):
+  ```
+  HKLM\SOFTWARE\Policies\Microsoft\OneDrive
+  (Create DWORD "SilentAccountConfig" set to 1)
+  ```
+
+---
+
+> [!info] 60-Second Summary
+> **What**: Cloud-based personal file storage and sync utility for M365 users.
+> **Why**: Prevents profile data loss (via KFM) and enables offline file collaboration.
+> **How**: Manage status icons, configure Known Folder Move, resolve invalid character errors, and run client resets.
+> **Command**: `onedrive.exe /reset` / `Set-SPOUser -StorageQuota`
+> **Interview Answer Starter**: "Managing OneDrive administration involves ensuring sync clients are active, resolving file path naming conflicts, and implementing Known Folder Move policies..."
+
+**Key Numbers to Remember:**
+- Default Storage Allocation: 1 TB
+- Maximum Storage Upgrade: 25 TB
+- Recycle Bin Retention Period: 93 days
+- Maximum path character limit: 400 characters
+
+**3 Things Interviewer Wants to Hear:**
+- Files On-Demand statuses (Cloud-only, locally cached, pinned offline)
+- Known Folder Move (KFM) to redirect Desktop/Documents to the cloud
+- Using `onedrive.exe /reset` as the primary tool to repair sync stagnation
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What do the three main OneDrive status icons (Cloud, Green outline, Solid green) mean?**
 A: Cloud means the file is stored only in the cloud, taking up no disk space. Green outline checkmark means the file was opened and is downloaded locally, but can be cleared if disk space is low. Solid green circle means the file is pinned to the computer, ensuring it's always available offline.
@@ -230,34 +266,14 @@ A: A designer was crying because they thought they deleted their week's work whe
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: Cloud-based personal file storage and sync utility for M365 users.
-> **Why**: Prevents profile data loss (via KFM) and enables offline file collaboration.
-> **How**: Manage status icons, configure Known Folder Move, resolve invalid character errors, and run client resets.
-> **Command**: `onedrive.exe /reset` / `Set-SPOUser -StorageQuota`
-> **Interview Answer Starter**: "Managing OneDrive administration involves ensuring sync clients are active, resolving file path naming conflicts, and implementing Known Folder Move policies..."
-
-**Key Numbers to Remember:**
-- Default Storage Allocation: 1 TB
-- Maximum Storage Upgrade: 25 TB
-- Recycle Bin Retention Period: 93 days
-- Maximum path character limit: 400 characters
-
-**3 Things Interviewer Wants to Hear:**
-- Files On-Demand statuses (Cloud-only, locally cached, pinned offline)
-- Known Folder Move (KFM) to redirect Desktop/Documents to the cloud
-- Using `onedrive.exe /reset` as the primary tool to repair sync stagnation
+---
+## Seedha Simple Mein
+*Seedha simple mein: OneDrive-Administration ke bare mein seekhta hai. Yeh m365 infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/SharePoint-Online|SharePoint Online]] — Underpins OneDrive's backend storage systems.
 - [[02-Operating-Systems/03-Windows-OS/User-Profiles|User Profiles]] — Focuses on the local folders redirected by KFM.
 - [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA and Identity Protection]] — Controls credential authentication during OneDrive sync.
 
 ---
-
-## Tags
-#desktop-support #m365 #onedrive #file-storage #L1 #interview-topic #lab-complete #daily-use
-

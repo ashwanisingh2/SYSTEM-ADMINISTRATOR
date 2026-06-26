@@ -1,10 +1,10 @@
 ---
-tags: [security, endpoint-security, defender, mde, md-102]
-aliases: [endpoint-security-defender]
+tags: [desktop-support, security, threat-protection, L2]
+aliases: [endpoint-security-defender, endpoint-security-defender]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # Endpoint-Security-Defender
@@ -14,6 +14,7 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Concept Overview
 - **What it is** — MDE is a cloud-based security service that uses behavioral sensors embedded in Windows 10/11 and cloud-based machine learning to analyze endpoint telemetry.
 - **Why it matters for a support engineer** — Supporting modern workplaces means protecting devices anywhere. Support engineers configure Defender policies, verify client onboarding, monitor security alerts, and isolate compromised systems.
@@ -24,12 +25,11 @@ cert-relevant: #md-102
   - ****L2 Resolution:**** Onboards client machines via Intune policies, configures ASR rules in Audit/Block mode, and executes Live Response forensic commands.
   - ****L3 Resolution:**** Integrates MDE with Sentinel, configures advanced device groups and RBAC permissions, and defines automated investigation and response (AIR) scopes.
 
-*Seedha simple mein: Microsoft Defender for Endpoint (MDE) ek enterprise-grade security system hai jo normal windows defender se advance hai. Yeh cloud telemetry ka use karke process behaviors ko check karta hai aur Intune ke sath mil kar client laptops ko secure aur compliance-ready banata hai.*
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. MDE Core Capabilities
 * **Threat & Vulnerability Management (TVM)**: Real-time discovery of software vulnerabilities and misconfigurations (e.g., outdated Chrome browser on client machines).
 * **Attack Surface Reduction (ASR)**: Set of rules to block common attack vectors, such as executing obfuscated scripts, blocking office applications from launching child processes.
@@ -45,8 +45,8 @@ Windows 10/11 has built-in sensors but needs to be pointed to the tenant. Onboar
 
 ---
 
-## Step-by-Step Lab / Configuration
-
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A Microsoft 365 E5 license or trial.
 > - Access to Microsoft Defender Portal (`security.microsoft.com`).
@@ -101,8 +101,8 @@ fileinfo "C:\Windows\System32\cmd.exe"
 
 ---
 
-## Common Live Response Commands
-
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `processes` | List active processes on target | `processes` |
@@ -112,8 +112,8 @@ fileinfo "C:\Windows\System32\cmd.exe"
 
 ---
 
-## Troubleshooting / Integration Matrix
-
+---
+## Troubleshooting
 ```
 **L1 Resolution:** Monitors compliance dashboards, checks if Defender sensor is running using `sc query sense`.
 **Escalation Trigger:** Device status remains "Can be onboarded" or "Out of compliance" after Intune policy deployment.
@@ -127,8 +127,8 @@ fileinfo "C:\Windows\System32\cmd.exe"
 
 ---
 
+---
 ## Interview Questions
-
 **Q1: What is Microsoft Defender for Endpoint (MDE) and how is it different from local Windows Defender Antivirus?**
 > A: Local **Windows Defender Antivirus** is a traditional next-generation endpoint protection tool focused on file-scanning and malware blocking. **MDE** is a comprehensive enterprise cloud platform that adds advanced Endpoint Detection and Response (EDR) capability, Threat & Vulnerability Management, and Attack Surface Reduction, enabling enterprise-wide security tracking, remote live shell forensics, and automated threat remediation.
 
@@ -143,6 +143,11 @@ fileinfo "C:\Windows\System32\cmd.exe"
 
 ---
 
+---
+## Seedha Simple Mein
+*Seedha simple mein: Microsoft Defender for Endpoint (MDE) ek enterprise-grade security system hai jo normal windows defender se advance hai. Yeh cloud telemetry ka use karke process behaviors ko check karta hai aur Intune ke sath mil kar client laptops ko secure aur compliance-ready banata hai.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction]]
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-07 Endpoint Security in Intune]]

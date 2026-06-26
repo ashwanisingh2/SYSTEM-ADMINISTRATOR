@@ -379,8 +379,8 @@ A: When Microsoft 365 was introduced to our tenant, I built a personal local lab
 ---
 
 ## Related Notes
-- [[01-Foundations/01-Hardware/PC-Assembly-and-BIOS-Configuration|PC Assembly and BIOS Configuration]] — Core hardware base.
-- [[01-Foundations/02-Networking/OSI-Model|OSI Model]] — Fundamental network structure.
+- [[01-Foundations/01-Hardware/H-05 PC Assembly and BIOS Configuration|PC Assembly and BIOS Configuration]] — Core hardware base.
+- [[01-Foundations/02-Networking/N-01 Networking Fundamentals|OSI Model]] — Fundamental network structure.
 - [[06-Career-Growth/12-Interview-Prep/Top-50-L1-Questions|Top 50 L1 Questions]] — Career exit gateway.
 - [[06-Career-Growth/12-Interview-Prep/Top-30-L2-Questions|Top 30 L2 Questions]] — L2 support interviews.
 - [[06-Career-Growth/12-Interview-Prep/Top-20-Scenario-Based-Questions|Top 20 Scenario-Based Questions]] — Scenario analysis.

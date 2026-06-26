@@ -1,6 +1,6 @@
 ---
-tags: [linux, rhel, docker, containers, devops]
-aliases: [docker-basics]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-19-docker-basics-for-linux-admins, l-19]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -20,6 +20,8 @@ cert-relevant: #rhcsa
 > This note introduces containerization concepts using Docker on Linux. It explains the differences between Virtual Machines and containers, explores the Docker architecture, details essential container management lifecycles, covers volume mapping, networking, and includes practical administration commands.
 
 ---
+
+---
 ## Concept Overview
 - **What it is** — Docker is an open-source platform that automates the deployment of applications inside lightweight, portable, and self-contained environments called containers.
 - **Why it matters for a support engineer** — Modern applications are rarely installed directly on server operating systems. They are packaged as Docker containers, which bundle the app along with all its libraries and dependencies. This ensures that the application runs identically on any environment.
@@ -29,16 +31,17 @@ cert-relevant: #rhcsa
   - **L2**: Install and configure Docker engine, write simple Dockerfiles, manage container networking, clean up unused images/volumes, and configure port mappings.
   - **L3**: Set up persistent storage volumes, secure Docker daemon (TLS setup), optimize image sizes, set up resource limits, and orchestrate basic multi-container setups using Docker Compose.
 
-*Seedha simple mein: Docker ek software hai jo applications ko unki sabhi dependencies ke saath ek packet (container) mein band kar deta hai. Yeh container kisi bhi Linux server par bina kisi compatibility issue ke turant chal jata hai, bilkul waise hi jaise ek packaged box ko kahin bhi transport kiya ja sake.*
 
 ---
+
+---
+## Technical Deep Dive
 ## Real-World Analogy
 Think of a physical cargo ship:
 - Before shipping containers, cargo was loose and loaded individually (barrels of oil next to boxes of electronics). If one leaked, it ruined the others. This is like installing multiple apps on a single Linux OS, leading to library conflicts (DLL/dependency hell).
 - **Docker Containers** are standard shipping containers. Each container is sealed, isolated, and holds a specific item (app + dependencies). The cargo ship (Linux Kernel/Host OS) doesn't care what's inside the container; it can carry thousands of them efficiently.
 
 ---
-## Technical Deep Dive
 
 ### 1. Virtual Machines vs. Containers
 - **Virtual Machines (VMs)**: Include a full Guest OS, virtual device drivers, and a hypervisor layer. They have high resource footprints (GBs of RAM/Disk) and take minutes to boot.
@@ -80,8 +83,79 @@ By default, data created inside a container is ephemeral (gets destroyed when th
 - **Bind Mounts**: Maps any directory or file on the host filesystem directly into the container (e.g., mapping host `/var/www/` to container `/usr/share/nginx/html`).
 
 ---
-## Step-by-Step Lab / Configuration
 
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A Rocky Linux 9 or RHEL 9 virtual machine (`Rocky-App01` with IP `192.168.10.30`).
 > - Sudo or root privileges.
@@ -170,8 +244,9 @@ docker rmi nginx:latest
 ```
 
 ---
-## Cheat Sheet
 
+---
+## Cheat Sheet / Quick Reference
 | Command / Setting | Purpose | Example |
 |---|---|---|
 | `docker run` | Creates and starts a container from an image | `docker run -d --name web -p 80:80 nginx` |
@@ -188,8 +263,9 @@ docker rmi nginx:latest
 | `docker system prune -a` | Cleans up unused containers, networks, and images | `docker system prune -a --volumes` |
 
 ---
-## Troubleshooting
 
+---
+## Troubleshooting
 | Problem | Cause | Fix |
 |---|---|---|
 | Error: "Cannot connect to the Docker daemon. Is the docker daemon running?" | The docker systemd service is stopped or not enabled. | Run `sudo systemctl start docker` to start the daemon, and `sudo systemctl enable docker` for boot persistence. |
@@ -199,8 +275,9 @@ docker rmi nginx:latest
 | Host files are updated, but the change does not reflect inside the running container's bind mount. | SELinux is blocking container access to host directory files. | Append `:z` flag to allow shared SELinux labels: `-v /host/path:/container/path:z`. |
 
 ---
-## Interview Questions
 
+---
+## Interview Questions
 > [!question] L1 Question
 > **Q:** What is the difference between `docker run` and `docker start` commands?
 > **A:** `docker run` is used to create and start a **new** container from a specified image. It downloads the image if not present locally, creates the writeable container layer, and starts it. `docker start` is used to start an **existing, stopped** container that was already created using `docker run` or `docker create`. It does not overwrite files or modify configuration.
@@ -218,6 +295,12 @@ docker rmi nginx:latest
 > 2. **Monitor I/O Bottlenecks**: Run `iostat -xz 1 5` on the host to monitor disk utilization (`%util` and `await`). Run `docker stats` to verify if the container is hitting any disk constraints.
 > 3. **SELinux Auditing**: If SELinux is set to Enforcing, check `/var/log/audit/audit.log` for denials, and ensure the volume mount contains the correct context labels (`:z` or `:Z`).
 > 4. **Hardware Bottlenecks**: Ensure volumes are hosted on high-performance storage media (e.g., NVMe SSDs rather than slow HDDs) and mount directories with the `noatime` option on the host filesystem.
+
+---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Docker ek software hai jo applications ko unki sabhi dependencies ke saath ek packet (container) mein band kar deta hai. Yeh container kisi bhi Linux server par bina kisi compatibility issue ke turant chal jata hai, bilkul waise hi jaise ek packaged box ko kahin bhi transport kiya ja sake.*
 
 ---
 ## Related Notes

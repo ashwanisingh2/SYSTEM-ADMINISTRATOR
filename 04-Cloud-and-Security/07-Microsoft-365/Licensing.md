@@ -1,16 +1,17 @@
-﻿---
-tags: [desktop-support, m365, licensing, administration, L2]
-aliases: [licensing-guide, group-licensing, office-activation]
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [licensing, licensing]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
-cert-relevant: #md-102
+cert-relevant: #none
 ---
 
 # Microsoft 365 Licensing
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Microsoft 365 Licensing is the framework used to assign access permissions for cloud services and local software (like Outlook, Word, Teams, and SharePoint) to corporate user accounts. Licenses are managed via subscriptions (SKUs) purchased by the organization.
 - **Why it matters for a support engineer**: License errors block user productivity immediately. Support engineers provision accounts, assign licensing tiers, resolve "Unlicensed Product" activation flags on desktops, and audit license availability to control IT costs.
@@ -22,8 +23,8 @@ cert-relevant: #md-102
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Microsoft 365 SKU Tiers & Feature Matrix
 Support engineers must understand the differences between the core business and enterprise SKUs:
 
@@ -51,52 +52,6 @@ By default, a standard Office license allows a user to install Office on up to 5
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-Licensing management uses the `Microsoft.Graph.Identity.DirectoryManagement` and `Microsoft.Graph.Users` modules.
-```powershell
-# Connect to Microsoft Graph with License Administration scopes
-Connect-MgGraph -Scopes "Directory.Read.All", "User.ReadWrite.All", "Organization.Read.All"
-
-# Query all available License SKUs and active counts in the tenant
-Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber, ActiveUnits, ConsumedUnits
-
-# Assign an E3 License (e.g., SkuId: 6fd2c87f-b296-42f0-b197-1e91999b5316) to a user, and remove no licenses
-Set-MgUserLicense -UserId "jdoe@company.com" -AddLicenses @{SkuId = "6fd2c87f-b296-42f0-b197-1e91999b5316"} -RemoveLicenses @()
-
-# Check which licenses are directly assigned to a user
-(Get-MgUser -UserId "jdoe@company.com" -Property LicenseAssignmentStates).LicenseAssignmentStates
-```
-
-### CMD / Run Box (Office Activation Troubleshooting)
-The `ospp.vbs` script manages local Office activation licenses on the computer.
-```cmd
-:: Navigate to the Office installation directory (x64 path)
-cd "C:\Program Files\Microsoft Office\Office16"
-
-:: Display the license status and the last 5 characters of active product keys
-cscript ospp.vbs /dstatus
-
-:: Uninstall a corrupted Office product key (Use the 5 characters returned by /dstatus)
-cscript ospp.vbs /unpkey:VMFT9
-
-:: Force Office to check the Microsoft activation servers immediately
-cscript ospp.vbs /act
-```
-
-### GUI Path
-- **Admin Portal**: Go to **admin.microsoft.com** -> **Billing** -> **Licenses**.
-- **Group Licensing**: Go to **entra.microsoft.com** -> **Billing** -> **Licenses** -> **All products** -> Select Product -> **Licensed groups**.
-
-### Important Registry Paths
-- Enabling Shared Computer Activation for Office Click-to-Run:
-  ```
-  HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration
-  (Create String Value "SharedComputerLicensing" set to "1")
-  ```
-
----
 
 ## Real-World Scenarios
 
@@ -148,6 +103,7 @@ cscript ospp.vbs /act
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -171,6 +127,7 @@ cscript ospp.vbs /act
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -181,8 +138,12 @@ cscript ospp.vbs /act
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #m365 #licensing #administration #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Query available licensing SKUs via PowerShell, configure a group-based license rule, and verify the licensing state on a test user.
 **Time Required:** 30 minutes
 **Environment Needed:** A computer with internet access and a Microsoft 365 test tenant.
@@ -219,8 +180,83 @@ cscript ospp.vbs /act
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+Licensing management uses the `Microsoft.Graph.Identity.DirectoryManagement` and `Microsoft.Graph.Users` modules.
+```powershell
+# Connect to Microsoft Graph with License Administration scopes
+Connect-MgGraph -Scopes "Directory.Read.All", "User.ReadWrite.All", "Organization.Read.All"
 
+# Query all available License SKUs and active counts in the tenant
+Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber, ActiveUnits, ConsumedUnits
+
+# Assign an E3 License (e.g., SkuId: 6fd2c87f-b296-42f0-b197-1e91999b5316) to a user, and remove no licenses
+Set-MgUserLicense -UserId "jdoe@company.com" -AddLicenses @{SkuId = "6fd2c87f-b296-42f0-b197-1e91999b5316"} -RemoveLicenses @()
+
+# Check which licenses are directly assigned to a user
+(Get-MgUser -UserId "jdoe@company.com" -Property LicenseAssignmentStates).LicenseAssignmentStates
+```
+
+### CMD / Run Box (Office Activation Troubleshooting)
+The `ospp.vbs` script manages local Office activation licenses on the computer.
+```cmd
+:: Navigate to the Office installation directory (x64 path)
+cd "C:\Program Files\Microsoft Office\Office16"
+
+:: Display the license status and the last 5 characters of active product keys
+cscript ospp.vbs /dstatus
+
+:: Uninstall a corrupted Office product key (Use the 5 characters returned by /dstatus)
+cscript ospp.vbs /unpkey:VMFT9
+
+:: Force Office to check the Microsoft activation servers immediately
+cscript ospp.vbs /act
+```
+
+### GUI Path
+- **Admin Portal**: Go to **admin.microsoft.com** -> **Billing** -> **Licenses**.
+- **Group Licensing**: Go to **entra.microsoft.com** -> **Billing** -> **Licenses** -> **All products** -> Select Product -> **Licensed groups**.
+
+### Important Registry Paths
+- Enabling Shared Computer Activation for Office Click-to-Run:
+  ```
+  HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration
+  (Create String Value "SharedComputerLicensing" set to "1")
+  ```
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The mechanism for managing access permissions for M365 services and desktop Office software.
+> **Why**: Critical for billing control, compliance, and user access. Managed via SKUs.
+> **How**: Assign licenses to Entra Groups to automate allocation, and use `ospp.vbs` to fix client activation issues.
+> **Command**: `cscript ospp.vbs /dstatus` / `Get-MgSubscribedSku`
+> **Interview Answer Starter**: "To manage enterprise licensing efficiently, I utilize Group-Based licensing in Microsoft Entra ID to align license SKUs with user departments, while using ospp.vbs..."
+
+**Key Numbers to Remember:**
+- Days in license removal grace period: 30 days
+- Max personal device activations per user license: 5 devices
+- Registry key value for Shared Computer Activation: `1`
+- PowerShell module for licensing: `Microsoft.Graph.Users`
+
+**3 Things Interviewer Wants to Hear:**
+- Group-Based licensing prevents manual assignment mistakes
+- Shared Computer Activation (SCA) for RDS/shared environments
+- How removing a license initiates the 30-day deletion grace period
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is Microsoft 365 Shared Computer Activation (SCA) and why is it used?**
 A: Shared Computer Activation is a licensing setting used when deploying Office to shared devices, such as hospital terminals or remote desktop servers. It allows multiple users to log into the same computer and use Office without subtracting from their standard 5-device personal license limit.
@@ -251,34 +287,14 @@ A: Our helpdesk spent hours manually assigning licenses to new hires, often miss
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The mechanism for managing access permissions for M365 services and desktop Office software.
-> **Why**: Critical for billing control, compliance, and user access. Managed via SKUs.
-> **How**: Assign licenses to Entra Groups to automate allocation, and use `ospp.vbs` to fix client activation issues.
-> **Command**: `cscript ospp.vbs /dstatus` / `Get-MgSubscribedSku`
-> **Interview Answer Starter**: "To manage enterprise licensing efficiently, I utilize Group-Based licensing in Microsoft Entra ID to align license SKUs with user departments, while using ospp.vbs..."
-
-**Key Numbers to Remember:**
-- Days in license removal grace period: 30 days
-- Max personal device activations per user license: 5 devices
-- Registry key value for Shared Computer Activation: `1`
-- PowerShell module for licensing: `Microsoft.Graph.Users`
-
-**3 Things Interviewer Wants to Hear:**
-- Group-Based licensing prevents manual assignment mistakes
-- Shared Computer Activation (SCA) for RDS/shared environments
-- How removing a license initiates the 30-day deletion grace period
+---
+## Seedha Simple Mein
+*Seedha simple mein: Licensing ke bare mein seekhta hai. Yeh m365 infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft Entra ID]] — The directory where groups and users are licensed.
 - [[04-Cloud-and-Security/07-Microsoft-365/Exchange-Online|Exchange Online]] — Relies on licenses to provision mailbox quotas.
 - [[06-Career-Growth/14-Certifications/MD-102|MD-102 Roadmap]] — Covers licensing objectives for modern endpoints.
 
 ---
-
-## Tags
-#desktop-support #m365 #licensing #administration #L2 #interview-topic #lab-complete #daily-use
-

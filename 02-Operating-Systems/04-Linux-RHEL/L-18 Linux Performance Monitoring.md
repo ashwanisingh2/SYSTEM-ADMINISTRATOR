@@ -1,6 +1,6 @@
 ---
-tags: [linux, rhel, performance, monitoring, troubleshooting]
-aliases: [linux-performance]
+tags: [desktop-support, linux, rhel, L2]
+aliases: [l-18-linux-performance-monitoring, l-18]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -13,6 +13,8 @@ cert-relevant: #rhcsa
 > When a Linux server runs slow or crashes, system administrators must diagnose which subsystem is bottlenecked: CPU, Memory, Disk I/O, or Network. This note covers key performance monitoring utilities (`top`, `htop`, `vmstat`, `iostat`, `sar`, `free`, `df`, `lsof`, `ss`/`netstat`, `iotop`), and explains how to diagnose resource bottlenecks in production environments.
 
 ---
+
+---
 ## Concept Overview
 - **What it is** — Linux performance monitoring is the continuous or on-demand collection and analysis of system resource utilization metrics (CPU cycles, RAM footprint, Disk read/write rates, and Network packet flow).
 - **Why it matters for a support engineer** — In production, servers often run out of capacity due to high web traffic, database queries, memory leaks, or heavy disk activities. A support engineer must identify the root cause immediately to restore services and prevent downtime.
@@ -22,9 +24,11 @@ cert-relevant: #rhcsa
   - **L2**: Inspecting Disk I/O with `iostat`/`iotop`, tracking open network connections with `ss`/`netstat`, identifying files locked by processes using `lsof`, and inspecting historical trends using `sar`.
   - **L3**: Tuning kernel performance parameters via `sysctl`, fixing memory leaks, optimizing storage configurations (RAID/LVM), and setting up automated alerts for performance baselines.
 
-*Seedha simple mein: Server slow hone par check karna padta hai ki problem CPU, RAM, Disk, ya Network mein se kiski wajah se hai. top aur free se resource usage dikhti hai, jabki iostat aur ss deep-level disk aur network status batate hain.*
 
 ---
+
+---
+## Technical Deep Dive
 ## Real-World Analogy
 Think of a Linux server as a busy **restaurant kitchen**:
 - **CPU** is the speed of the Chefs. If there are too many orders (processes), the chefs are overloaded (High Load Average).
@@ -33,7 +37,6 @@ Think of a Linux server as a busy **restaurant kitchen**:
 - **Network** is the Delivery Drivers. If the road outside is blocked (Network Bottleneck), food cannot reach customers, even though the kitchen is working perfectly.
 
 ---
-## Technical Deep Dive
 
 ### 1. Diagnosing CPU Bottlenecks
 CPU bottlenecks occur when processes compete for execution time on the processor cores.
@@ -75,8 +78,97 @@ Network congestion, closed ports, or excessive open connections can make service
   - `lsof -u apache`: Lists all files opened by the user apache.
 
 ---
-## Step-by-Step Lab
 
+## Real-World Ticket Scenarios
+
+### Scenario 1: CPU Saturation due to Runaway Process
+**Ticket:** "Customer complaints: Website loading is extremely slow. Server alerts indicate Rocky-Web-01 CPU utilization is at 99%."
+**L1 Response:** Log in via SSH. Run `top` or `htop`. Press `P` in `top` to sort processes by CPU usage. Identify the runaway process name and PID.
+**Escalation Trigger:** The service causing high CPU is the core database daemon (`mysqld` or `postgres`) or a critical java process that L1 cannot safely restart without impact.
+**L2 Resolution:** Analyze application queries. If it's a web process, restart the web service container (`systemctl restart httpd` or `nginx`). If it is a rogue user script, kill it using `kill -15 PID`. Check `sar -u` history to identify when the spikes started.
+
+---
+
+### Scenario 2: Memory Leak causing Out-Of-Memory (OOM) Crash
+**Ticket:** "The custom reporting API daemon keeps crashing unexpectedly twice a day. No daemon logs are created."
+**L1 Response:** Log in to the server. Run `free -h` to check available memory. Run `grep -i oom /var/log/messages` or check kernel logs: `journalctl -k -g oom`.
+**Escalation Trigger:** Confirming OOM Killer killed the daemon, but memory optimization requires software stack changes or system parameters tuning.
+**L2 Resolution:** Set up monitoring script or alert rules on memory consumption. Run `vmstat 1` to watch memory usage climb. Temporarily configure the daemon with a systemd memory limit (`MemoryMax=2G` in the unit file) so it restarts gracefully before bringing down the server, or increase the swap file size.
+
+---
+
+---
+
+### Enterprise RHEL Service & Network Configurations
+
+#### 1. Custom Systemd Service Creation
+Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
+```ini
+[Unit]
+Description=My Custom Enterprise Application
+After=network.target
+
+[Service]
+Type=simple
+User=sysadmin
+ExecStart=/usr/bin/python3 /opt/myapp/server.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now myapp.service
+```
+
+#### 2. Log Rotation & Rsyslog Configuration
+Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
+```text
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0660 sysadmin sysadmin
+}
+```
+Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
+```text
+if $programname == 'myapp' then /var/log/myapp/syslog.log
+& stop
+```
+Restart Rsyslog service:
+```bash
+sudo systemctl restart rsyslog
+```
+
+#### 3. Network Bonding & Teaming (LACP Link Aggregation)
+Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
+```text
+DEVICE=team0
+DEVICETYPE=Team
+BOOTPROTO=none
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+ONBOOT=yes
+TEAM_CONFIG='{"runner": {"name": "lacp"}}'
+```
+Bind slave physical interfaces (e.g., `eth1`) to the team interface:
+```text
+# /etc/sysconfig/network-scripts/ifcfg-eth1
+DEVICE=eth1
+ONBOOT=yes
+TEAM_MASTER=team0
+DEVICETYPE=TeamPort
+```
+
+---
+## Step-by-Step Lab
 > [!warning] Pre-requisites
 > - A running RHEL/Rocky Linux VM.
 > - Root or sudo privileges (`sudo -i`).
@@ -169,8 +261,9 @@ Average:        all      1.75      0.00      0.75      0.05      0.00     97.45
 ```
 
 ---
-## Common Commands
 
+---
+## Cheat Sheet / Quick Reference
 | Command | Description | Example |
 |---------|-------------|---------|
 | `top` | Classic real-time system process monitor. | `top` |
@@ -185,8 +278,9 @@ Average:        all      1.75      0.00      0.75      0.05      0.00     97.45
 | `sar -r` | View memory utilization history for the current day. | `sar -r` |
 
 ---
-## Troubleshooting
 
+---
+## Troubleshooting
 | Problem | Cause | Fix |
 |---------|-------|-----|
 | System is extremely slow, and `%wa` (I/O Wait) is high. | A database or application is performing heavy unindexed writes or disk is failing. | Run `iotop -o` to find the process doing high writes. Check hardware logs or storage array performance. |
@@ -195,25 +289,9 @@ Average:        all      1.75      0.00      0.75      0.05      0.00     97.45
 | Port already in use error when starting a service (e.g., Apache/Nginx). | Another application daemon is already bound to that port. | Run `ss -tulpn \| grep :80` or `lsof -i :80` to find the conflicting process. Stop or reconfigure it. |
 
 ---
-## Real-World Ticket Scenarios
-
-### Scenario 1: CPU Saturation due to Runaway Process
-**Ticket:** "Customer complaints: Website loading is extremely slow. Server alerts indicate Rocky-Web-01 CPU utilization is at 99%."
-**L1 Response:** Log in via SSH. Run `top` or `htop`. Press `P` in `top` to sort processes by CPU usage. Identify the runaway process name and PID.
-**Escalation Trigger:** The service causing high CPU is the core database daemon (`mysqld` or `postgres`) or a critical java process that L1 cannot safely restart without impact.
-**L2 Resolution:** Analyze application queries. If it's a web process, restart the web service container (`systemctl restart httpd` or `nginx`). If it is a rogue user script, kill it using `kill -15 PID`. Check `sar -u` history to identify when the spikes started.
-
----
-
-### Scenario 2: Memory Leak causing Out-Of-Memory (OOM) Crash
-**Ticket:** "The custom reporting API daemon keeps crashing unexpectedly twice a day. No daemon logs are created."
-**L1 Response:** Log in to the server. Run `free -h` to check available memory. Run `grep -i oom /var/log/messages` or check kernel logs: `journalctl -k -g oom`.
-**Escalation Trigger:** Confirming OOM Killer killed the daemon, but memory optimization requires software stack changes or system parameters tuning.
-**L2 Resolution:** Set up monitoring script or alert rules on memory consumption. Run `vmstat 1` to watch memory usage climb. Temporarily configure the daemon with a systemd memory limit (`MemoryMax=2G` in the unit file) so it restarts gracefully before bringing down the server, or increase the swap file size.
 
 ---
 ## Interview Questions
-
 **Q1: What does a high value in the %wa (I/O Wait) column of top mean? How do you investigate it?**
 > **A:** High `%wa` (I/O Wait) indicates that the CPU is idle because all runnable tasks are waiting on outstanding disk or network I/O operations to complete. It means you have a disk/network bottleneck, not a CPU speed bottleneck. You investigate it by running `iostat -xz 1 5` to identify which disk device has high queue sizes (`aqu-sz`) and high latency (`await`), and then run `iotop -o` to pinpoint the specific process running the heavy I/O.
 
@@ -225,6 +303,12 @@ Average:        all      1.75      0.00      0.75      0.05      0.00     97.45
 
 **Q4: What is the Linux OOM Killer, and how does it select which process to terminate?**
 > **A:** The Out Of Memory (OOM) Killer is a kernel mechanism that activates when the system runs completely out of memory and swap. To prevent a kernel panic and keep the system alive, it scores processes using an `oom_score` (calculated based on memory consumption, process priority, and runtime). The process with the highest score (usually a memory-hogging database or app server) is terminated.
+
+---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Server slow hone par check karna padta hai ki problem CPU, RAM, Disk, ya Network mein se kiski wajah se hai. top aur free se resource usage dikhti hai, jabki iostat aur ss deep-level disk aur network status batate hain.*
 
 ---
 ## Related Notes

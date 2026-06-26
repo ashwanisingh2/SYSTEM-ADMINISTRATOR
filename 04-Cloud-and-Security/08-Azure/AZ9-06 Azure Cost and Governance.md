@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, azure, az-900, governance, cost-management]
-difficulty: Beginner
-lab-required: Yes
-read-time: 10 mins
+---
+tags: [desktop-support, azure, cloud, L1]
+aliases: [az9-06-azure-cost-and-governance, az9-06]
+created: 2026-06-25
+status: #complete
+difficulty: #beginner
+cert-relevant: #none
 ---
 
 # AZ9-06: Azure Cost and Governance
@@ -11,7 +13,9 @@ read-time: 10 mins
 > This note covers cost estimation, billing controls, and architectural governance in Microsoft Azure. It details the Pricing/TCO Calculators, Cost Management budgets, Azure Advisor, Azure Policy, Resource Locks, and SLA calculations.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Azure governance and cost controls like managing a corporate credit card and policy handbook for a company:
 - **Pricing Calculator** is checking the menu prices before you order a catered meal to estimate the bill.
 - **TCO (Total Cost of Ownership) Calculator** is comparing the cost of cooking meals at home (buying pots, stoves, paying utility bills - On-Prem) vs. ordering takeout every day (Cloud).
@@ -19,11 +23,11 @@ Think of Azure governance and cost controls like managing a corporate credit car
 - **Azure Policy** is the corporate rulebook: it prevents employees from ordering expensive lobster (deploying high-cost VM sizes) or ordering from unapproved cities (deploying resources in unapproved regions).
 - **Resource Locks** are the safety locks on critical vaults: they prevent someone from accidentally deleting the main storage safe.
 
-*Seedha simple mein: Azure Cost Management budget limits aur spending alerts setup karta hai. Azure Policy resources ke rules and boundaries enforce karti hai. Resource Locks (Delete, ReadOnly) critical files ko accidental deletion se protect karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Cost Estimation Tools
 - **Azure Pricing Calculator:** A web tool used to estimate the monthly consumption costs of Azure resources before they are deployed. You configure specific service sizes, regions, storage capacity, and support tiers to generate quotes.
 - **TCO (Total Cost of Ownership) Calculator:** Used to compare the financial costs of running workloads in your on-premises datacenter (includes hardware, power, cooling, network bandwidth, IT labor, real estate) against migrating to Azure over a 1 to 5-year window.
@@ -60,7 +64,9 @@ SLAs define Microsoft's commitment to service uptime. Down time is calculated mo
   - *Rule:* The composite SLA is always **lower** than the individual SLAs because adding components increases potential failure points.
 
 ---
-## Lab — Step by Step
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to the Azure Portal.
 
@@ -86,7 +92,39 @@ SLAs define Microsoft's commitment to service uptime. Down time is calculated mo
 3. You can now delete the resource group to clean up your lab.
 
 ---
+
+---
+## Cheat Sheet / Quick Reference
+| Command / Configuration | Scope | Purpose / Example |
+|---|---|---|
+| `systemctl status <service>` | Linux | Check status of system service |
+| `ip address show` | Linux | Display local interface network details |
+| `Get-Service` | PowerShell | Verify service status on Windows hosts |
+| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
+> [!question] L1 Question
+> **Q:** How do you verify if the target service is running?
+> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+
+> [!question] L2 Question
+> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
+> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure Cost Management budget limits aur spending alerts setup karta hai. Azure Policy resources ke rules and boundaries enforce karti hai. Resource Locks (Delete, ReadOnly) critical files ko accidental deletion se protect karte hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ9-02 Azure Global Infrastructure|AZ9-02 Azure Global Infrastructure]] — Subscriptions and Management Group containers.
 - [[04-Cloud-and-Security/08-Azure/AZ104-01 Azure Identity and Governance|AZ104-01 Azure Identity and Governance]] — Advanced Azure Policy implementation and governance.
-

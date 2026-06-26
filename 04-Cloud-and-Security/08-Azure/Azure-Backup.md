@@ -1,6 +1,6 @@
-﻿---
-tags: [desktop-support, azure, backup, disaster-recovery, L2]
-aliases: [azure-backup-guide, recovery-services, file-restore]
+---
+tags: [desktop-support, azure, cloud, L2]
+aliases: [azure-backup, azure-backup]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
@@ -11,6 +11,7 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Concept Overview
 - **What it is**: Azure Backup is a cloud-based backup-as-a-service (BaaS) solution that protects data on virtual machines in Azure and on-premises physical or virtual servers. It stores backups in **Recovery Services Vaults**, managing encryption, retention, and restorations.
 - **Why it matters for a support engineer**: Hard drive crashes, database corruption, ransomware infections, and accidental file deletions happen. A support engineer must know how to restore files, mount virtual disks from backup points, and rebuild servers from vault snapshots.
@@ -22,8 +23,8 @@ cert-relevant: #az-104
 
 ---
 
+---
 ## Technical Deep Dive
-
 ### 1. Recovery Services Vault (RSV)
 An RSV is an online storage entity in Azure used to hold data such as backup copies, recovery points, and backup policies:
 - **Backup Policies**: Define *when* backups run (daily, weekly) and *how long* they are kept (retention range).
@@ -50,41 +51,6 @@ Soft Delete protects backup data against accidental deletion or ransomware attac
 
 ---
 
-## Commands & Syntax
-
-### PowerShell
-Backup management uses the `Az.RecoveryServices` module.
-```powershell
-# Connect to Azure
-Connect-MgGraph -Scopes "Directory.Read.All" # For account queries if needed
-Connect-AzAccount
-
-# Set the vault context
-$Vault = Get-AzRecoveryServicesVault -ResourceGroupName "RG-Prod-Backup" -Name "RSV-Main-Vault"
-Set-AzRecoveryServicesAsVaultContext -Vault $Vault
-
-# Query all backup items (VMs) registered in the vault
-Get-AzRecoveryServicesBackupItem -WorkloadType "AzureVM" | Select-Object FriendlyName, ProtectionStatus, HealthStatus
-
-# Trigger a manual backup job for a specific VM
-$Container = Get-AzRecoveryServicesBackupContainer -ContainerType "AzureVM" -FriendlyName "VM-Web-01"
-$Item = Get-AzRecoveryServicesBackupItem -Container $Container -WorkloadType "AzureVM"
-Backup-AzRecoveryServicesBackupItem -Item $Item -ExpiryDateTimeUTC (Get-Date).AddDays(30)
-```
-
-### Azure CLI
-```bash
-# Set default vault config
-az backup vault env set --g RG-Prod-Backup --v RSV-Main-Vault
-
-# Check the list of active backup jobs
-az backup job list --output table
-```
-
-### GUI Path
-- **Restore & Recovery**: Azure Portal -> Search **Recovery Services Vaults** -> Select Vault -> Click **Backup items** -> Select **Azure Virtual Machine** -> Click target VM -> Select **Restore VM** or **File Recovery**.
-
----
 
 ## Real-World Scenarios
 
@@ -139,6 +105,7 @@ az backup job list --output table
 
 ---
 
+
 ## Critical Points
 
 > [!danger] Never Do This
@@ -162,6 +129,7 @@ az backup job list --output table
 
 ---
 
+
 ## Common Mistakes & Fixes
 
 | Mistake | Why It Happens | Correct Approach |
@@ -172,8 +140,12 @@ az backup job list --output table
 
 ---
 
-## Lab Exercise
 
+## Tags
+#desktop-support #azure #backup #disaster-recovery #L2 #interview-topic #lab-complete #daily-use
+
+---
+## Step-by-Step Lab
 **Objective:** Use PowerShell to locate a Recovery Services Vault, check backup items, trigger a manual backup job, and track the backup status.
 **Time Required:** 30 minutes
 **Environment Needed:** Azure subscription with a running Virtual Machine.
@@ -205,8 +177,72 @@ az backup job list --output table
 
 ---
 
-## Interview Questions & Answers
+---
+## Cheat Sheet / Quick Reference
+### PowerShell
+Backup management uses the `Az.RecoveryServices` module.
+```powershell
+# Connect to Azure
+Connect-MgGraph -Scopes "Directory.Read.All" # For account queries if needed
+Connect-AzAccount
 
+# Set the vault context
+$Vault = Get-AzRecoveryServicesVault -ResourceGroupName "RG-Prod-Backup" -Name "RSV-Main-Vault"
+Set-AzRecoveryServicesAsVaultContext -Vault $Vault
+
+# Query all backup items (VMs) registered in the vault
+Get-AzRecoveryServicesBackupItem -WorkloadType "AzureVM" | Select-Object FriendlyName, ProtectionStatus, HealthStatus
+
+# Trigger a manual backup job for a specific VM
+$Container = Get-AzRecoveryServicesBackupContainer -ContainerType "AzureVM" -FriendlyName "VM-Web-01"
+$Item = Get-AzRecoveryServicesBackupItem -Container $Container -WorkloadType "AzureVM"
+Backup-AzRecoveryServicesBackupItem -Item $Item -ExpiryDateTimeUTC (Get-Date).AddDays(30)
+```
+
+### Azure CLI
+```bash
+# Set default vault config
+az backup vault env set --g RG-Prod-Backup --v RSV-Main-Vault
+
+# Check the list of active backup jobs
+az backup job list --output table
+```
+
+### GUI Path
+- **Restore & Recovery**: Azure Portal -> Search **Recovery Services Vaults** -> Select Vault -> Click **Backup items** -> Select **Azure Virtual Machine** -> Click target VM -> Select **Restore VM** or **File Recovery**.
+
+---
+
+> [!info] 60-Second Summary
+> **What**: The backup-as-a-service (BaaS) system protecting Azure VMs and local servers.
+> **Why**: Recovers data from accidental deletions, hardware crashes, and ransomware attacks.
+> **How**: Configure Recovery Services Vaults, apply backup policies, mount snapshots for file recovery, and monitor jobs.
+> **Command**: `Backup-AzRecoveryServicesBackupItem` / `Set-AzRecoveryServicesAsVaultContext`
+> **Interview Answer Starter**: "To implement cloud recovery baselines, I deploy Recovery Services Vaults with Geo-Redundant storage, enforcing Soft Delete and using File Recovery for item restores..."
+
+**Key Numbers to Remember:**
+- Soft Delete retention window: 14 days
+- Max instant restore snapshot retention: 5 days
+- Redundancy choices: LRS (Local) / GRS (Geo)
+- iSCSI Mount port requirement: TCP 3260
+
+**3 Things Interviewer Wants to Hear:**
+- Soft Delete blocks ransomware deletion attempts for 14 days
+- Storage redundancy must be set before backing up items
+- File Recovery mounts backups as local drives via iSCSI loopback
+
+---
+
+---
+## Troubleshooting
+| Problem | Cause | Fix | Command |
+|---|---|---|---|
+| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
+| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
+| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+
+---
+## Interview Questions
 ### Basic (L1 Level)
 **Q: What is a Recovery Services Vault in Azure?**
 A: A Recovery Services Vault is an online storage container in Azure used to hold backup data, virtual machine recovery points, and backup policies, helping protect servers from data loss.
@@ -235,34 +271,14 @@ A: Our primary application server VM was corrupted due to a bad update patch rig
 
 ---
 
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What**: The backup-as-a-service (BaaS) system protecting Azure VMs and local servers.
-> **Why**: Recovers data from accidental deletions, hardware crashes, and ransomware attacks.
-> **How**: Configure Recovery Services Vaults, apply backup policies, mount snapshots for file recovery, and monitor jobs.
-> **Command**: `Backup-AzRecoveryServicesBackupItem` / `Set-AzRecoveryServicesAsVaultContext`
-> **Interview Answer Starter**: "To implement cloud recovery baselines, I deploy Recovery Services Vaults with Geo-Redundant storage, enforcing Soft Delete and using File Recovery for item restores..."
-
-**Key Numbers to Remember:**
-- Soft Delete retention window: 14 days
-- Max instant restore snapshot retention: 5 days
-- Redundancy choices: LRS (Local) / GRS (Geo)
-- iSCSI Mount port requirement: TCP 3260
-
-**3 Things Interviewer Wants to Hear:**
-- Soft Delete blocks ransomware deletion attempts for 14 days
-- Storage redundancy must be set before backing up items
-- File Recovery mounts backups as local drives via iSCSI loopback
+---
+## Seedha Simple Mein
+*Seedha simple mein: Azure-Backup ke bare mein seekhta hai. Yeh azure infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
 
 ---
-
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/Azure-VMs|Azure VMs]] — Virtual machines protected by the recovery vaults.
 - [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker Deep Dive]] — Detail disk encryption key integrations.
 - [[01-Foundations/01-Hardware/Storage-Deep-Dive|Storage Deep Dive]] — Outlines the core raid and redundancy architectures.
 
 ---
-
-## Tags
-#desktop-support #azure #backup #disaster-recovery #L2 #interview-topic #lab-complete #daily-use
-

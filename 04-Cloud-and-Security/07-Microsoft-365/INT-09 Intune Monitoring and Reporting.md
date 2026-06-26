@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, intune, monitoring, reporting]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L2]
+aliases: [int-09-intune-monitoring-and-reporting, int-09]
+created: 2026-06-25
+status: #complete
+difficulty: #advanced
+cert-relevant: #md-102
 ---
 
 # INT-09: Intune Monitoring and Reporting
@@ -11,17 +13,19 @@ read-time: 15 mins
 > This note covers monitoring, auditing, and reporting tools in Microsoft Intune, detailing compliance dashboards, App Installation states, Endpoint Analytics, Audit Logs, and Microsoft Graph API queries.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Intune Monitoring and Reporting as a dashboard in an airport control tower. The dashboard displays the status of all flights (devices) in real-time.
 - **Compliance Reports** show which flights are meeting safety standards (e.g., proper fuel and functional landing gear).
 - **App Installation Reports** track if luggage (applications) has successfully loaded onto each aircraft.
 - **Endpoint Analytics** functions like the maintenance prediction system, showing which planes are taking too long to start up (long boot times) or experiencing frequent engine issues (application crashes) before pilot complaints occur.
 - **Audit Logs** act as the black box flight recorder, logging every change made by the air traffic controllers (administrators).
-*Seedha simple mein: Intune reporting aur monitoring tools ke zariye aap devices ki health, application install status, system performance audit aur configuration errors ko investigate karte hain.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Intune Reporting Categories
 - **Operational Reports**: Fast, real-time data displaying immediate status (e.g., device sync status, active policy compliance).
 - **Organizational Reports**: Summarized status aggregated across the entire tenant. Used for executive reporting and auditing.
@@ -49,7 +53,24 @@ Analyzes device startup performance and software reliability:
 Intune metadata is accessible via the **Microsoft Graph API** (`https://graph.microsoft.com/v1.0/deviceManagement`). This allows administrators to run PowerShell queries to extract data for custom reporting dashboards.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Relying solely on the real-time operational dashboard for long-term auditing and compliance reporting. Operational data is purged regularly; configure diagnostic settings to export logs to Log Analytics for long-term retention.
+> Interpreting an "Error" status in the app installation report as an application failure without checking if the app is already installed. If the detection rule is misconfigured, it will report an error even if the app installed successfully.
+> Neglecting Endpoint Analytics alerts, resulting in users working on unstable systems with slow boot times and frequent application crashes.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Integrate Intune with Azure Log Analytics and build custom dashboards. You can construct a single dashboard displaying compliance rates, active threats, and pending updates, and configure email alerts for critical failures.
+> Use the **Graph Explorer** web tool (`https://developer.microsoft.com/graph/graph-explorer`) to test and build Graph API queries before automating them in PowerShell scripts.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to Microsoft Intune Admin Center with Intune Administrator permissions. Microsoft Graph PowerShell Module installed on an administration workstation.
 
@@ -86,7 +107,9 @@ $devices | Select-Object DisplayName, OperatingSystem, ComplianceState, EmailAdd
 4. Save the setting to enable custom alerting on failures using KQL queries in Azure Monitor.
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 # Authenticate to Microsoft Graph API with scope to read device configurations
 Connect-MgGraph -Scopes "DeviceManagementConfiguration.Read.All"
@@ -95,8 +118,18 @@ Get-MgDeviceManagementWindowsAutopilotDeviceIdentity
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Endpoint Analytics | Dashboard displaying system performance metrics like boot times and app crash rates. |
+| 2 | Audit Logs | Chronological ledger recording all administrative changes made within the tenant. |
+| 3 | Graph API | API gateway used to query and manage Intune tenant settings and devices. |
+| 4 | Diagnostic Settings | Configuration option to export Intune log data to Azure storage or Log Analytics. |
+| 5 | Operational Report | Fast, real-time dashboard displaying immediate status information (e.g., device sync status). |
 
+---
+
+---
+## Troubleshooting
 **Scenario 1:**
 - Problem: An application deployment fails on several machines, and the app installation report displays a generic "Failed" status with error code `0x87D300C9`.
 - Root Cause: The installation timed out. The application installer was waiting for user interaction silently, or the download took longer than the allocated timeframe.
@@ -117,31 +150,9 @@ Get-MgDeviceManagementWindowsAutopilotDeviceIdentity
   5. Revert the configuration settings and update internal change logs.
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Relying solely on the real-time operational dashboard for long-term auditing and compliance reporting. Operational data is purged regularly; configure diagnostic settings to export logs to Log Analytics for long-term retention.
-> Interpreting an "Error" status in the app installation report as an application failure without checking if the app is already installed. If the detection rule is misconfigured, it will report an error even if the app installed successfully.
-> Neglecting Endpoint Analytics alerts, resulting in users working on unstable systems with slow boot times and frequent application crashes.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Integrate Intune with Azure Log Analytics and build custom dashboards. You can construct a single dashboard displaying compliance rates, active threats, and pending updates, and configure email alerts for critical failures.
-> Use the **Graph Explorer** web tool (`https://developer.microsoft.com/graph/graph-explorer`) to test and build Graph API queries before automating them in PowerShell scripts.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Endpoint Analytics | Dashboard displaying system performance metrics like boot times and app crash rates. |
-| 2 | Audit Logs | Chronological ledger recording all administrative changes made within the tenant. |
-| 3 | Graph API | API gateway used to query and manage Intune tenant settings and devices. |
-| 4 | Diagnostic Settings | Configuration option to export Intune log data to Azure storage or Log Analytics. |
-| 5 | Operational Report | Fast, real-time dashboard displaying immediate status information (e.g., device sync status). |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What is Endpoint Analytics in Microsoft Intune, and how can it help administrators improve device performance?**
 A: Endpoint Analytics is an analytics service that measures and scores user experience parameters, such as device startup performance and application reliability. It calculates scores based on boot times, Group Policy processing delays, and application crash frequency. This helps administrators identify performance issues (e.g., outdated hardware or unstable software) and remediate them before users report issues.
 
@@ -156,8 +167,13 @@ A:
 A: To debug a failed application deployment, I log onto the client machine and open the Intune Management Extension logs located at `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`. I search the log file for the application ID or installer file name to find the execution logs, exit codes, and detection rule outcomes. This reveals the actual installer failure reason, which is often masked by generic console codes.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Intune reporting aur monitoring tools ke zariye aap devices ki health, application install status, system performance audit aur configuration errors ko investigate karte hain.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-01 Microsoft Intune Introduction|INT-01 Microsoft Intune Introduction]] — Establishes identity joins and MDM authority.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-03 Compliance Policies|INT-03 Compliance Policies]] — Details compliance settings and health checks.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-04 Configuration Profiles|INT-04 Configuration Profiles]] — Details device configuration templates.
-

@@ -1,8 +1,10 @@
-﻿---
-tags: [sysadmin, m365, exchange]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+---
+tags: [desktop-support, m365, collaboration, L1]
+aliases: [m365-02-exchange-online-administration, m365-02]
+created: 2026-06-25
+status: #complete
+difficulty: #intermediate
+cert-relevant: #none
 ---
 
 # M365-02: Exchange Online Administration
@@ -11,13 +13,15 @@ read-time: 15 mins
 > This note covers mailboxes, mail flow, connectors, security filtering, retention policies, and administrative operations in Exchange Online. It explains how to manage user and resource environments, trace messages, and construct robust mail flow architectures.
 
 ---
-## Concept
+
+---
+## Concept Overview
 Think of Exchange Online as the digital postal service of your organization. Every user has a personal physical mailbox (User Mailbox), while common rooms have a shared physical mailbox where anyone can pick up/drop off mail (Shared Mailbox), conference rooms have calendar sign-up sheets (Resource/Equipment Mailboxes), and sorting departments use delivery routes to broadcast letters to multiple people at once (Distribution Lists).
-*Seedha simple mein: Exchange Online aapke organization ka global post office hai. Alag-alag tarah ke mailboxes aur dynamic routing rules (transport rules) ke sath aap email flows, security rules aur compliance retention ko control karte ho.*
+
+---
 
 ---
 ## Technical Deep Dive
-
 ### 1. Mailbox Types
 - **User Mailbox**: Assigned to an individual user. Requires a license. Default storage is 50 GB or 100 GB based on the subscription tier (e.g., Business Premium vs. Enterprise E5).
 - **Shared Mailbox**: Used for multiple users to read and send email from a common address (e.g., `info@company.com`). Does not require a license if under 50 GB and does not have an archive mailbox. Cannot be logged into directly; users must be delegated access.
@@ -45,7 +49,24 @@ Think of Exchange Online as the digital postal service of your organization. Eve
   - **In-Place Hold**: A legacy granular hold based on search parameters (query-based). Modern environments use **Purview Retention Policies** to apply holds across multiple locations.
 
 ---
-## Lab — Step by Step
+
+## Common Mistakes
+> [!warning] Avoid These
+> Assigning licenses to Shared Mailboxes that are under 50 GB. This wastes valuable subscription costs.
+> Directing users to log into shared mailboxes using a dedicated username and password. This breaks security accountability, disables MFA tracking, and violates compliance.
+>  Assign delegate permissions (`FullAccess`, `SendAs`) and expect them to work instantly. AD replication and Exchange Directory syncing can take anywhere from 15 minutes to 2 hours to propagate across Outlook.
+
+---
+
+## Pro Tips
+> [!tip] Field Experience
+> Always disable direct login on the Azure Active Directory user account associated with a Shared Mailbox. Block sign-in for the shared account to prevent credential cracking attempts, as it only needs delegate authentication.
+> Use `Automapping` carefully. When granting `FullAccess` via PowerShell, it defaults to AutoMapping `$true`, which automatically mounts the shared mailbox in Outlook. If a user has access to 20+ shared mailboxes, it will bloat their Outlook profile and cause performance degradation. Use `-AutoMapping $false` in such cases.
+
+---
+
+---
+## Step-by-Step Lab
 > [!info] Lab Setup Needed
 > Access to Microsoft 365 Admin Center with Exchange Administrator role, and Exchange Online PowerShell installed.
 
@@ -77,7 +98,9 @@ Get-MessageTrace -RecipientAddress "support@yourtenant.onmicrosoft.com" -StartDa
 ```
 
 ---
-## Commands Reference
+
+---
+## Cheat Sheet / Quick Reference
 ```powershell
 Get-Mailbox -ResultSize Unlimited                    # Lists all mailboxes in the tenant
 Get-MailboxPermission -Identity "support"            # Displays delegate permissions on a specific mailbox
@@ -87,8 +110,18 @@ Get-DynamicDistributionGroupMember -Identity "Sales" # Evaluates and lists curre
 ```
 
 ---
-## Troubleshooting Scenarios
+| # | Concept | One Line Summary |
+|---|---------|-----------------|
+| 1 | Shared Mailbox | Unlicensed mailbox up to 50 GB accessed solely by delegated permissions. |
+| 2 | Send As | Delegate sends mail appearing directly from the shared address. |
+| 3 | Send on Behalf | Delegate sends mail displaying "User on behalf of Shared Address". |
+| 4 | Message Trace | Audit logs to track status, delivery paths, and EOP filtering results of emails. |
+| 5 | Litigation Hold | Immutable preservation of all mailbox items for legal compliance and retention. |
 
+---
+
+---
+## Troubleshooting
 Advanced content only — basics in [[Outlook troubleshooting]]
 
 **Scenario 1:**
@@ -109,31 +142,9 @@ Advanced content only — basics in [[Outlook troubleshooting]]
   4. As a temporary workaround, configure an Exchange Tenant Allow/Block List entry or a mail flow rule to bypass filtering for their IP address (never whitelist wildcard domains for safety).
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> Assigning licenses to Shared Mailboxes that are under 50 GB. This wastes valuable subscription costs.
-> Directing users to log into shared mailboxes using a dedicated username and password. This breaks security accountability, disables MFA tracking, and violates compliance.
->  Assign delegate permissions (`FullAccess`, `SendAs`) and expect them to work instantly. AD replication and Exchange Directory syncing can take anywhere from 15 minutes to 2 hours to propagate across Outlook.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> Always disable direct login on the Azure Active Directory user account associated with a Shared Mailbox. Block sign-in for the shared account to prevent credential cracking attempts, as it only needs delegate authentication.
-> Use `Automapping` carefully. When granting `FullAccess` via PowerShell, it defaults to AutoMapping `$true`, which automatically mounts the shared mailbox in Outlook. If a user has access to 20+ shared mailboxes, it will bloat their Outlook profile and cause performance degradation. Use `-AutoMapping $false` in such cases.
-
----
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Shared Mailbox | Unlicensed mailbox up to 50 GB accessed solely by delegated permissions. |
-| 2 | Send As | Delegate sends mail appearing directly from the shared address. |
-| 3 | Send on Behalf | Delegate sends mail displaying "User on behalf of Shared Address". |
-| 4 | Message Trace | Audit logs to track status, delivery paths, and EOP filtering results of emails. |
-| 5 | Litigation Hold | Immutable preservation of all mailbox items for legal compliance and retention. |
-
----
-## Interview Q&A
-
+## Interview Questions
 **Q1: What is the difference between Send As and Send on Behalf permissions, and how would you configure them using Exchange Online PowerShell?**
 A: `Send As` allows a delegate to send mail appearing directly as the mailbox owner, and the recipient will not know a delegate sent it. `Send on Behalf` displays both names to the recipient (e.g., "John Doe on behalf of Support"). To configure them, I use `Add-RecipientPermission -Identity "support" -Trustee "jdoe" -AccessRights SendAs` for Send As, and `Set-Mailbox -Identity "support" -GrantSendOnBehalfTo "jdoe"` for Send on Behalf.
 
@@ -148,8 +159,13 @@ A:
 A: Dynamic Distribution Groups use active filters against Azure AD attributes (like `Department` or `State`) to compile the recipient list at the moment of email dispatch. If a user is not receiving group mail, it's typically because: their AD attribute does not match the filter exactly (e.g., "Sales " with a trailing space instead of "Sales"), their account is hidden from the Global Address List (GAL), or they are configured with external forwarding that violates the tenant's outbound anti-spam forwarding limits.
 
 ---
+
+---
+## Seedha Simple Mein
+*Seedha simple mein: Exchange Online aapke organization ka global post office hai. Alag-alag tarah ke mailboxes aur dynamic routing rules (transport rules) ke sath aap email flows, security rules aur compliance retention ko control karte ho.*
+
+---
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-01 Microsoft 365 Administration|M365-01 Microsoft 365 Administration]] — Configures global tenants and identity configurations.
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-05 Security and Compliance|M365-05 Security and Compliance]] — Integrates DLP, mail flow restrictions, and auditing.
 - [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-02 PowerShell for Active Directory|PS-02 PowerShell for Active Directory]] — Handles user attributes that feed into dynamic groups.
-
