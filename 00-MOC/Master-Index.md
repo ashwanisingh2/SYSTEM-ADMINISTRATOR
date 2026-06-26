@@ -1,29 +1,65 @@
 ---
-tags: [#desktop-support, #moc, #index, #L1, #L2, #L3]
+tags: [moc, index, desktop-support]
 aliases: [master-index, map-of-content]
 created: 2026-06-25
 status: #complete
 difficulty: #beginner
-cert-relevant: #md-102
+cert-relevant: #none
 ---
+
+> [!NOTE|color-yellow]
+> 🌐 **MASTER INDEX / MOC**
+
+`#complete` `#beginner` `#none`
 
 # Master Map of Content (MOC)
 
----
-
-## Concept Overview
-- What it is — The master navigational map and blueprint for the entire Desktop Support Engineer (L1 to L3) Knowledge Vault.
-- Why it matters for a support engineer — It provides a logical study path and quick-reference index to resolve any technical ticket or prepare for engineering interviews.
-- Where you encounter this in real job — Daily morning check-ins to review tickets, standard operating procedures, and technical documentation templates.
-- L1 vs L2 vs L3 responsibility split for this topic:
-  - **L1**: Uses the index to find troubleshooting runbooks and basic command references.
-  - **L2**: Uses it to research deeper configuration profiles, group policy trees, and networking concepts.
-  - **L3**: Maintains the MOC index, audits system documentations, and defines the structural framework for training junior staff.
+> [!abstract] Overview
+> The Master Index is the central nervous system of the vault. Yeh pura blueprint hai L1 se L3 SysAdmin banne tak ka. Use this as your starting point to find runbooks, references, and interview prep guides. Har sub-topic apne dedicated folder mein hai.
 
 ---
+## 🧠 Concept Overview
 
-## Interactive Study & Progress Tracker
-Use these checkboxes to track your study progress as you work your way from L1 to L3 systems engineer. Click the links to open the notes.
+- **What it is** — The master navigational map and blueprint for the entire Desktop Support Engineer (L1 to L3) Knowledge Vault.
+- **Why it matters** — IT Support mein time = money. Jab ticket aata hai toh turant solution milna chahiye. Yeh index tumhe batayega kaunsi cheez kahan hai.
+- **Where you see this** — Daily morning check-ins, onboarding new engineers, and finding the correct troubleshooting runbook quickly.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Uses the index to find troubleshooting runbooks and basic command references |
+| **L2** | Uses it to research deeper configuration profiles, GPOs, and networking |
+| **L3** | Maintains the MOC index, audits system documentation, and defines the structural framework for training junior staff |
+
+> [!tip] Seedha Simple Mein
+> *Yeh tumhara Vault ka Google hai. Jo bhi dhoondhna hai, pehle yahan aake apna topic dhundo. Folder structure step-by-step banaya gaya hai taaki tum ek logical path follow kar sako.*
+
+---
+## 💡 Vault Architecture
+
+> [!info] Think of it like this...
+> **Building a Skyscraper** is like **This Vault** because...
+>
+> - **[01-Foundations]** = Base of the building (Hardware, Networking).
+> - **[02-Operating-Systems]** = The walls and floors (Windows, Linux).
+> - **[03-Identity & 04-Cloud]** = The electricity and elevators connecting everything.
+> - **[05-Automation]** = The building management system running on autopilot.
+
+```mermaid
+graph TD
+    A[Foundations] --> B[Operating Systems]
+    B --> C[Identity & Core Services]
+    C --> D[Cloud & Security]
+    D --> E[Automation & Ticketing]
+    E --> F[Career Growth]
+```
+
+---
+## 🛠️ Interactive Study & Progress Tracker
+
+> [!warning] Pre-requisites
+> Follow the sequence! Do not jump to Cloud before clearing Foundations.
 
 ### 00. Master Index & References (00-MOC)
 - [ ] [[00-MOC/REF-01 Complete Command Cheat Sheet|REF-01 Complete Command Cheat Sheet]]
@@ -58,15 +94,18 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[01-Foundations/02-Networking/N-12 Network Security|N-12 Network Security]]
 
 ### 02. Operating Systems - Windows (03-Windows-OS)
-- [ ] [[02-Operating-Systems/03-Windows-OS/BitLocker|BitLocker]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/Device-Manager|Device-Manager]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event-Viewer]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/Registry|Registry]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/SFC-and-DISM|SFC-and-DISM]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/Task-Scheduler|Task-Scheduler]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/User-Profiles|User-Profiles]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows-Services]]
-- [ ] [[02-Operating-Systems/03-Windows-OS/Windows-Update|Windows-Update]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-01 BitLocker|WIN-01 BitLocker]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-02 Device Manager|WIN-02 Device Manager]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-04 Registry|WIN-04 Registry]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-05 SFC and DISM|WIN-05 SFC and DISM]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-06 Task Scheduler|WIN-06 Task Scheduler]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-07 User Profiles|WIN-07 User Profiles]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-09 Windows Update|WIN-09 Windows Update]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-10 FSLogix|WIN-10 FSLogix]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-11 RDS Complete Guide|WIN-11 RDS Complete Guide]]
+- [ ] [[02-Operating-Systems/03-Windows-OS/WIN-12 WDS and MDT|WIN-12 WDS and MDT]]
 
 ### 02. Operating Systems - Linux RHEL (04-Linux-RHEL)
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-01 Linux Introduction and Architecture|L-01 Linux Introduction and Architecture]]
@@ -82,17 +121,21 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-11 File Systems and Storage in Linux|L-11 File Systems and Storage in Linux]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-12 Network Configuration in Linux|L-12 Network Configuration in Linux]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-13 Bash Scripting for Sysadmins|L-13 Bash Scripting for Sysadmins]]
-- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-14 Linux Security Hardening|L-14 Linux Security Hardening]]
-- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-15 LVM — Logical Volume Manager|L-15 LVM — Logical Volume Manager]]
+- [x] [[02-Operating-Systems/04-Linux-RHEL/L-14 Linux Security Hardening|L-14 Linux Security Hardening]]
+- [x] [[02-Operating-Systems/04-Linux-RHEL/L-15 LVM — Logical Volume Manager|L-15 LVM — Logical Volume Manager]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-16 Cron Jobs and Task Scheduling|L-16 Cron Jobs and Task Scheduling]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-17 Linux Log Management|L-17 Linux Log Management]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-18 Linux Performance Monitoring|L-18 Linux Performance Monitoring]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-19 Docker Basics for Linux Admins|L-19 Docker Basics for Linux Admins]]
 - [ ] [[02-Operating-Systems/04-Linux-RHEL/L-20 Linux Troubleshooting Masterclass|L-20 Linux Troubleshooting Masterclass]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-21 RPM-Package-Building|L-21 RPM-Package-Building]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-22 Firewalld|L-22 Firewalld]]
+- [ ] [[02-Operating-Systems/04-Linux-RHEL/L-23 Filesystem|L-23 Filesystem]]
 
 ### 03. Identity & Core Services - Windows Server (05-Windows-Server)
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/BAK-01 Windows Server Backup|BAK-01 Windows Server Backup]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/IIS|IIS]]
+- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/Roles|Windows Server Roles]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-01 Windows Server 2022 Introduction|WS-01 Windows Server 2022 Introduction]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-04 DHCP Server — Install and Configure|WS-04 DHCP Server — Install and Configure]]
@@ -104,9 +147,11 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-15 Print Server|WS-15 Print Server]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-16 WSUS — Windows Server Update Services|WS-16 WSUS — Windows Server Update Services]]
 - [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-17 NPS and RADIUS Server|WS-17 NPS and RADIUS Server]]
+- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-17 SCCM-MECM|WS-17 SCCM-MECM]]
+- [ ] [[03-Identity-and-Core-Services/05-Windows-Server/WS-18 SQL-Server-Administration|WS-18 SQL Server Administration]]
 
 ### 03. Identity & Core Services - Active Directory (06-Active-Directory)
-
+- [x] [[03-Identity-and-Core-Services/06-Active-Directory/AD-Replication|AD-Replication]]
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 Active Directory Domain Services|WS-02 Active Directory Domain Services]]
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]]
 - [ ] [[03-Identity-and-Core-Services/06-Active-Directory/WS-06 Active Directory — Users Groups OUs|WS-06 Active Directory — Users Groups OUs]]
@@ -150,7 +195,7 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 ### 04. Cloud & Security - Enterprise Security (09-Security)
 - [ ] [[04-Cloud-and-Security/09-Security/Access-Management|Access-Management]]
 - [ ] [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker-Deep-Dive]]
-- [ ] [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA-Triad-and-Zero-Trust]]
+- [x] [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA-Triad-and-Zero-Trust]]
 - [ ] [[04-Cloud-and-Security/09-Security/Endpoint-Security-Defender|Endpoint-Security-Defender]]
 - [ ] [[04-Cloud-and-Security/09-Security/Incident-Response-Playbook|Incident-Response-Playbook]]
 - [ ] [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA-and-Identity-Protection]]
@@ -159,23 +204,37 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[04-Cloud-and-Security/09-Security/Windows-Defender|Windows-Defender]]
 
 ### 05. Automation & Ticketing - PowerShell (10-Scripting-PowerShell)
-- [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-01 PowerShell Fundamentals|PS-01 PowerShell Fundamentals]]
+- [x] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-01 PowerShell Fundamentals|PS-01 PowerShell Fundamentals]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-02 PowerShell for Active Directory|PS-02 PowerShell for Active Directory]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-03 PowerShell for System Administration|PS-03 PowerShell for System Administration]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-04 PowerShell Scripting|PS-04 PowerShell Scripting]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-05 PowerShell for Azure|PS-05 PowerShell for Azure]]
 - [ ] [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-06 PowerShell DSC|PS-06 PowerShell DSC]]
 
-
 ### 05. Automation & Ticketing - ITSM Ticketing (11-ITSM-Ticketing)
 - [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/Change-and-Asset-Management|Change-and-Asset-Management]]
-- [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/ITIL-v4-and-SLA|ITIL-v4-and-SLA]]
+- [x] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/ITIL-v4-and-SLA|ITIL-v4-and-SLA]]
 - [ ] [[05-Automation-and-Ticketing/11-ITSM-Ticketing/Incident-and-Problem-Management|Incident-and-Problem-Management]]
 
 ### 05. Automation & Ticketing - Ansible (12-Ansible)
-- [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-01 Ansible for Windows Admins|ANS-01 Ansible for Windows Admins]]
+- [x] [[05-Automation-and-Ticketing/12-Ansible/ANS-01 Ansible for Windows Admins|ANS-01 Ansible for Windows Admins]]
 - [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-02 Ansible for Linux Admins|ANS-02 Ansible for Linux Admins]]
 - [ ] [[05-Automation-and-Ticketing/12-Ansible/ANS-03 Ansible Advanced Playbooks|ANS-03 Ansible Advanced Playbooks]]
+
+### 05. Automation & Ticketing - Monitoring (13-Monitoring)
+- [ ] [[05-Automation-and-Ticketing/13-Monitoring/MON-01 Nagios-Setup|MON-01 Nagios Setup]]
+- [ ] [[05-Automation-and-Ticketing/13-Monitoring/MON-02 Zabbix-Complete-Guide|MON-02 Zabbix Complete Guide]]
+- [ ] [[05-Automation-and-Ticketing/13-Monitoring/MON-03 Prometheus-and-Grafana|MON-03 Prometheus and Grafana]]
+- [x] [[05-Automation-and-Ticketing/13-Monitoring/MON-04 Windows Performance Monitor|MON-04 Windows Performance Monitor]]
+- [x] [[05-Automation-and-Ticketing/13-Monitoring/MON-05 Azure Monitor and Log Analytics|MON-05 Azure Monitor and Log Analytics]]
+
+### 05. Automation & Ticketing - DevOps (14-DevOps-Basics)
+- [x] [[05-Automation-and-Ticketing/14-DevOps-Basics/DEV-01 Docker-Fundamentals|DEV-01 Docker Fundamentals]]
+- [ ] [[05-Automation-and-Ticketing/14-DevOps-Basics/DEV-02 Kubernetes-Basics|DEV-02 Kubernetes Basics]]
+
+### 05. Automation & Ticketing - Python (15-Python-Scripting)
+- [x] [[05-Automation-and-Ticketing/15-Python-Scripting/PY-01 Python-for-Sysadmins|PY-01 Python for Sysadmins]]
+- [ ] [[05-Automation-and-Ticketing/15-Python-Scripting/PY-02 Python-AD-Automation|PY-02 Python AD Automation]]
 
 ### 06. Career Growth - Interview Prep (12-Interview-Prep)
 - [ ] [[06-Career-Growth/12-Interview-Prep/30-60-90-Day-Plan-Template|30-60-90-Day-Plan-Template]]
@@ -198,207 +257,44 @@ Use these checkboxes to track your study progress as you work your way from L1 t
 - [ ] [[06-Career-Growth/14-Certifications/RHCSA-Roadmap|RHCSA-Roadmap]]
 
 ---
+## ⌨️ Command Cheat Sheet
 
-## Technical Deep Dive
-The folder structure is designed around 15 technical domains that partition sysadmin knowledge into discrete directories. 
-Below is the logical data access map showing how knowledge flows from foundational systems (Hardware, Networking) to high-level cloud management (Azure, Microsoft 365, Security, PowerShell Automation):
-
-```
-[01-Hardware] + [02-Networking]  <-- Foundations
-       |
-       v
-[03-Windows-OS] + [04-Linux-RHEL] <-- Operating Systems
-       |
-       v
-[05-Windows-Server] + [06-Active-Directory] <-- Identity & Core Services
-       |
-       v
-[07-Microsoft-365] + [08-Azure] + [09-Security] <-- Enterprise & Cloud Scale
-       |
-       v
-[10-Scripting-PowerShell] + [11-ITSM-Ticketing] <-- Management & Automation
-       |
-       v
-[12-Interview-Prep] + [13-Lab-Projects] + [14-Certifications] <-- Career Growth
-```
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|---------|-------------|---------|
+| `Get-ChildItem -Filter "*.md"` | Search all vault notes | `Get-ChildItem -Path "C:\Vault" -Filter "*.md" -Recurse` |
+| `tree /F` | Show vault structure | `tree /A /F "C:\Vault"` |
 
 ---
+## 🚑 Troubleshooting Guide
 
-## Commands & Syntax
-
-### PowerShell
-```powershell
-# Command to search for any note inside the Obsidian vault containing a specific keyword
-Get-ChildItem -Path "C:\Users\SPTL\Documents\SYSTEM ADMINISTRATOR" -Filter "*.md" -Recurse |
-    Select-String -Pattern "BitLocker" |
-    Select-Object Path, LineNumber, Line -Unique
-```
-
-### CMD / Run Box
-```cmd
-REM Command to output the directory tree structure of the vault for auditing
-tree /A /F "C:\Users\SPTL\Documents\SYSTEM ADMINISTRATOR"
-```
-
-### GUI Path
-> File Explorer -> Documents -> SYSTEM ADMINISTRATOR -> [select target directory]
-
-### Important Registry Paths
-```
-HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\
-```
-
-### Key Event IDs
-| Event ID | Meaning | Where to Check |
-|----------|---------|----------------|
-| 1000 | Application Error (Vault Reader crash) | Application Log |
-| 7036 | Service status changes | System Log |
-
----
-
-## Real-World Scenarios
-
-### Scenario 1: New Engineer Onboarding & Skill Assessment
-**User Complaint:** A junior engineer joins the team and does not know where to start learning intermediate L2 routing and troubleshooting.
-**Your First 3 Checks:**
-1. Check the engineer's current certifications and experience level.
-2. Review active ticket queue categories.
-3. Open the Master Index to target the correct starting module.
-**Diagnosis Steps:**
-1. Execute the directory list command to verify all modules are available:
-   `Get-ChildItem -Path "00-MOC/"`
-2. Point the engineer to the Networking module: `[[01-Foundations/02-Networking/OSI-Model|OSI Model]]`.
-3. Check the engineer's comprehension by testing them on common ports.
-**Root Cause:** Lack of structured educational mapping for L1 engineers moving to L2.
-**Fix:** Assign the junior engineer a week-by-week study path using the **MOC index modules**.
-**Prevention:** Integrate the `Master-Index.md` into the IT department's default browser homepage.
-**Ticket Close Note:** "New engineer onboarded. Provided full training mapping using the master MOC. Closing ticket."
-
----
-
-## Critical Points
-
-> [!danger] Never Do This
-> - Modify file names or directory structures directly in the file explorer without updating the Wikilinks inside the `Master-Index.md`.
-> - This breaks the vault's internal integrity, causing broken links (`[[Note Name]]`) that fail to resolve when clicked.
-> - Always perform renaming operations within the Obsidian GUI interface to allow automatic link refactoring.
-
-> [!warning] Common Trap
-> - Reading topics out of order (e.g., trying to study `[[04-Cloud-and-Security/08-Azure/Azure-VMs|Azure VMs]]` before mastering `[[01-Foundations/02-Networking/DNS|DNS]]` or `[[01-Foundations/02-Networking/Subnetting|Subnetting]]`).
-> - This leads to conceptual gaps where you cannot troubleshoot network security group rules because you do not understand CIDR notations.
-> - Stick to the numerical folder sequence for a solid educational progression.
-
-> [!tip] Senior Engineer Tip
-> - Use the search bar in Obsidian (`Ctrl + Shift + F`) to run full-text regex searches across the vault. This allows you to find command examples faster than manually clicking through folders.
-
-> [!success] Verification Steps
-> - Open the index note in Obsidian.
-> - Verify that all Wikilinks display in blue (indicating the target file exists) rather than red (indicating a missing file).
-
-> [!question] Interview Alert
-> - "How do you organize your technical documentation?"
-> - Answer: "I maintain a Map of Content (MOC) index that structures documentation hierarchically from hardware and network foundations to operating systems, identity management, and cloud security frameworks, making it searchable for the entire support team."
-
----
-
-## Common Mistakes & Fixes
-| Mistake | Why It Happens | Correct Approach |
-|---------|----------------|------------------|
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|---------|-------------|-----|
 | Broken Wikilinks | Manual file system edits | Rename files inside Obsidian GUI only. |
 | Missing metadata | Copying text without frontmatter | Always include YAML headers in every note. |
 | Mixed structure | Storing notes in the root folder | File each note under its designated category folder. |
 
 ---
+## 🎫 Real-World Ticket Scenarios
 
-## Lab Exercise
+### 🎫 Scenario 1: New Engineer Onboarding
 
-**Objective:** Verify vault integrity and run a lookup automation script.
-**Time Required:** 15 minutes
-**Environment Needed:** Windows 11 workstation containing the vault directory.
-**Pre-requisites:** PowerShell module access.
+> [!example] Ticket
+> "A junior engineer joined the team and doesn't know where to start learning L2 routing."
 
-**Steps:**
-1. Open PowerShell and run the integrity script to count the total `.md` files in your vault:
-   ```powershell
-   (Get-ChildItem -Path "C:\Users\SPTL\Documents\SYSTEM ADMINISTRATOR\" -Filter "*.md" -Recurse).Count
-   ```
-   - Expected output: `82` (or the count of active notes).
-2. Query the vault for all completed notes:
-   ```powershell
-   Get-ChildItem -Path "C:\Users\SPTL\Documents\SYSTEM ADMINISTRATOR\" -Filter "*.md" -Recurse | Get-Content | Select-String -Pattern "status: #complete"
-   ```
-3. Verification: Verify that the script successfully reads the file properties.
-
-**Success Criteria:** All Wikilinks load correctly when clicked in Obsidian editor.
-**Common Failures:** Directory path mismatch if the folder root changes.
+**L1 Response:** Point the engineer to the Networking module: `[[01-Foundations/02-Networking/N-01 Networking Fundamentals|Networking Fundamentals]]`.
+**L2 Resolution:**
+- Assign a week-by-week study path using the **MOC index modules**.
+- Ensure they don't skip Foundations before jumping to Azure.
 
 ---
+## 🎤 Interview Questions
 
-## Interview Questions & Answers
+> [!question] Q1: How do you organize your technical documentation?
+> **Answer:** "I maintain a Map of Content (MOC) index that structures documentation hierarchically from hardware and network foundations to operating systems, identity management, and cloud security frameworks, making it searchable for the entire support team."
 
-### Basic (L1 Level)
-**Q: What is a Map of Content (MOC) and how does it help a support team?**
-A: An MOC is a master index note that groups related files and folders together. It helps support teams by acting as a single source of truth to quickly locate configuration paths, CLI commands, and troubleshooting runbooks.
-
-### Intermediate (L2 Level)
-**Q: How do you maintain documentation consistency across a growing team?**
-A: I enforce standard markdown templates for all logs, requiring metadata tags, clear step-by-step resolution logs, and exact CLI command syntaxes. This ensures any engineer can follow a runbook without running into ambiguous steps or placeholders.
-
-### Advanced (L3/Senior Level)
-**Q: Explain how you would structure a documentation migration from local files to a centralized wiki.**
-A:
-- **Situation**: The team's documentation was scattered across local files, causing outdated processes to be followed.
-- **Task**: I needed to migrate and standardize all documentation into a centralized searchable repository.
-- **Action**: I defined a 15-category directory structure matching our IT lifecycle. I mapped all files in a Master Index (MOC) and used markdown linking to preserve cross-references between dependencies (like linking GPOs to Active Directory).
-- **Result**: The team's resolution speed improved by 25%, and onboarding time for new engineers was cut in half.
-
-### HR / Behavioral
-**Q: Tell me about a time you had to learn a new technology quickly.**
-A: When Microsoft 365 was introduced to our tenant, I built a personal local lab to replicate the configuration. I documented every step of the setup in a structured index, which later served as our team's standard operating guide.
+==**Exam Tip:** Documentation is your best friend. In interviews, emphasize that structured wikis reduce MTTR (Mean Time To Resolution).==
 
 ---
-
-## Quick Revision Sheet
-> [!info] 60-Second Summary
-> **What:** The navigational blueprint for the Desktop Support Knowledge Vault.
-> **Why:** Prevents sprawl and guides engineers from L1 to L3 technical competence.
-> **How:** Follow the numerical directory structure from Hardware to cloud architectures.
-> **Command:** `tree /F`
-> **Interview Answer Starter:** "In my experience, structured documentation indexing works by..."
-
-**Key Numbers to Remember:**
-- Default folders: 15
-- Total notes: 80+
-- Evaluation period: Daily
-
-**3 Things Interviewer Wants to Hear:**
-1. Structured organizational workflow
-2. Proactive documentation habits
-3. Understanding of scale and categorization
-
----
-
-## Related Notes
+## 🔗 Related Notes
 - [[01-Foundations/01-Hardware/H-05 PC Assembly and BIOS Configuration|PC Assembly and BIOS Configuration]] — Core hardware base.
-- [[01-Foundations/02-Networking/N-01 Networking Fundamentals|OSI Model]] — Fundamental network structure.
 - [[06-Career-Growth/12-Interview-Prep/Top-50-L1-Questions|Top 50 L1 Questions]] — Career exit gateway.
-- [[06-Career-Growth/12-Interview-Prep/Top-30-L2-Questions|Top 30 L2 Questions]] — L2 support interviews.
-- [[06-Career-Growth/12-Interview-Prep/Top-20-Scenario-Based-Questions|Top 20 Scenario-Based Questions]] — Scenario analysis.
-- [[06-Career-Growth/12-Interview-Prep/Top-20-M365-and-Azure-Questions|Top 20 M365 and Azure Questions]] — Cloud & Hybrid admin prep.
-- [[06-Career-Growth/12-Interview-Prep/Top-10-Behavioral-and-HR-Questions|Top 10 Behavioral and HR Questions]] — Culture & STAR response drills.
-- [[06-Career-Growth/12-Interview-Prep/Salary-Negotiation-Script|Salary Negotiation Script]] — Compensation package scripts.
-- [[06-Career-Growth/12-Interview-Prep/30-60-90-Day-Plan-Template|30-60-90 Day Plan Template]] — Enterprise onboarding map.
-- [[06-Career-Growth/13-Lab-Projects/Home-Lab-Setup|Home Lab Setup Guide]] — Build staging/sandbox environments.
-- [[06-Career-Growth/13-Lab-Projects/Active-Directory-Domain-Lab|Active Directory Domain Lab Setup Guide]] — Domain controller & DNS lab.
-- [[06-Career-Growth/13-Lab-Projects/Azure-Cloud-Lab|Azure Cloud Lab Setup Guide]] — Entra ID & NSG cloud lab.
-- [[06-Career-Growth/14-Certifications/CCNA-Roadmap|CCNA Certification Study Roadmap]] — Cisco routing & switching path.
-- [[06-Career-Growth/14-Certifications/AZ-104-Roadmap|AZ-104 Certification Study Roadmap]] — Azure cloud administrator path.
-- [[06-Career-Growth/14-Certifications/MD-102-Roadmap|MD-102 Certification Study Roadmap]] — Intune & Autopilot deployment path.
-- [[06-Career-Growth/14-Certifications/RHCSA-Roadmap|RHCSA Certification Study Roadmap]] — Red Hat Enterprise Linux path.
-
----
-
-## Tags
-#desktop-support #moc #index #L1 #interview-topic #lab-complete #daily-use
-
-

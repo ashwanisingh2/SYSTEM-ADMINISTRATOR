@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, interview-prep, l2-support, career, L2]
 aliases: [l2-interview-questions, sysadmin-qa]
 created: 2026-06-25

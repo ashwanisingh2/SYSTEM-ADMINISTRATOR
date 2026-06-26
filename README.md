@@ -5,6 +5,27 @@
 [![License](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Obsidian Vault](https://img.shields.io/badge/Obsidian-Vault-purple?style=for-the-badge&logo=obsidian)](https://obsidian.md)
 
+## 📊 Vault Stats
+| Category | Notes | Status |
+|----------|-------|--------|
+| 🔧 Hardware + Virtualization | H-01 to H-06, V-01 to V-04 | ✅ Complete |
+| 🌐 Networking | N-01 to N-12 | ✅ Complete |
+| 🪟 Windows OS | WIN-01 to WIN-12 | ✅ Complete |
+| 🐧 Linux RHEL | L-01 to L-20 | ✅ Complete |
+| 🏢 Windows Server | WS-01 to WS-18 | ✅ Complete |
+| 🔐 Active Directory | WS-02, WS-05 to WS-08, WS-13 | ✅ Complete |
+| ☁️ Microsoft 365 + Intune | M365-01 to M365-05, INT-01 to INT-10 | ✅ Complete |
+| ☁️ Azure | AZ9-01 to AZ9-06, AZ104-01 to AZ104-07 | ✅ Complete |
+| 🛡️ Security | 9 notes | ✅ Complete |
+| 📜 PowerShell | PS-01 to PS-06 | ✅ Complete |
+| 📋 ITSM/ITIL | 3 notes | ✅ Complete |
+| 🤖 Ansible | ANS-01 to ANS-03 | ✅ Complete |
+| 📊 Monitoring | MON-01 to MON-05 | ✅ Complete |
+| 🎯 Career Growth | 10+ notes | ✅ Complete |
+| **Total Notes** | **~165** | **✅ 100% Done** |
+
+> **Last Updated:** June 2026
+
 Welcome to the **System Administrator & Desktop Support Engineer (L1 to L3) Knowledge Vault**. This is a comprehensive, production-grade documentation repository and study resource structured as an **Obsidian Vault**. It covers everything from basic hardware support (L1) to advanced cloud infrastructure and systems administration (L3).
 
 ---
@@ -27,7 +48,7 @@ SYSTEM-ADMINISTRATOR/
  │    └── 📂 02-Networking/       # IPv4/v6 Subnetting, Routing, DNS/DHCP Services, ACLs
  ├── 📂 02-Operating-Systems/
  │    ├── 📂 03-Windows-OS/       # Registry, Event Viewer, SFC/DISM, OS Services, User Profiles
- │    └── 📂 04-Linux-RHEL/       # CLI, LVM, SSH Hardening, Systemd, Bash Scripting (L-01 to L-13)
+ │    └── 📂 04-Linux-RHEL/       # CLI, LVM, SSH Hardening, Systemd, Bash Scripting (L-01 to L-20)
  ├── 📂 03-Identity-and-Core-Services/
  │    ├── 📂 05-Windows-Server/   # Windows Server 2022, DFS, RAID, VPN/RRAS
  │    └── 📂 06-Active-Directory/ # AD DS, Group Policy, FSMO, AD CS
@@ -37,7 +58,15 @@ SYSTEM-ADMINISTRATOR/
  │    └── 📂 09-Security/         # Zero Trust, BitLocker, MFA, Incident Response Playbooks
  └── 📂 05-Automation-and-Ticketing/
       ├── 📂 10-Scripting-PowerShell/ # Active Directory Automation, Az Modules
-      └── 📂 11-ITSM-Ticketing/       # ITIL v4, SLA, Incident & Change Management
+      ├── 📂 11-ITSM-Ticketing/       # ITIL v4, SLA, Incident & Change Management
+       ├── 📂 12-Ansible/              # Ansible for Windows & Linux, Advanced Playbooks
+       ├── 📂 13-Monitoring/            # Nagios, Zabbix, Prometheus, Perfmon, Azure Monitor
+       ├── 📂 14-DevOps-Basics/         # Git, CI/CD, Terraform basics
+       └── 📂 15-Python-Scripting/      # Python for System Administration
+ └── 📂 06-Career-Growth/
+       ├── 📂 12-Interview-Prep/        # L1, L2, M365/Azure, Scenario, Behavioral Questions
+       ├── 📂 13-Lab-Projects/          # AD Lab, Azure Lab, Home Lab
+       └── 📂 14-Certifications/        # RHCSA, AZ-104, MD-102, CCNA Roadmaps
 ```
 
 ---

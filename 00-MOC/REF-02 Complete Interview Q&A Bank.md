@@ -8,7 +8,7 @@ read-time: 45 mins
 # REF-02: Complete Interview Q&A Bank
 
 > [!abstract] Overview
-> This reference note contains a comprehensive interview preparation bank containing 150 detailed questions and answers. It covers PC Hardware, CCNA Networking, Windows Server administration, Linux RHCSA commands, Microsoft Azure (AZ-900/104), and M365/Intune operations.
+> This reference note contains a comprehensive interview preparation bank containing 175 detailed questions and answers. It covers PC Hardware, CCNA Networking, Windows Server administration, Linux RHCSA commands, Microsoft Azure (AZ-900/104), M365/Intune operations, WSUS, Ansible, and Incident Response.
 
 ---
 ## Concept
@@ -16,7 +16,7 @@ Think of this interview bank as a flight simulator. A pilot doesn't learn how to
 *Seedha simple mein: Yeh ek master interview question bank hai jo hardware, networks, active directory, linux, azure aur intune ke advanced technical aur scenario-based questions ka complete collection hai.*
 
 ---
-## Technical Deep Dive: 150 Interview Questions & Answers
+## Technical Deep Dive: 175 Interview Questions & Answers
 
 ### Part 1: Hardware & Storage (Q1 - Q25)
 

@@ -7,41 +7,57 @@ difficulty: #beginner
 cert-relevant: #md-102
 ---
 
+> [!NOTE|color-blue]
+> ☁️ **CLOUD & MICROSOFT 365**
+
+`#complete` `#beginner` `#md-102`
+
 # INT-01: Microsoft Intune Introduction
 
 > [!abstract] Overview
-> This note introduces Microsoft Intune, exploring device and application management (MDM vs. MAM), enrollment modes, identity joins, and co-management setups.
+> Yeh note Microsoft Intune ko introduce karta hai, jisme MDM (Mobile Device Management) vs. MAM (Mobile Application Management), enrollment modes, identity joins aur co-management setups cover hote hain. Ek support engineer ko devices ko securely cloud se manage karne ke liye yeh pata hona chahiye.
 
 ---
+## 🧠 Concept Overview
+
+- **What it is** — Microsoft Intune ek cloud-based endpoint management solution hai jo user access manage karta hai aur applications/devices ko protect karta hai.
+- **Why it matters** — Aaj kal hybrid work mein, IT ko company data protect karna hota hai bina devices ko manually touch kiye. Intune policies remotely push karta hai.
+- **Where you see this** — Jab company new laptop bhejti hai jo auto-setup (Autopilot) hota hai, ya jab employee apne personal phone par company email access karta hai.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Check enrollment status, guide users to install Company Portal app. |
+| **L2** | Configure basic compliance policies, App Protection (MAM), troubleshoot sync issues. |
+| **L3** | Architecture design, Co-management with SCCM setup, Autopilot profiles, advanced conditional access. |
+
+> [!tip] Seedha Simple Mein
+> *Intune corporate aur personal devices ko securely configure aur control karne ka central platform hai, jise MDM (device-level) aur MAM (app-data level) ke zaraye control kiya jata hai.*
 
 ---
-## Concept Overview
-Think of Microsoft Intune as a remote management center for corporate and personal devices.
-- **MDM (Mobile Device Management)** is like giving an employee a company-owned laptop. You control the hardware, partition the drives, install the operating system, and configure security baselines. If they leave, you can wipe the entire device clean.
-- **MAM (Mobile Application Management)** is like allowing an employee to read company emails on their personal smartphone. You don't control the phone itself, but you wrap corporate apps (like Outlook and Teams) in a secure bubble. If they leave, you only wipe the corporate data inside those apps, leaving their personal photos and messages untouched.
+## 💡 Real-World Analogy
+
+> [!info] Think of it like this...
+> **A High-Security Building** is like **Microsoft Intune** because...
+>
+> - **MDM (Company-Owned):** Aapko poori building ka access aur control milta hai. Aap jab chahein locks change kar sakte hain ya poori building empty karwa sakte hain.
+> - **MAM (BYOD/Personal):** Building kisi aur ki hai, par aapne apna ek secure locker wahan rakha hai. Aap sirf locker (company app) ko control karte hain, baaki building (personal phone) se aapko koi matlab nahi.
 
 ---
+## 🔬 Technical Deep Dive
 
----
-## Technical Deep Dive
 ### 1. MDM vs. MAM Comparison
-- **MDM (Mobile Device Management)**:
-  - Enrolls the entire device under organization authority.
-  - Grants control over device settings, hardware (disable camera, USB ports), and OS upgrades.
-  - Allows full remote wipe. Best for company-owned devices.
-- **MAM (Mobile Application Management)**:
-  - Enrolls only the application context, not the device.
-  - Prevents data copy/paste between corporate apps (e.g., Outlook) and personal apps (e.g., WhatsApp).
-  - Allows selective wipe of organizational data. Best for Bring Your Own Device (BYOD) scenarios.
 
-### 2. Intune Licensing & M365 Integration
-Intune is included in several subscription tiers:
-- Microsoft 365 Business Premium (designed for SMBs up to 300 users)
-- Microsoft 365 E3 / E5 (Enterprise-grade)
-- Enterprise Mobility + Security (EMS) E3 / E5
-- Microsoft 365 F1 / F3 (Frontline workers)
+> [!info] Key Concept
+> - **MDM (Mobile Device Management)**: Enrolls the entire device under organization authority. Best for company-owned devices.
+> - **MAM (Mobile Application Management)**: Enrolls only the application context. Best for BYOD (Bring Your Own Device) scenarios.
 
-### 3. Enrollment Methods Comparison
+- **MDM** grants control over device settings, hardware (disable camera, USB ports), and OS upgrades. Allows full remote wipe.
+- **MAM** prevents data copy/paste between corporate apps (e.g., Outlook) and personal apps (e.g., WhatsApp). Allows selective wipe of organizational data.
+
+### 2. Enrollment Methods Comparison
+
 | OS Platform | Enrollment Method | Device Ownership | Description |
 |-------------|-------------------|------------------|-------------|
 | **Windows** | Windows Autopilot | Corporate | Out-of-box automated configuration directly from the manufacturer. |
@@ -50,134 +66,103 @@ Intune is included in several subscription tiers:
 | **iOS** | Apple ADE (ABM/ASM) | Corporate | Device Enrollment Program; locks device into MDM management. |
 | **Android** | Android Enterprise | Corporate/Personal | Dedicated corporate device or Work Profile partition on personal. |
 
-### 4. Entra ID Joins
-- **Azure AD Join (Entra Joined)**: Device is joined only to Microsoft Entra ID. Perfect for cloud-only environments. Users sign in using their corporate email credentials.
-- **Hybrid Azure AD Join**: Device is joined to both traditional on-premises Active Directory Domain Services (AD DS) and Microsoft Entra ID. Best for existing AD DS setups transitioning to cloud.
-- **Workplace Join (Registered)**: Device registers with Entra ID to access resources, but is not joined to the corporate domain. Typically used for personal mobile devices (BYOD).
+### 3. Entra ID Joins & Co-management
 
-### 5. Intune vs. SCCM vs. Co-management
-- **SCCM (System Center Configuration Manager / MECM)**: On-premises, agent-based management for local networks. Excellent for massive software distribution and server patching.
-- **Intune**: Cloud-native, agentless (uses built-in OS MDM APIs) management for remote/hybrid users.
-- **Co-management**: Bridges on-premises SCCM and cloud Intune. You deploy the SCCM client and enroll the device in Intune, then shift sliders (workloads) to determine which platform manages what (e.g., Endpoint Protection via Intune, Software updates via SCCM).
+- **Azure AD Join (Entra Joined)**: Device is joined only to Entra ID. Perfect for cloud-only environments.
+- **Hybrid Azure AD Join**: Device is joined to both on-prem AD DS and Entra ID. Best for transitioning to cloud.
+- **Co-management**: Bridges on-premises SCCM and cloud Intune. You deploy SCCM client and enroll in Intune, then shift workloads (e.g., Endpoint Protection via Intune, updates via SCCM).
 
----
-
-## Common Mistakes
-> [!warning] Avoid These
+> [!danger] Common Mistake
 > Setting both MDM User Scope and MAM User Scope to "All" for Windows clients. This causes Windows devices to fail auto-enrollment or register incorrectly as MAM-only, blocking GPO and configuration policies.
-> Deploying Intune policies without setting up an Entra ID group hierarchy first. Ad-hoc policy targeting leads to configuration conflicts and slow deployments.
-> Neglecting to configure default support branding in the Company Portal, which leaves users confused about how to contact the helpdesk during enrollment failures.
 
 ---
+## 🛠️ Step-by-Step Lab
 
-## Pro Tips
-> [!tip] Field Experience
-> Always keep at least one "Clean" test computer or VM that has no policies applied to test new configuration profiles.
-> Use Entra Dynamic Groups to automate Intune targeting. For instance, target policies to a dynamic group containing all Windows 11 corporate devices: `(device.deviceOSVersion -startsWith "10.0.22") and (device.deviceOwnership -eq "Company")`.
+> [!warning] Pre-requisites
+> - A Microsoft 365 Tenant with Intune licenses active.
+> - Access to the Microsoft Intune Admin Center.
 
----
+### Step 1: Verify Tenant-Wide MDM Authority
 
----
-## Step-by-Step Lab
-> [!info] Lab Setup Needed
-> A Microsoft 365 Tenant with Intune licenses active. Access to the Microsoft Intune Admin Center.
-
-### Step 1: Access the Intune Admin Center
-1. Navigate to the **Microsoft Intune Admin Center** (`https://intune.microsoft.com`).
-2. Explore the main blade navigation: `Devices`, `Apps`, `Users`, `Groups`, `Tenant administration`.
-
-### Step 2: Configure Tenant-Wide MDM Authority
-Verify that Intune is set as your MDM authority:
-1. Navigate to `Tenant administration` -> `Tenant status`.
-2. Ensure the **MDM authority** is set to **Microsoft Intune**. (If not set, trigger activation).
-
-### Step 3: Configure Company Portal Branding
-Customize the Company Portal app that users use to self-enroll:
-1. Navigate to `Tenant administration` -> `Customization`.
-2. Edit the **Default Policy**.
-3. Set the following branding values:
-   - Organization Name: `Contoso IT`
-   - Support Phone Number: `+1-555-0199`
-   - Support Email Address: `helpdesk@contoso.com`
-   - Theme Color: Choose a sleek corporate blue hex code (`#0078D4`).
-   - Logo: Upload a PNG logo.
-4. Click **Save** to publish the branding.
-
-### Step 4: Verify MDM Auto-Enrollment Settings in Entra ID
-Enable auto-enrollment for Windows devices:
-1. Open the **Microsoft Entra Portal** (`https://entra.microsoft.com`).
-2. Go to `Identity` -> `Devices` -> `Registration` -> `Mobility (MDM and MAM)`.
-3. Click on **Microsoft Intune**.
-4. Set **MDM User scope** to **All** (or select a pilot group).
-5. Set **MAM User scope** to **None** (to avoid enrollment conflicts on Windows devices).
-6. Click **Save**.
-
----
-
----
-## Cheat Sheet / Quick Reference
 ```powershell
-dsregcmd /status                   # Runs on Windows client to verify Entra ID Join status (look for AzureAdJoined : YES)
-dsregcmd /join                     # Initiates manual register/join process on client
-Get-Service -Name "IntuneManagementExtension" # Verifies the Intune agent service is running on Windows client
+# You can verify MDM Authority status visually in the portal
+# Navigate to Tenant administration -> Tenant status.
 ```
 
----
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | MDM | Full device control, OS settings, hardware restrictions, and complete wipe capability. |
-| 2 | MAM | Application data control, preventing copy/paste from corporate to personal space. |
-| 3 | Company Portal | The user-facing app store and self-service portal for corporate device registration. |
-| 4 | Hybrid Join | Dual join to on-premises AD and Azure AD, facilitating hybrid work scenarios. |
-| 5 | Co-management | Dual management of Windows devices via both SCCM and Intune concurrently. |
+> [!success] Expected Output
+> **MDM authority** should be set to **Microsoft Intune**.
+
+### Step 2: Configure Company Portal Branding
+
+1. Navigate to `Tenant administration` -> `Customization`.
+2. Edit the **Default Policy**.
+3. Set branding values:
+   - Organization Name: `Contoso IT`
+   - Support Phone/Email.
+   - Theme Color (`#0078D4`).
+4. Click **Save** to publish.
+
+### Step 3: Configure Auto-Enrollment in Entra ID
+
+1. Open **Microsoft Entra Portal** -> `Identity` -> `Devices` -> `Registration` -> `Mobility (MDM and MAM)`.
+2. Click **Microsoft Intune**.
+3. Set **MDM User scope** to **All**.
+4. Set **MAM User scope** to **None** (to avoid conflicts on Windows).
+5. Click **Save**.
 
 ---
+## ⌨️ Command Cheat Sheet
+
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `dsregcmd /status` | Checks Entra ID Join status (look for AzureAdJoined : YES) | `dsregcmd /status` |
+| `dsregcmd /join` | Initiates manual register/join process | `dsregcmd /join` |
+| `Get-Service "IntuneManagementExtension"` | Verifies Intune agent service is running | `Get-Service -Name "IntuneManagementExtension"` |
 
 ---
-## Troubleshooting
-**Scenario 1:**
-- Problem: An administrator tries to enroll a new Windows 11 device, but the enrollment fails with error code `0x801c0003` during the setup wizard.
-- Root Cause: The maximum device limit per user has been reached in Entra ID, or the user is not included in the MDM user scope.
-- Fix:
-  1. Open the **Microsoft Entra Portal** -> `Identity` -> `Devices` -> `Device Settings`.
-  2. Check the value of **Maximum number of devices per user** (defaults to 50, but might be set to a lower number like 5).
-  3. Verify the user has an Intune license assigned.
-  4. Ensure the user is within the **MDM User Scope** group configured under Mobility (MDM and MAM).
+## 🚑 Troubleshooting Guide
 
-**Scenario 2:**
-- Problem: A user installs the Company Portal app on a personal Android device, but it blocks enrollment, stating that the device is blocked by organization policy.
-- Root Cause: Intune Enrollment Restrictions are set to block personal Android devices or restrict access to corporate-owned devices only.
-- Fix:
-  1. Open the **Intune Admin Center** -> `Devices` -> `Enrollment` -> `Enrollment device limit restrictions`.
-  2. Edit the priority policy matching the user.
-  3. Go to **Platform Settings** and ensure that **Android (BYOD/Personal)** is set to **Allow**.
-  4. Save the policy and instruct the user to retry enrollment.
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| Windows 11 enrollment fails `0x801c0003` | Max device limit reached or user not in MDM scope | Check "Maximum devices per user" in Entra ID Device Settings. Verify MDM User Scope. |
+| Android BYOD Company Portal blocked | Enrollment Restrictions block personal Android | Edit Enrollment device limit restrictions -> Platform Settings -> Allow Android (BYOD/Personal). |
+| Windows device not getting Intune policies | MDM & MAM both set to "All" | Set MAM User Scope to "None" in Entra ID Mobility (MDM and MAM). |
 
 ---
+## 🎫 Real-World Ticket Scenarios
+
+### 🎫 Scenario 1: Windows Enrollment Failure
+
+> [!example] Ticket
+> "I bought a new laptop for an employee but it's giving error 0x801c0003 during the setup wizard when signing in with company email."
+
+**L1 Response:** Verify the user has an Intune license assigned and check if they have exceeded the device limit in Entra ID.
+**Escalation Trigger:** If licenses are correct and limit is not reached but error persists.
+**L2 Resolution:** Check `Mobility (MDM and MAM)` settings in Entra ID to ensure the user is in the **MDM User Scope**. Review Intune Enrollment Restrictions.
+
+### 🎫 Scenario 2: Personal Android Blocking
+
+> [!example] Ticket
+> "I am trying to setup Outlook on my personal phone. Company Portal says my device is blocked by organization policy."
+
+**L1 Response:** Ask user for device type and OS version.
+**Escalation Trigger:** User is using standard supported Android but still blocked.
+**L2 Resolution:** Go to Intune -> `Devices` -> `Enrollment` -> `Enrollment device limit restrictions`. Check Platform Settings and ensure **Android (BYOD/Personal)** is set to **Allow**.
 
 ---
-## Interview Questions
-**Q1: What is the difference between Azure AD Joined and Hybrid Azure AD Joined devices, and when would you choose each?**
-A: Azure AD Joined devices are cloud-only, signing in with Entra ID credentials and managed by Intune. They are chosen for new deployments, remote workers, or organizations transitioning away from on-premises servers. Hybrid Azure AD Joined devices are joined to both on-premises AD and Entra ID. They are chosen when an organization has a large legacy footprint, relies on on-premises GPOs, and still needs cloud integration.
+## 🎤 Interview Questions
 
-**Q2: A company is rolling out a BYOD policy for personal smartphones. How would you design the enrollment flow to protect data without invading privacy?**
-A:
-- **Situation**: The company needed to enable access to email and Teams on personal mobile devices while respecting user privacy and securing data.
-- **Task**: I needed to configure a MAM-only (App Protection) deployment.
-- **Action**: I created Intune App Protection Policies targeting iOS and Android platforms. I configured the policies to require a 6-digit PIN to open Outlook, disabled copy-paste from Outlook to personal apps, and blocked saving attachments to personal cloud storage (like Google Drive). I did not require full MDM device enrollment.
-- **Result**: Users could access work resources securely without the company managing their personal apps or photos, resulting in high employee adoption and secure data boundaries.
+> [!question] Q1: What is the difference between Azure AD Joined and Hybrid Azure AD Joined devices?
+> **Answer:** Azure AD Joined is cloud-only, perfect for modern/remote deployments. Hybrid Azure AD Joined means the device is joined to both on-premises AD and Entra ID, used when relying on legacy on-prem servers and GPOs.
 
-**Q3: What role does the MDM Authority play, and how do you verify it in a tenant?**
-A: The MDM Authority determines which service manages mobile devices for the tenant (e.g., Intune, Office 365 MDM, or Configuration Manager). You verify this in the Intune Admin Center under Tenant Administration -> Tenant Status. The MDM authority must display "Microsoft Intune" for you to push policies and manage devices.
+==**Exam Tip:** Use Hybrid Join only if strictly necessary for legacy apps; modern deployments should target Entra ID Join.==
+
+> [!question] Q2: How do you secure data on personal smartphones without full device control?
+> **Answer:** Deploy a MAM-only (App Protection) policy. Require PIN for Outlook, disable copy-paste to personal apps, and block saving to personal cloud storage. This secures corporate data while keeping personal data private.
 
 ---
+## 🔗 Related Notes
 
----
-## Seedha Simple Mein
-*Seedha simple mein: Intune corporate aur personal devices ko securely configure aur control karne ka central platform hai, jise MDM (device-level) aur MAM (app-data level) ke zaraye control kiya jata hai.*
-
----
-## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-01 Microsoft 365 Administration|M365-01 Microsoft 365 Administration]] — Explains global identity and tenant provisioning.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-02 Device Enrollment|INT-02 Device Enrollment]] — Deep dive into automatic and manual device enrollment.
 - [[04-Cloud-and-Security/07-Microsoft-365/INT-03 Compliance Policies|INT-03 Compliance Policies]] — Details compliance enforcement.

@@ -1,32 +1,65 @@
 ---
-tags: [desktop-support, security, threat-protection, L2]
-aliases: [cia-triad-and-zero-trust, cia-triad-and-zero-trust]
+tags: [security, cia-triad, zero-trust, threat-protection, cryptography]
+aliases: [cia-triad, zero-trust-model, cia-zero-trust]
 created: 2026-06-25
-status: #complete
-difficulty: #beginner
-cert-relevant: #none
+status: "#complete"
+difficulty: "#beginner"
+cert-relevant: "#sc-900"
 ---
 
-# CIA Triad and Zero Trust
+> [!NOTE|color-red]
+> 🛡️ **SECURITY**
 
----
+`#complete` `#beginner` `#sc-900`
 
----
-## Concept Overview
-- **What it is**: The **CIA Triad** is the foundational security model consisting of Confidentiality (protecting data from unauthorized access), Integrity (ensuring data is accurate and not altered), and Availability (guaranteeing reliable access to data). **Zero Trust** is a modern security framework based on three principles: Verify explicitly, Use least privilege access, and Assume breach.
-- **Why it matters for a support engineer**: A support engineer is the first line of defense. Every action—from resetting a password (confidentiality) to restoring a backup (availability) or validating a file hash (integrity)—is mapped directly to the CIA Triad. Zero Trust dictates how support engineers manage remote users and verify client devices.
-- **Where you encounter this in real job**: Troubleshooting MFA prompts, explaining file permission blocks, running file hash integrity checks, and checking device compliance status before granting access.
-- **L1 vs L2 vs L3 responsibility split**:
-  - **L1**: Performs user identity checks before resetting passwords, walks users through MFA setups, and monitors backup availability.
-  - **L2**: Configures device encryption (BitLocker), audits file integrity using hashing tools, and manages access permissions based on role definitions.
-  - **L3**: Designs tenant-wide Zero Trust architectures, enforces conditional access rules, establishes identity protection baselines, and coordinates disaster recovery availability plans.
+# SEC-01: CIA Triad and Zero Trust
+
+> [!abstract] Overview
+> Yeh note IT security ke **do sabse important foundations** cover karta hai — **CIA Triad** (Confidentiality, Integrity, Availability) aur **Zero Trust Model** (Verify Explicitly, Least Privilege, Assume Breach). Har ek support engineer ko yeh samajhna zaroori hai kyunki tumhara har ek action — password reset se lekar backup restore tak — isi framework ke andar aata hai. Agar tum yeh nahi samajhte, toh tum unknowingly security breach ka door khol sakte ho.
 
 ---
 
+## 🧠 Concept Overview
+
+- **What it is** — **CIA Triad** IT security ka foundation model hai jo teen pillars pe based hai: **Confidentiality** (data ko unauthorized access se bachana), **Integrity** (data accurate aur untampered rahe), aur **Availability** (authorized users ko reliable access mile). **Zero Trust** ek modern security framework hai — *"Never trust, always verify"* — jo teen principles pe chalta hai: Verify Explicitly, Use Least Privilege, aur Assume Breach.
+- **Why it matters** — Ek support engineer pehli line of defense hai. Tumhara har ek action directly CIA Triad se mapped hai — password reset (Confidentiality), file hash check (Integrity), backup restore (Availability). Zero Trust dictate karta hai ki tum remote users ko kaise manage karo aur devices ko kaise verify karo.
+- **Where you see this** — MFA prompts troubleshoot karna, file permissions blocks explain karna, file hash integrity checks run karna, device compliance status check karna before access dena, Conditional Access policy issues debug karna.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | User identity verify karke password reset karta hai, MFA setup mein walk-through deta hai, backup availability monitor karta hai |
+| **L2** | BitLocker encryption configure karta hai, file integrity audit (hashing tools) karta hai, role-based access permissions manage karta hai |
+| **L3** | Tenant-wide Zero Trust architecture design karta hai, Conditional Access policies enforce karta hai, identity protection baselines establish karta hai, DR availability plans coordinate karta hai |
+
+> [!tip] Seedha Simple Mein
+> *Socho aise — CIA Triad matlab: **C** = Data koi dekh na sake jo dekhna nahi chahiye, **I** = Data koi badal na sake bina permission ke, **A** = Data jab chahiye tab mile. Aur Zero Trust matlab — chahe tu office mein baith ke kaam kar ya ghar se, har baar prove kar ki tu kaun hai. Koi bhi by default trusted nahi hai!*
+
 ---
-## Technical Deep Dive
-### 1. The CIA Triad in Enterprise Operations
-The CIA Triad is a balancing act; increasing security in one pillar can occasionally impact another (e.g., heavy encryption protects confidentiality but can slow down availability).
+
+## 💡 Real-World Analogy
+
+> [!info] Think of it like this...
+> **CIA Triad** is like a **bank locker system**:
+>
+> - 🔐 **Confidentiality** = Locker ki **key sirf tumhare paas** hai, bank manager bhi nahi khol sakta — *jaise AES encryption sirf authorized users ko data dekhne deta hai*
+> - ✅ **Integrity** = Bank maintain karta hai ki locker mein jo **jewellery rakhi hai woh waisi ki waisi** rahe, koi tamper na kare — *jaise SHA-256 hash ensure karta hai file alter nahi hui*
+> - 🟢 **Availability** = Bank **opening hours mein guaranteed accessible** hai, chahe festival ho ya nahi — *jaise geo-redundant backups ensure karte hain data recover ho sake*
+>
+> **Zero Trust** is like **airport security**:
+>
+> - ✈️ Chahe tum **frequent flyer** ho, har baar boarding pass dikhana padega (**Verify Explicitly**)
+> - 🎫 Tumhe sirf **apni seat tak access** milta hai, cockpit mein nahi ja sakte (**Least Privilege**)
+> - 🔎 Security assume karti hai ki **koi bhi dangerous ho sakta hai**, isliye sab ko scan karte hain (**Assume Breach**)
+
+---
+
+## 🔬 Technical Deep Dive
+
+### 1. 🔺 The CIA Triad in Enterprise Operations
+
+*CIA Triad ek balancing act hai — ek pillar mein security badhao toh doosre pe impact pad sakta hai (e.g., heavy encryption Confidentiality protect karta hai lekin Availability slow ho sakti hai).*
 
 ```
                             [CIA Triad Security]
@@ -39,258 +72,321 @@ The CIA Triad is a balancing act; increasing security in one pillar can occasion
               - MFA Challenges    - Versioning  - Load Balancing
 ```
 
-- **Confidentiality**: Access is restricted to authorized entities.
-  * *Controls*: AES encryption for data at rest (BitLocker), SSL/TLS for data in transit, MFA, and Role-Based Access Control (RBAC).
-- **Integrity**: Data must be accurate, complete, and protected from unauthorized modification.
-  * *Controls*: Cryptographic hashing (SHA-256), digital signatures, database transaction logs, and version history.
-- **Availability**: Authorized users must have uninterrupted access to data when needed.
-  * *Controls*: RAID storage arrays, geo-redundant backups, load balancers, UPS power backups, and DDoS protection.
+> [!info] Key Concept — Confidentiality
+> Access sirf **authorized entities** tak restricted hona chahiye.
+> - *Controls*: **AES encryption** for data at rest (BitLocker), **SSL/TLS** for data in transit, **MFA**, aur **Role-Based Access Control (RBAC)**
 
-### 2. The Three Principles of Zero Trust
-Zero Trust abandons the legacy "Castle-and-Moat" model (where anything inside the corporate network was trusted) in favor of:
-1. **Verify Explicitly**: Always authenticate and authorize based on all available data points (identity, location, device health, service, and anomalies).
-2. **Use Least Privilege Access**: Limit user access with Just-in-Time (JIT) and Just-Enough-Access (JEA), data protection policies, and role boundaries.
-3. **Assume Breach**: Minimize blast radius by segmenting networks, encrypting end-to-end, and using analytics to obtain threat visibility.
+> [!info] Key Concept — Integrity
+> Data **accurate, complete, aur unauthorized modification se protected** hona chahiye.
+> - *Controls*: **Cryptographic hashing (SHA-256)**, digital signatures, database transaction logs, aur version history
 
-### 3. The Six Pillars of Zero Trust Architecture
-Zero Trust integrates controls across six critical infrastructure domains:
-1. **Identities**: Verify users with strong MFA, risk policies, and single sign-on (SSO).
-2. **Devices**: Audit and monitor device compliance status before allowing access (via Intune).
-3. **Applications**: Secure APIs, shadow IT apps, and enforce runtime access controls.
-4. **Data**: Classify, label, and encrypt documents (Sensitivity Labels / DLP).
-5. **Infrastructure**: Monitor for configuration drifts and isolate host servers.
-6. **Networks**: Segment network resources using micro-perimeters (VNets, NSGs).
+> [!info] Key Concept — Availability
+> Authorized users ko **uninterrupted access** milna chahiye jab bhi zaroori ho.
+> - *Controls*: **RAID** storage arrays, **geo-redundant backups**, load balancers, **UPS** power backups, aur **DDoS protection**
+
+> [!danger] Common Mistake
+> Bahut log **Confidentiality aur Privacy** ko same samajhte hain. **Privacy** user ka right hai data control karna, **Confidentiality** ek technical control hai jo unauthorized access block karta hai. Interview mein yeh galti mat karna!
+
+==**Exam Tip:** CIA ka C = Confidentiality, **na ki Central Intelligence Agency!** SC-900 mein yeh trick question aata hai.==
 
 ---
 
+### 2. 🛡️ The Three Principles of Zero Trust
 
-## Real-World Scenarios
+*Zero Trust purane **"Castle-and-Moat"** model ko replace karta hai (jahan corporate network ke andar sab trusted tha).*
 
-### Scenario 1: Auditing File Integrity Prior to Software Deployment
-**User Complaint:** A system engineer reports: *"I downloaded the new system patch installer 'patch.msi' from a vendor's mirror site. Before I deploy this to all 500 employee desktops, I need to verify that the file was not corrupted during transit or tampered with by a malicious third party."*
-**Your First 3 Checks:**
-1. Locate the official SHA-256 hash provided by the software vendor on their secure website.
-2. Calculate the cryptographic hash of the downloaded installer file.
-3. Compare the calculated hash against the vendor's published hash.
-**Diagnosis Steps:**
-1. Open the vendor's official release page. Copy the published SHA-256 hash string:
-   `D2E555C09F200A526E6F22BD02B1DE028E3A8EE65FFD2A87CE65A029FA9E3D8F`
-2. Open PowerShell on your computer. Run the file hash cmdlet:
-   `Get-FileHash -Path "C:\Temp\patch.msi" -Algorithm SHA256`
-   - Output: `Hash : D2E555C09F200A526E6F22BD02B1DE028E3A8EE65FFD2A87CE65A029FA9E3D8F`
-3. The calculated hash matches the vendor's hash character-for-character.
-4. *Decision*: The file has complete integrity. If the hash differed by even a single character, it would mean the file was altered, corrupted, or infected with malware, requiring deletion.
-**Root Cause:** Requirement to verify file integrity (Integrity pillar of CIA).
-**Fix:**
-1. Document the matching hash values in the deployment change ticket.
-2. Proceed with the software deployment using the verified installer.
-**Prevention:** Always calculate and document file hashes for all software packages added to the company's software center.
-**Ticket Close Note:** "Calculated SHA-256 file hash. Value matched vendor's published signature. Integrity verified. Proceeding with deployment. Closed."
+| 🛡️ Principle | 📋 Description | 🛠️ Real Example |
+|-------------|---------------|-----------------|
+| **Verify Explicitly** | Har access request pe authenticate + authorize karo based on all data points (identity, location, device health) | MFA prompt har sign-in pe, chahe office se ho ya ghar se |
+| **Use Least Privilege** | Sirf utna access do jitna kaam ke liye zaroori hai — JIT (Just-in-Time) + JEA (Just-Enough-Access) | Finance team ko sirf finance SharePoint access, HR portal nahi |
+| **Assume Breach** | Maan lo ki breach ho chuka hai — blast radius minimize karo, segment karo, encrypt karo | Network micro-segmentation + end-to-end encryption + analytics |
 
-### Scenario 2: Restoring Database Availability After a Ransomware Outage
-**User Complaint:** The sales department submits an urgent ticket: *"Our Customer Relations database server is showing an error: 'Connection Refused'. The main application is down. We cannot process any client orders today."*
-**Your First 3 Checks:**
-1. Verify if the database VM is running and accessible in the cloud.
-2. Check the integrity of the database file structures.
-3. Locate the latest recovery point in the Azure Backup Vault.
-**Diagnosis Steps:**
-1. SSH into the database host server.
-2. Inspect the database file directories. Note that all database files (e.g., `sales.db`) have been renamed to `sales.db.locked` and are unreadable.
-3. The server was compromised via a weak administrative credential, and a script encrypted the active database files, breaking **Integrity** and **Availability**.
-4. *Decision*: Do not attempt decryption. To restore **Availability** quickly, we must recover the database from a clean, offline backup snapshot taken prior to the compromise.
-**Root Cause:** A ransomware attack compromised database integrity, causing service unavailability.
-**Fix:**
-1. Format the infected virtual machine OS drive to remove malware.
-2. Navigate to the Recovery Services Vault. Select the database volume.
-3. Select the latest clean snapshot recovery point (from 8 hours ago).
-4. Run the restore task.
-5. Once restored, verify the database files are in a clean state, restart the database service, and confirm the sales application connects successfully.
-**Prevention:** Enforce Zero Trust principles: restrict access to the DB port using NSGs, require MFA for all admin accounts, and encrypt backups.
-**Ticket Close Note:** "Database restored from clean recovery point to resolve ransomware outage. Restored Availability. Enforced strict NSG rules on DB port. Closed."
+> [!danger] Common Mistake
+> Bahut log sochte hain ki **VPN lagaya toh Zero Trust ho gaya**. ❌ Zero Trust mein network location se trust nahi milta. Agar attacker tumhari home Wi-Fi compromise karke VPN se connect ho jaye, toh bhi internal network access ho jayega. **Device compliance + MFA har transaction pe zaroori hai!**
+
+==**Exam Tip:** SC-900 mein pucha jayega — "Which Zero Trust principle recommends JIT and JEA?" Answer: **Use Least Privilege Access**==
 
 ---
 
+### 3. 🏛️ The Six Pillars of Zero Trust Architecture
 
-## Critical Points
+*Zero Trust sirf identity tak limited nahi hai — yeh **6 critical domains** mein controls integrate karta hai:*
 
-> [!danger] Never Do This
-> - Never bypass identity verification checks when a user calls saying: *"I am locked out of my account and need my password reset immediately, I am about to walk into a client meeting."*
-> - Threat actors use high-pressure social engineering tactics to bypass verification checks. Resetting a password without verifying identity violates the **Verify Explicitly** principle of Zero Trust, leading to credential theft. Always call back on a verified number or use verified manager channels.
+| 🏛️ Pillar | 🛡️ Security Focus | 🛠️ Microsoft Tool |
+|-----------|-------------------|-------------------|
+| **1. Identities** | Strong MFA, risk policies, SSO se users verify karo | Microsoft Entra ID |
+| **2. Devices** | Device compliance audit karo before access dena | Microsoft Intune |
+| **3. Applications** | Shadow IT apps secure karo, runtime controls enforce karo | Defender for Cloud Apps |
+| **4. Data** | Documents classify, label, aur encrypt karo | Sensitivity Labels / DLP |
+| **5. Infrastructure** | Configuration drifts monitor karo, host servers isolate karo | Microsoft Defender for Cloud |
+| **6. Networks** | Micro-perimeters se segment karo | VNets, NSGs, Azure Firewall |
 
-> [!warning] Common Trap
-> - Assuming that a secure virtual network (VPN) is sufficient to protect resources under a Zero Trust model.
-> - Under Zero Trust, network location does not grant trust. An attacker who compromises a user's home Wi-Fi and connects via VPN can access the internal network. You must still verify device compliance and enforce MFA for every transaction.
-
-> [!tip] Senior Engineer Tip
-> - When implementing file integrity checking for automation scripts, compile your code and sign it with a corporate code-signing certificate. Configure execution policies on client computers to `AllSigned`, which prevents unsigned or modified scripts from running, blocking local file tampering.
-
-> [!success] Verification Steps
-> - Run `Get-FileHash` on software installers to verify file integrity.
-> - Verify that access to sensitive portals displays the Entra ID MFA prompt, confirming that explicit validation is active.
-
-> [!question] Interview Alert
-> - "Explain the three main principles of the Zero Trust security model."
-> - Answer: "The three principles are: 1. **Verify Explicitly**, which means always authenticate and authorize based on all available signals like identity, location, and device health. 2. **Use Least Privilege Access**, which limits access with JIT and JEA permissions. 3. **Assume Breach**, which limits the blast radius by segmenting networks, encrypting data, and monitoring sessions."
+==**Exam Tip:** SC-900 ke liye yeh 6 pillars yaad rakhna — **I-D-A-D-I-N** (Identities, Devices, Applications, Data, Infrastructure, Networks)==
 
 ---
 
+## 🛠️ Step-by-Step Lab
 
-## Common Mistakes & Fixes
+> [!warning] Pre-requisites
+> - Windows 11 workstation
+> - PowerShell access (Run as Administrator recommended)
+> - **Time Required:** 20 minutes
 
-| Mistake | Why It Happens | Correct Approach |
-|---------|----------------|------------------|
-| Trusting users because they connect from the office network | Relying on perimeter security | Enforce MFA and check device compliance regardless of network location. |
-| Skipping file hash validation for minor patches | Assuming vendor sites are secure | Always verify the SHA-256 hash of any executable downloaded from the web. |
-| Neglecting backup verification tests | Assuming backups are healthy | Run quarterly mock restores to verify the Availability of recovery files. |
+**🎯 Objective:** SHA-256 file hash calculate karo PowerShell mein, file modify karo, recalculate karke integrity failure verify karo.
 
----
+### Step 1: Test folder aur document create karo
 
-
-## Tags
-#desktop-support #security #zero-trust #cryptography #L1 #interview-topic #lab-complete #daily-use
-
----
-## Step-by-Step Lab
-**Objective:** Calculate SHA-256 file hashes in PowerShell, modify a file, recalculate to verify integrity failure, and inspect Zero Trust compliance status.
-**Time Required:** 20 minutes
-**Environment Needed:** A Windows 11 workstation.
-**Pre-requisites:** PowerShell access.
-
-**Steps:**
-1. Open PowerShell. Create a folder and a test document:
-   ```powershell
-   New-Item -Path "C:\Temp" -ItemType Directory -ErrorAction SilentlyContinue
-   Set-Content -Path "C:\Temp\contract.txt" -Value "This is the original contract text."
-   ```
-2. Calculate and store the original hash value:
-   ```powershell
-   $OriginalHash = (Get-FileHash -Path "C:\Temp\contract.txt" -Algorithm SHA256).Hash
-   Write-Host "Original Hash: $OriginalHash"
-   ```
-3. Simulate unauthorized file tampering (modify a single character):
-   ```powershell
-   Set-Content -Path "C:\Temp\contract.txt" -Value "This is the original contract text!"
-   ```
-4. Calculate the new hash value:
-   ```powershell
-   $NewHash = (Get-FileHash -Path "C:\Temp\contract.txt" -Algorithm SHA256).Hash
-   Write-Host "New Hash: $NewHash"
-   ```
-5. Verification: Compare the values in PowerShell:
-   ```powershell
-   if ($OriginalHash -ne $NewHash) {
-       Write-Host "INTEGRITY BREAK DETECTED: The file was modified!" -ForegroundColor Red
-   }
-   ```
-   - Confirm that the script detects the hash mismatch.
-
-**Success Criteria:** The script successfully calculates both hashes, identifies the mismatch caused by the single character change, and logs the integrity failure.
-**Common Failures:** The command fails if the path directory is locked or permissions block file edits.
-
----
-
----
-## Cheat Sheet / Quick Reference
-### PowerShell
-PowerShell includes built-in cmdlets to verify file integrity and audit security configurations.
 ```powershell
-# Calculate the SHA-256 cryptographic hash of a file to verify its integrity
-Get-FileHash -Path "C:\Downloads\update-agent.msi" -Algorithm SHA256
+# Step 1: Temp folder banao aur ek test file create karo
+New-Item -Path "C:\Temp" -ItemType Directory -ErrorAction SilentlyContinue
+Set-Content -Path "C:\Temp\contract.txt" -Value "This is the original contract text."
+```
 
-# Compare a calculated file hash against an expected vendor hash
+> [!success] Expected Output
+> ```
+> Directory: C:\
+> Mode                 LastWriteTime         Length Name
+> ----                 -------------         ------ ----
+> d-----         6/26/2026  2:30 PM                Temp
+> ```
+
+### Step 2: Original file ka hash calculate karo
+
+```powershell
+# Step 2: SHA-256 hash generate karo aur store karo
+$OriginalHash = (Get-FileHash -Path "C:\Temp\contract.txt" -Algorithm SHA256).Hash
+Write-Host "Original Hash: $OriginalHash" -ForegroundColor Cyan
+```
+
+> [!success] Expected Output
+> ```
+> Original Hash: 7E2B5F3A9C1D4E8F6B0A2D5C7E9F1B3D4A6C8E0F2D4B6A8C0E2F4D6B8A0C2E
+> ```
+
+### Step 3: File mein unauthorized tampering simulate karo
+
+```powershell
+# Step 3: Sirf ek character change karo (period -> exclamation mark)
+Set-Content -Path "C:\Temp\contract.txt" -Value "This is the original contract text!"
+```
+
+### Step 4: Naya hash calculate karo
+
+```powershell
+# Step 4: Modified file ka naya hash generate karo
+$NewHash = (Get-FileHash -Path "C:\Temp\contract.txt" -Algorithm SHA256).Hash
+Write-Host "New Hash: $NewHash" -ForegroundColor Yellow
+```
+
+### Step 5: Dono hashes compare karo
+
+```powershell
+# Step 5: Compare karo — agar match nahi karta toh INTEGRITY BREAK!
+if ($OriginalHash -ne $NewHash) {
+    Write-Host "⚠️ INTEGRITY BREAK DETECTED: The file was modified!" -ForegroundColor Red
+} else {
+    Write-Host "✅ File integrity intact." -ForegroundColor Green
+}
+```
+
+> [!success] Expected Output
+> ```
+> ⚠️ INTEGRITY BREAK DETECTED: The file was modified!
+> ```
+
+**✅ Success Criteria:** Script successfully dono hashes calculate kare, mismatch detect kare (sirf ek character change se), aur integrity failure log kare.
+
+> [!danger] Common Mistake
+> Agar `Get-FileHash` fail ho raha hai toh check karo — kya file path sahi hai? Kya folder permissions block kar rahe hain? `Test-Path "C:\Temp\contract.txt"` se verify karo pehle.
+
+---
+
+## ⌨️ Command Cheat Sheet
+
+### PowerShell
+
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `Get-FileHash` | File ka SHA-256 hash calculate karta hai (Integrity check) | `Get-FileHash -Path "C:\Downloads\patch.msi" -Algorithm SHA256` |
+| `Get-BitLockerVolume` | BitLocker encryption status dikhata hai (Confidentiality check) | `Get-BitLockerVolume -MountPoint "C:"` |
+| `Get-MgUser` | Entra ID user details pull karta hai (Identity verification) | `Get-MgUser -UserId "user@domain.com"` |
+| `Test-NetConnection` | Network availability test karta hai (Availability check) | `Test-NetConnection -ComputerName "server01" -Port 443` |
+| `Get-ExecutionPolicy` | Script execution policy check karta hai (Integrity control) | `Get-ExecutionPolicy -List` |
+
+```powershell
+# File hash calculate karo aur vendor hash se compare karo
 $Hash = (Get-FileHash -Path "C:\Downloads\update-agent.msi" -Algorithm SHA256).Hash
 $ExpectedHash = "A567BCE902F1C34A999DB88F45D10E34F5C02D1E2A34F5678BCEF90D1C2A34B2"
 if ($Hash -eq $ExpectedHash) {
-    Write-Host "Integrity Verified: The file has not been modified." -ForegroundColor Green
+    Write-Host "✅ Integrity Verified: File has not been modified." -ForegroundColor Green
 } else {
-    Write-Warning "INTEGRITY FAILURE: The file has been modified or corrupted!"
+    Write-Warning "⚠️ INTEGRITY FAILURE: File has been modified or corrupted!"
 }
+```
 
-# Verify BitLocker volume encryption status (Confidentiality control)
+```powershell
+# BitLocker volume encryption status check karo
 Get-BitLockerVolume -MountPoint "C:"
 ```
 
 ### CMD / Run Box
+
 ```cmd
-:: Check local network availability routing to DNS servers
+:: Network availability check — DNS server reachable hai ya nahi
 ping 8.8.8.8
 
-:: Verify certificate path verification for web endpoints
+:: Certificate verification — corporate root certificate valid hai ya nahi
 certutil -verify C:\Temp\corporate_root.cer
 ```
 
 ### GUI Path
-- **Security Portal**: Go to **security.microsoft.com** -> **Microsoft Secure Score** to audit Zero Trust compliance metrics.
-- **Entra Center**: Go to **entra.microsoft.com** -> **Identity** -> **Users** -> **Sign-in logs** to verify explicit authentication signals.
+
+| 🖥️ Tool | 🔗 Path | 🛠️ Kya karta hai |
+|---------|--------|-----------------|
+| **Security Portal** | `security.microsoft.com` → **Microsoft Secure Score** | Zero Trust compliance metrics audit karo |
+| **Entra Center** | `entra.microsoft.com` → **Identity** → **Users** → **Sign-in logs** | Explicit authentication signals verify karo |
+| **Intune Portal** | `intune.microsoft.com` → **Devices** → **Compliance** | Device compliance status check karo |
 
 ---
 
-> [!info] 60-Second Summary
-> **What**: The core security structures: CIA Triad (Confidentiality, Integrity, Availability) and the Zero Trust model (Verify explicitly, Least privilege, Assume breach).
-> **Why**: Foundation of all IT security; prevents data leaks, system compromises, and credential theft.
-> **How**: Enforce encryption (Confidentiality), use hashing (Integrity), configure backups (Availability), and require MFA + compliance (Zero Trust).
-> **Command**: `Get-FileHash` / `Get-BitLockerVolume`
-> **Interview Answer Starter**: "To implement secure IT operations, I align all controls with the CIA Triad—using encryption for confidentiality, SHA-256 hashing for integrity, and backups for availability—under a Zero Trust model..."
+## 🚑 Troubleshooting Guide
 
-**Key Numbers to Remember:**
-- Zero Trust principles: `3` (Verify, Least Privilege, Assume Breach)
-- Zero Trust architecture pillars: `6`
-- Default hash algorithm for file checks: SHA-256
-- Port required for secure web verification: TCP 443 (HTTPS)
-
-**3 Things Interviewer Wants to Hear:**
-- Trust is never granted based on network location under Zero Trust
-- Using file hashing (SHA-256) to verify software integrity before installation
-- How the CIA Triad pillars balance security and usability
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix | ⌨️ Command |
+|-----------|----------------|-------|-----------|
+| `Get-FileHash` error: "File not found" | File path galat hai ya file exist nahi karti | `Test-Path` se pehle verify karo ki file exist karti hai | `Test-Path "C:\Temp\file.msi"` |
+| BitLocker status "Protection Off" | TPM chip disabled hai ya Group Policy ne enforce nahi kiya | BIOS mein TPM enable karo, phir BitLocker re-enable karo | `Enable-BitLocker -MountPoint "C:" -RecoveryPasswordProtector` |
+| MFA prompt nahi aa raha sign-in pe | Conditional Access policy mein user excluded hai ya legacy auth use ho raha hai | Entra ID mein CA policy check karo, legacy auth block karo | Entra Portal → CA Policies → Check assignments |
+| Service connection timeout | Firewall ya routing traffic block kar raha hai | Network route check karo, target ports firewall pe enable karo | `Test-NetConnection -ComputerName <ip> -Port <port>` |
+| Access Denied error on file/resource | User account ke paas permissions nahi hain ya invalid credentials hain | Account access permissions verify karo ya password reset karo | `Get-Acl "C:\Path\To\Resource"` |
+| Resource/path not found error | Object path misspelled hai ya resource delete ho chuka hai | Target path spelling verify karo aur active objects query karo | `Test-Path "C:\Path\To\Resource"` |
+| Hash mismatch but file looks same | File encoding change ho gayi (UTF-8 vs UTF-16) ya invisible characters add hue | File encoding explicitly set karo while saving | `Get-Content file.txt \| Format-Hex` |
 
 ---
 
----
-## Troubleshooting
-| Problem | Cause | Fix | Command |
-|---|---|---|---|
-| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
-| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
-| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+## 🎫 Real-World Ticket Scenarios
 
----
-## Interview Questions
-### Basic (L1 Level)
-**Q: What does the CIA Triad stand for in IT security?**
-A: The CIA Triad stands for Confidentiality (ensuring only authorized users can see data), Integrity (ensuring data is accurate and not altered), and Availability (guaranteeing users can access data when needed).
+### 🎫 Scenario 1: File Integrity Verification Before Software Deployment
 
-**Q: Why does the helpdesk call users back on their registered phone number before resetting their password?**
-A: This is done to enforce the "Verify Explicitly" security principle. It prevents attackers from calling in, pretending to be an employee, and stealing credentials using social engineering.
+> [!example] Ticket
+> "I downloaded the new system patch installer 'patch.msi' from a vendor's mirror site. Before I deploy this to all 500 employee desktops, I need to verify that the file was not corrupted during transit or tampered with by a malicious third party."
 
-### Intermediate (L2 Level)
-**Q: How does a cryptographic hash (like SHA-256) help ensure data integrity?**
-A: A cryptographic hash algorithm takes a file and runs it through an algorithm to generate a unique, fixed-length string of characters. If even a single bit or character inside the file changes, the resulting hash will change. By comparing the calculated hash of a file to the vendor's published hash, we verify the file has not been altered or corrupted.
+**L1 Response:**
+1. Vendor ki official release page se **published SHA-256 hash** locate karo
+2. PowerShell mein downloaded file ka hash calculate karo:
+   ```powershell
+   Get-FileHash -Path "C:\Temp\patch.msi" -Algorithm SHA256
+   ```
+3. Dono hashes **character-by-character compare** karo
 
-**Q: How does the Zero Trust model differ from the legacy Castle-and-Moat network model?**
-A: The legacy Castle-and-Moat model assumed that once a user connected to the internal corporate network (inside the moat), they were trusted and had broad access. The Zero Trust model assumes that no user or device is trusted by default, regardless of their network location. Every sign-in and access request must be explicitly verified, authorized, and checked for security compliance.
+**Escalation Trigger:** Agar hash mismatch ho toh file delete karo aur **immediately L2 ko escalate** karo — possible supply chain attack ho sakta hai.
 
-### Advanced (L3/Senior Level)
-**Q: You are designing a Zero Trust authentication flow for remote finance employees accessing a SQL database hosted in Azure. Describe the security controls you would implement.**
-A:
-- **Situation**: Designing a secure access flow for finance remote workers under Zero Trust.
-- **Task**: Configure authentication, device, and network controls to secure access.
-- **Action**: First, under the Identity pillar, I enforce modern authentication requiring Microsoft Authenticator MFA with Number Matching. Under the Device pillar, I configure a Conditional Access policy requiring that the user's laptop is enrolled in Intune and marked as "Compliant". Under the Network pillar, I restrict access to the SQL database using an NSG that only allows traffic from our Azure Virtual Desktop subnet. Finally, under the Data pillar, I classify SQL logs using Sensitivity Labels.
-- **Result**: The finance data is secured end-to-end, and only verified users on compliant corporate devices can access the database.
+**L2 Resolution:**
+1. Vendor se direct download link leke fresh file download karo
+2. Hash re-verify karo → match confirm hone pe deployment ticket mein document karo
+3. Software Center mein verified installer upload karo
 
-### HR / Behavioral
-**Q: Tell me about a time you had to handle a situation where business convenience clashed with security compliance. How did you resolve it?**
-A: A director wanted to bypass MFA for their team because they claimed it was slowing down their client work. Instead of simply citing the security policy, I sat down with the director. I showed them statistics on recent credential stuffing attacks in our sector. I then helped them configure the Authenticator app, setting up passwordless phone sign-in and number matching, which made logins fast. This maintained our security baseline while addressing their efficiency concerns.
+**Ticket Close Note:** *"Calculated SHA-256 file hash. Value matched vendor's published signature. Integrity verified. Proceeding with deployment. Closed."*
 
 ---
 
----
-## Seedha Simple Mein
-*Seedha simple mein: CIA-Triad-and-Zero-Trust ke bare mein seekhta hai. Yeh security infrastructure aur system settings ko properly implement karne aur support tickets ko runbooks ke help se standard templates me clear karne me help karta hai.*
+### 🎫 Scenario 2: Ransomware Outage — Database Availability Restore
+
+> [!example] Ticket
+> "Our Customer Relations database server is showing an error: 'Connection Refused'. The main application is down. We cannot process any client orders today." — Sales Department (URGENT P1)
+
+**L1 Response:**
+1. Database VM ka status check karo cloud portal pe — running hai ya nahi
+2. Basic connectivity test karo: `Test-NetConnection -ComputerName "db-server01" -Port 1433`
+3. Agar VM down hai ya unreachable hai toh **immediately L2 escalate** karo
+
+**Escalation Trigger:** VM reachable hai lekin DB files encrypted/renamed hain (`.db.locked` extension) → **Security incident** — L2/L3 + Security team involve karo
+
+**L2 Resolution:**
+1. Infected VM ka OS drive format karo — malware remove karo
+2. **Recovery Services Vault** mein navigate karo → database volume select karo
+3. Latest clean snapshot recovery point select karo (pre-compromise)
+4. Restore task run karo → DB files clean state mein verify karo
+5. Database service restart karo → sales application connection confirm karo
+6. **Root Cause:** Weak admin credential se server compromise hua — Integrity + Availability break
+
+**Prevention:** Zero Trust enforce karo — DB port pe NSG restrict karo, admin accounts pe MFA mandatory karo, backups encrypt karo
+
+**Ticket Close Note:** *"Database restored from clean recovery point to resolve ransomware outage. Restored Availability. Enforced strict NSG rules on DB port. Security incident report filed. Closed."*
 
 ---
-## Related Notes
-- [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional Access]] — The primary policy engine enforcing Zero Trust rules.
-- [[04-Cloud-and-Security/09-Security/Access-Management|Access Management]] — Focuses on the Least Privilege principle.
-- [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA and Identity Protection]] — Details Identity verification controls.
+
+### 🎫 Scenario 3: Social Engineering Attack — Unauthorized Password Reset Attempt
+
+> [!example] Ticket
+> Phone call: "Hi, I am Rahul from Finance. I'm locked out of my account and about to walk into a board meeting in 5 minutes. Please reset my password right now — my manager approved it verbally."
+
+**L1 Response:**
+1. ❌ **KABHI BHI pressure mein password reset mat karo!**
+2. Caller se registered employee ID aur manager ka name pucho
+3. Verified phone number pe **callback karo** — direct number se nahi, registered HR directory number se
+4. Agar caller refuse kare ya details na de sake toh **social engineering attempt** flag karo
+
+**Escalation Trigger:** Caller verification fail ho jaye ya suspicious behaviour dikhaye toh **Security team ko immediately escalate** karo
+
+**L2 Resolution:**
+1. Security team alert — possible social engineering attack log karo
+2. Target user account pe **temporary sign-in block** lagao as precaution
+3. Real employee se contact karo verified channels pe — actual situation confirm karo
+4. Agar legitimate request hai toh verified identity ke baad password reset karo with MFA re-registration
+
+**Ticket Close Note:** *"Received suspicious password reset call. Followed Verify Explicitly protocol. Caller could not verify identity. Security incident logged. No password was reset. Closed."*
+
+==**Exam Tip:** SC-900 mein "Verify Explicitly" ka real-world example puchte hain — yeh scenario yaad rakhna!==
+
+---
+
+## 🎤 Interview Questions
+
+> [!question] Q1: What does the CIA Triad stand for in IT security?
+> **Answer:** CIA Triad stands for **Confidentiality** (ensuring only authorized users can see data), **Integrity** (ensuring data is accurate and not altered), aur **Availability** (guaranteeing users can access data when needed). Yeh IT security ka fundamental framework hai.
+
+> [!question] Q2: Explain the three main principles of the Zero Trust security model.
+> **Answer:** Teen principles hain: 1. **Verify Explicitly** — always authenticate and authorize based on all available signals like identity, location, aur device health. 2. **Use Least Privilege Access** — JIT aur JEA permissions se access limit karo. 3. **Assume Breach** — blast radius limit karo by segmenting networks, encrypting data, aur monitoring sessions.
+
+> [!question] Q3: How does a cryptographic hash (like SHA-256) help ensure data integrity?
+> **Answer:** Cryptographic hash algorithm ek file ko process karke unique, fixed-length string generate karta hai. Agar file mein **ek bit bhi change** ho, toh hash completely change ho jata hai. Calculated hash ko vendor ke published hash se compare karke verify karte hain ki file alter ya corrupt nahi hui. ==**Exam Tip:** SHA-256 produces a **256-bit hash** — yeh number yaad rakhna!==
+
+> [!question] Q4: How does Zero Trust differ from the legacy Castle-and-Moat model?
+> **Answer:** Castle-and-Moat model assume karta tha ki once a user is **inside the corporate network** (inside the moat), they are trusted with broad access. Zero Trust **kisi ko bhi by default trust nahi karta**, chahe network location koi bhi ho. Har sign-in aur access request explicitly verified, authorized, aur security compliance checked honi chahiye.
+
+> [!question] Q5: Why does the helpdesk call users back on their registered phone number before resetting passwords?
+> **Answer:** Yeh **"Verify Explicitly"** principle enforce karta hai. Attackers phone call karke employee ban sakte hain aur social engineering se credentials steal kar sakte hain. Registered phone number pe callback karke hum ensure karte hain ki request legitimate hai.
+
+> [!question] Q6: You are designing a Zero Trust authentication flow for remote finance employees accessing a SQL database in Azure. Describe your approach.
+> **Answer (STAR Format):**
+> - **Situation:** Designing secure access flow for remote finance workers under Zero Trust
+> - **Task:** Configure authentication, device, aur network controls
+> - **Action:** **Identity pillar** — Microsoft Authenticator MFA with Number Matching enforce karo. **Device pillar** — Conditional Access policy se Intune-enrolled "Compliant" device require karo. **Network pillar** — NSG se SQL database access sirf Azure Virtual Desktop subnet se allow karo. **Data pillar** — SQL logs pe Sensitivity Labels se classification karo.
+> - **Result:** Finance data end-to-end secured, sirf verified users on compliant corporate devices database access kar sakte hain.
+
+> [!question] Q7 (Behavioral): Tell me about a time when business convenience clashed with security compliance.
+> **Answer:** Ek director ne apni team ke liye MFA bypass karna chahta tha kyunki "client work slow ho raha hai." Maine directly security policy cite karne ki jagah, unke saath baithke recent credential stuffing attacks ke statistics dikhaye. Phir Maine unhe **Authenticator app configure karke passwordless phone sign-in + number matching** setup kiya, jisse logins fast ho gaye. Security baseline maintain raha aur efficiency concern bhi address hua.
+
+==**Exam Tip:** Interview mein STAR format (Situation-Task-Action-Result) use karo — senior roles ke liye yeh mandatory hai!==
+
+---
+
+## 🔢 Key Numbers to Remember
+
+| 🔢 Number | 📋 Kya hai |
+|-----------|-----------|
+| **3** | Zero Trust principles (Verify, Least Privilege, Assume Breach) |
+| **6** | Zero Trust architecture pillars (I-D-A-D-I-N) |
+| **256** | SHA-256 hash output bits |
+| **443** | HTTPS port — secure web verification ke liye required |
+| **3** | CIA Triad pillars (Confidentiality, Integrity, Availability) |
+
+---
+
+## 🔗 Related Notes
+
+- [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional Access]] — Zero Trust rules enforce karne ka primary policy engine
+- [[04-Cloud-and-Security/09-Security/Access-Management|Access Management]] — Least Privilege principle pe focus karta hai
+- [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA and Identity Protection]] — Identity verification controls detail mein
 
 ---

@@ -7,182 +7,149 @@ difficulty: #intermediate
 cert-relevant: #az-104
 ---
 
+> [!NOTE|color-blue]
+> ☁️ **AZURE CLOUD**
+
+`#complete` `#intermediate` `#az-104`
+
 # AZ104-08: Azure Container Instances (ACI)
 
-> [!note] Overview
-> This note covers Microsoft Azure Container Instances (ACI), a serverless container hosting solution. It details ACI architecture, Container Groups configuration, private registry (ACR) integration, persistent storage mounting, and CLI diagnostics.
+> [!abstract] Overview
+> Yeh note Azure Container Instances (ACI) ke baare mein hai jo ek serverless container hosting solution hai. Isme architecture, Container Groups, private registry (ACR) integration, aur persistent storage (Azure Files) mounting cover kiya gaya hai. Isse fast, VM-less execution milta hai.
 
 ---
-## Concept Overview
-- **What it is** — Azure Container Instances (ACI) is a serverless compute service that enables you to deploy and run Docker containers in Azure without provisioning or managing virtual machines, operating system patches, or container orchestrators (like Kubernetes).
-- **Why it matters** — Building a full Virtual Machine just to execute a simple script, host a basic test server, or run a batch task is slow and expensive. ACI boots up containers in seconds, and billing is calculated based on the exact vCPU and memory resources consumed per second.
-- **Real job encounter** — Hosting isolated test web applications, executing short-lived python automation scripts, running background ETL processing jobs, and deploying container workloads.
-- **L1 vs L2 vs L3 responsibility split:**
-  - **L1 Resolution**: View active container statuses, check CPU/RAM usage charts, and retrieve container stdout logs (`az container logs`) for diagnostic reports.
-  - **Escalation Trigger**: Escalate if containers fail to boot due to registry access credentials, or if the container crashes repeatedly (Image Pull Errors or Application Crashes).
-  - **L2 Resolution**: Create and delete container instances using Azure CLI/Portal, configure environment variables, assign public DNS labels, and mount Azure File Shares.
-  - **L3 Resolution**: Deploy container instances within Azure Virtual Networks (private IPs), configure Azure Managed Identities for secure resource connections, and author automated ARM/Bicep templates for container groups.
+## 🧠 Concept Overview
+
+- **What it is** — ACI ek serverless compute service hai jahan aap bina Virtual Machine ya orchestrator (like Kubernetes) manage kiye Docker containers run kar sakte hain.
+- **Why it matters** — Sirf ek chota script ya test app chalane ke liye puri VM banana expensive aur slow hota hai. ACI seconds mein start hota hai aur per-second billing karta hai.
+- **Where you see this** — Short-lived automation scripts chalane mein, test web apps host karne mein, ya background processing (ETL jobs) run karne mein.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Container status dekhna, CPU/RAM charts monitor karna, aur logs check karna (`az container logs`). |
+| **L2** | Container instances create/delete karna, environment variables set karna, aur Azure File shares mount karna. |
+| **L3** | VNet integration (private IPs) setup karna, Managed Identities configure karna aur ARM/Bicep templates likhna. |
+
+> [!tip] Seedha Simple Mein
+> *ACI me aap direct apne Docker code ko cloud me run kar sakte ho, bina OS update aur server ka tension liye. Jitni der container chalega, utne hi paise lagenge.*
 
 ---
-## Technical Deep Dive
+## 💡 Real-World Analogy
+
+> [!info] Think of it like this...
+> **Azure Container Instances** is like renting a **Fully Equipped Meeting Room** by the minute because...
+>
+> - You don't buy or maintain the building (No VMs to manage).
+> - You bring your own briefcase of tools (Docker Image).
+> - You step in, do your work instantly, and leave, paying only for the exact minutes used (Serverless Billing).
+
+---
+## 🔬 Technical Deep Dive
 
 ### 1. ACI Serverless Architecture
-ACI runs on a serverless compute model:
-- **No VM Overhead**: Microsoft manages the host physical servers and hypervisors. You only define the container parameters (CPU, RAM, Image).
-- **Fast Provisioning**: Since there is no OS boot cycle, containers start running within seconds, pulling images from registries directly.
-- **Hypervisor-Level Security**: Every container group is isolated in its own virtualized sandbox, preventing resource leaking or cross-tenant interference.
+
+> [!info] Key Concept
+> No VM overhead. Microsoft manages the hypervisor. You just define CPU/RAM and Image. Hypervisor-level security isolates each container.
 
 ### 2. Container Groups
-A **Container Group** is ACI's basic scheduling unit (equivalent to a Pod in Kubernetes).
-- It is a collection of one or more containers hosted on the same physical host.
-- Containers inside a group share a lifecycle, local network settings (including sharing `localhost` and ports), and storage volumes.
-- Commonly used for **Sidecar patterns** (e.g., one container hosting a web app, and a secondary sidecar container downloading updated logs).
 
-```
-+-----------------------------------------------------------+
-|                      Container Group                      |
-|  (Shared Local Network, Lifecycle, and Storage Volumes)   |
-+-----------------------------------------------------------+
-       |                                             |
-       v                                             v
-+-------------------------------+             +-------------------------------+
-|     Primary Web Container     |             |    Helper Logging Container   |
-|         (Port 80)             |             |     (Reads Local Logs)        |
-+-------------------------------+             +-------------------------------+
-       \                                             /
-        \                                           /
-         v                                         v
-   +----------------------------------------------------+
-   |               Mounted Azure File Share             |
-   |              (Persistent Storage Path)             |
-   +----------------------------------------------------+
-```
+- Equivalent to a Pod in Kubernetes. A collection of containers on the same physical host.
+- They share the same lifecycle, local network (`localhost`), and storage volumes.
+- Used for **Sidecar patterns** (e.g. primary web app container + helper logging container).
 
 ### 3. Azure Container Registry (ACR) Integration
-While ACI can pull public images from Docker Hub, production environments pull from a secure **Azure Container Registry (ACR)**. ACI authenticates to ACR using:
-- **Admin User Credentials**: Simple username/password generated by ACR (best for simple testing).
-- **Service Principal / Managed Identity**: Secure token authentication (best for production).
+
+- Best practice is pulling images from private ACR using Admin Credentials (for testing) or Managed Identity / Service Principal (for production).
 
 ### 4. Storage Persistence
-Data inside a container's local directory is ephemeral and is deleted when the container restarts. To persist files:
-- ACI supports mounting an **Azure File Share** (SMB protocol) directly as a directory path inside the container.
-- Multiple containers in a group can read and write to the same file share simultaneously.
+
+- Container storage is ephemeral (data lost on restart).
+- Persistent storage is achieved by mounting an **Azure File Share** (SMB) directly as a directory path inside the container.
 
 ---
-## Step-by-Step Lab
+## 🛠️ Step-by-Step Lab
 
 > [!warning] Pre-requisites
-> - An active Azure Subscription.
-> - Azure CLI installed locally or access to the Azure Cloud Shell.
-> - Basic understanding of Docker image tagging.
+> - Active Azure Subscription and Azure CLI.
 
-### Step 1: Create a Resource Group
-1. Open your terminal (or Cloud Shell) and create a resource group in the `eastus` region:
+### Step 1: Deploy a Public-Facing Container Instance
+
 ```bash
 az group create --name RG-Containers-Lab --location eastus
-```
-**Expected Output:** `provisioningState: Succeeded`
 
-### Step 2: Deploy a Public-Facing Container Instance
-We will launch a pre-built Microsoft hello-world web container.
-
-1. Deploy the container with a public DNS label:
-```bash
 az container create --resource-group RG-Containers-Lab --name hello-aci --image mcr.microsoft.com/azuredocs/aci-helloworld --dns-name-label aci-demo-ashwani --ports 80 --cpu 1 --memory 1.5
 ```
-*Note: Make sure `dns-name-label` is globally unique. Replace `aci-demo-ashwani` with your custom prefix.*
+*Wait for provisioning to succeed.*
 
-**Expected Output:** Provisioning details showing state `Succeeded` and a public IP.
+### Step 2: Query the FQDN and Test
 
-2. Query the Fully Qualified Domain Name (FQDN):
 ```bash
 az container show --resource-group RG-Containers-Lab --name hello-aci --query ipAddress.fqdn --output tsv
 ```
-**Expected Output:** `aci-demo-ashwani.eastus.azurecontainer.io`
+> [!success] Expected Output
+> `aci-demo-ashwani.eastus.azurecontainer.io`. Open in browser to see the hello-world page.
 
-3. Test connection: Open a web browser and go to `http://aci-demo-ashwani.eastus.azurecontainer.io`. Verify the hello-world HTML page loads.
+### Step 3: Mount a Persistent Azure File Share
 
-### Step 3: Mount a Persistent Azure File Share inside a Container
-1. Create a storage account:
+1. Create a storage account and file share.
 ```bash
-az storage account create --resource-group RG-Containers-Lab --name storaci2026 --location eastus --sku Standard_LRS
-```
-2. Retrieve the storage account key:
-```bash
-export AZ_KEY=$(az storage account keys list --resource-group RG-Containers-Lab --account-name storaci2026 --query "[0].value" --output tsv)
-```
-3. Create the file share:
-```bash
+az storage account create -g RG-Containers-Lab -n storaci2026 -l eastus --sku Standard_LRS
+export AZ_KEY=$(az storage account keys list -g RG-Containers-Lab -n storaci2026 --query "[0].value" -o tsv)
 az storage share create --name acishare --account-name storaci2026 --account-key $AZ_KEY
 ```
-4. Deploy a container that mounts this share to `/mnt/storage` and appends a file:
+2. Deploy a container that mounts this share to `/mnt/storage`.
 ```bash
-az container create --resource-group RG-Containers-Lab --name data-writer --image alpine --command-line "sh -c 'echo Data Saved at $(date) > /mnt/storage/log.txt'" --azure-file-volume-share-name acishare --azure-file-volume-account-name storaci2026 --azure-file-volume-account-key $AZ_KEY --azure-file-volume-mount-path /mnt/storage
+az container create -g RG-Containers-Lab -n data-writer --image alpine --command-line "sh -c 'echo Data Saved at $(date) > /mnt/storage/log.txt'" --azure-file-volume-share-name acishare --azure-file-volume-account-name storaci2026 --azure-file-volume-account-key $AZ_KEY --azure-file-volume-mount-path /mnt/storage
 ```
-5. Verify content: Check your storage account file share in the portal, or mount it locally. The file `log.txt` exists and contains the date string.
-
-### Step 4: Clean Up Resources
-```bash
-az group delete --name RG-Containers-Lab --yes --no-wait
-```
+Check the Azure File Share in the portal to see `log.txt`.
 
 ---
-## Cheat Sheet / Quick Reference
+## ⌨️ Command Cheat Sheet
 
-| Command / Option | Purpose | Example |
-|---|---|---|
-| `az container create` | Provisions a new container group instance | `az container create -g RG -n Web --image nginx` |
-| `az container list` | Lists all container instances in the subscription | `az container list --output table` |
-| `az container show` | Displays configuration details of a specific container | `az container show -g RG -n Web` |
-| `az container delete` | Deletes a container instance | `az container delete -g RG -n Web` |
-| `az container logs` | Fetches system stdout logs from a running container | `az container logs -g RG -n Web` |
-| `az container attach` | Attaches local terminal stdin/stdout to container | `az container attach -g RG -n Web` |
-| `az container exec` | Executes an interactive shell command inside container | `az container exec -g RG -n Web --exec-command "/bin/sh"` |
-| `--restart-policy` | Defines restart actions (`Always`, `OnFailure`, `Never`) | `--restart-policy OnFailure` |
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `az container create` | Provisions a new container group | `az container create -g RG -n Web --image nginx` |
+| `az container list` | Lists all containers | `az container list -o table` |
+| `az container logs` | Fetches stdout logs from a container | `az container logs -g RG -n Web` |
+| `az container exec` | Runs interactive shell inside container | `az container exec -g RG -n Web --exec-command "/bin/sh"` |
 
 ---
-## Troubleshooting Table
+## 🚑 Troubleshooting Guide
 
-| Problem | Cause | Fix |
-|---|---|---|
-| Container fails to start with error: `ImagePullBackOff` or `ErrImagePull`. | The image name contains spelling errors, or ACI is unauthorized to access the private registry. | Verify the image tag spelling. In the command, add registry credentials: `--registry-login-server <Server> --registry-username <User> --registry-password <Pass>`. |
-| Container starts and immediately stops, showing state `Terminated` or `Exited`. | The application inside has completed its run, or encountered a crash loop. | Check container logs: `az container logs --name <Name> --resource-group <RG>`. Ensure the Docker image is built with a running foreground process. |
-| Cannot mount Azure File Share, logs show: "Mounting volume failed." | Storage account key is incorrect, or port TCP 445 (SMB) is blocked by a network security group. | Re-verify the storage account key. Ensure the storage firewall permits access from the container's subnet (if using virtual network integration). |
-| Out of Memory (OOM) errors inside container. | The allocated memory threshold is too low for the application workload. | Redeploy the container and increase resource parameters (e.g. `--cpu 2 --memory 4`). |
-| Private IP address is missing, container only has a public IP. | ACI was not configured with virtual network integration on startup. | Private IPs cannot be added to existing container groups. Recreate the container and specify: `--vnet <VNet_Name> --subnet <Subnet_Name>`. |
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| Container fails with `ImagePullBackOff` | Spelling error or ACR unauthorized | Check image tag and provide `--registry-login-server`, username, and password. |
+| Container shows `Terminated` instantly | Process finished or crashed | Check `az container logs`. Ensure Docker image has a long-running foreground process. |
+| Cannot mount Azure File Share | Key incorrect or SMB blocked | Verify storage key and ensure firewall/NSG allows port 445 (SMB) traffic. |
 
 ---
-## Interview Questions
+## 🎫 Real-World Ticket Scenarios
 
-> [!question] L1 Question
-> **Q:** How do you view the output logs of a running container in Azure Container Instances using the Azure CLI?
-> **A:** I can use the command: **`az container logs --resource-group <RG_Name> --name <Container_Name>`**. This dumps the standard output (stdout) and standard error (stderr) logs from the container to my terminal console.
+### 🎫 Scenario 1: ACI App Crashing on Startup
 
-> [!question] L2 Question
-> **Q:** What is a Container Group in ACI, and what resources do the containers inside it share?
-> **A:** A Container Group is the primary scheduling unit in ACI. It is a collection of containers that are scheduled and run on the same physical host. Containers inside a group share the same lifecycle, local network configuration (they share the same IP and can communicate using `localhost`), and storage volume mounts.
+> [!example] Ticket
+> "My containerized python script is failing to start up in ACI. It says Terminated."
 
-> [!question] L3/Scenario Question
-> **Q:** You need to deploy an Azure Container Instance that securely queries database connection strings. How do you store and retrieve the database credentials without hardcoding them in the image or environment parameters?
-> **A:** 
-> - **Situation:** Securing database credentials for an ACI application.
-> - **Task:** Store and retrieve secrets securely without exposing them in code.
-> - **Action:** 
->   1. **Use Key Vault**: I will store the database connection string as a secret inside **Azure Key Vault**.
->   2. **Enable Managed Identity**: When creating the Container Instance, I will enable a **System-Assigned Managed Identity** for the container group using CLI: `--assign-identity`.
->   3. **Assign Access Policy**: Go to Azure Key Vault and create an Access Policy granting the container's Managed Identity permission to read secrets.
->   4. **Application Retrieval**: The application inside the container will use the Azure Identity SDK to authenticate with Azure automatically using the local identity endpoint and retrieve the connection string from Key Vault during startup.
-> - **Result:** The credentials are never written to source code, logs, or command-line parameters, ensuring secure access.
+**L1 Response:** Use portal or CLI to check the container state and run `az container logs`.
+**Escalation Trigger:** If logs show out-of-memory or complex code errors.
+**L2 Resolution:** Read logs. If it's a memory issue, redeploy with higher memory limit (`--memory 4`). If it's a code issue, inform the developer of the exact traceback found in the stdout.
 
 ---
-## Seedha Simple Mein
-*Seedha simple mein: Azure Container Instances (ACI) ke zariye hum cloud me bina kisi server/VM ko banaye direct Docker containers ko run kar sakte hain. Yeh tab use hota hai jab hume koi simple script ya application chalani ho. Isme resource utilization ke according per-second billing hoti hai aur data store karne ke liye Azure File Share mount kiya jata hai.*
+## 🎤 Interview Questions
+
+> [!question] Q1: How do you view the output logs of a running container in ACI?
+> **Answer:** Run `az container logs --resource-group <RG> --name <Container>` to view stdout/stderr.
+
+> [!question] Q2: What resources do containers inside a Container Group share?
+> **Answer:** They share the same physical host, lifecycle, local network (`localhost`), and storage volume mounts.
+
+==**Exam Tip:** To use a Private IP, ACI must be deployed into an Azure Virtual Network (VNet) using `--vnet` and `--subnet`. This cannot be added after creation.==
 
 ---
-## Related Notes
+## 🔗 Related Notes
+
 - [[02-Operating-Systems/04-Linux-RHEL/L-19 Docker Basics for Linux Admins|L-19 Docker Basics for Linux Admins]] — General Docker container fundamentals.
 - [[04-Cloud-and-Security/08-Azure/AZ104-02 Azure Storage Administration|AZ104-02 Azure Storage Administration]] — Formatting Azure File Shares for mounts.
 - [[04-Cloud-and-Security/08-Azure/AZ104-04 Azure Virtual Networking|AZ104-04 Azure Virtual Networking]] — Integrating containers inside virtual subnets.
-
----
-*Tags: #desktop-support #azure #containers #aci #L2 #cert-az-104*

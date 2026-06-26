@@ -1,204 +1,293 @@
 ---
-tags: [desktop-support, linux, rhel, L2]
-aliases: [l-14-linux-security-hardening, l-14]
+tags: [linux, rhel, security, hardening, selinux, ssh, fail2ban, L2]
+aliases: [l-14-linux-security-hardening, l-14, linux-hardening]
 created: 2026-06-25
 status: #complete
 difficulty: #intermediate
 cert-relevant: #rhcsa
 ---
 
-# L-14 Linux Security Hardening
+> [!NOTE|color-green]
+> 🐧 **LINUX / RHEL**
+
+`#complete` `#intermediate` `#rhcsa`
+
+# L-14: Linux Security Hardening
 
 > [!abstract] Overview
-> This note covers the fundamentals of securing and hardening a Red Hat Enterprise Linux (RHEL) system. We will explore SELinux states, sudoers privilege management, auditing with auditd, intrusion prevention with fail2ban, SSH configuration hardening, file permissions with umask, and kernel parameter tuning via sysctl.
+> Yeh note Linux server ko surakshit (secure) banana sikhata hai — SELinux, sudoers, SSH hardening, fail2ban, auditd, umask, aur sysctl kernel tuning. Ek support engineer ke liye yeh sabse critical topic hai kyunki *ek misconfigured server = hackers ka khula darwaza*. Yahan sab kuch hai jo tujhe production server lock-down karne ke liye chahiye.
 
 ---
+## 🧠 Concept Overview
+
+- **What it is** — Linux hardening ka matlab hai system ki attack surface ko chhota karna — faaltu services band karo, permissions tight karo, access control lagao, aur monitoring on karo.
+- **Why it matters** — *Real job mein ek open SSH port ya ek weak sudo rule ki wajah se poora server compromise ho sakta hai.* Enterprise mein security audit fail hone ka matlab hai project ruk jaata hai.
+- **Where you see this** — New RHEL production server setup, InfoSec vulnerability scan ke baad remediation, compliance audits (PCI-DSS, SOC2), aur incident response ke dauran.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------| 
+| **L1** | SELinux status check (`getenforce`), password reset, sshd service monitor, basic login failure review |
+| **L2** | Sudoers configuration, SSH hardening policies, auditd rule writing, fail2ban jail setup, umask tuning |
+| **L3** | Enterprise-wide SELinux custom policies, kernel hardening via `sysctl`, auditd-to-SIEM integration, compliance framework implementation |
+
+> [!tip] Seedha Simple Mein
+> *Hardening ka matlab hai server ka darwaza tight karna — sirf sahi log andar aa sakein, baaki sab bahar. Jaise ghar mein tala, CCTV, aur watchman — server mein SELinux, fail2ban, aur auditd.*
 
 ---
-## Concept Overview
-- **What it is** — Linux hardening is the process of reducing a system's vulnerability surface area by securing its settings, restricting permissions, and enabling advanced access controls.
-- **Why it matters for a support engineer** — Enterprise servers are target-rich environments. Misconfigurations (like weak SSH settings or broad sudo permissions) are the easiest entry points for attackers.
-- **Where you encounter this in real job** — Setting up new RHEL production servers, configuring restricted access for application developers, auditing server access logs, and closing security vulnerabilities reported by InfoSec scans.
-- **L1 vs L2 vs L3 responsibility split for this topic:**
-  - ****L1 Resolution:**** Checks SELinux status, resets user passwords, monitors sshd service status, and verifies basic user login failures.
-  - **Escalation Trigger:** Escalate to L2 if user requires custom sudo privileges, SELinux policy blockages occur, or audit rules need to be modified.
-  - ****L2 Resolution:**** Configures sudoers files, sets SSH hardening policies, writes basic auditd rules, and configures fail2ban jails.
-  - ****L3 Resolution:**** Designs enterprise-wide SELinux policies, configures custom kernel tuning (`sysctl.conf`), and integrates auditd logs with SIEM systems (like Sentinel).
+## 💡 Real-World Analogy
 
+> [!info] Think of it like this...
+> **Ek high-security building ko secure karna** is like **Linux Security Hardening** because...
+>
+> - **SELinux** = Building ka strict security guard — ==even CEO (root) bhi restricted area mein bina badge ke nahi ja sakta==
+> - **Sudoers** = Master key system — *har insaan ko alag rooms ki keys milti hain, kisi ko poori building ki nahi*
+> - **SSH hardening** = Main entrance ko hidden biometric door se replace karna — *password ki jagah fingerprint (SSH key) lagao*
+> - **fail2ban** = Automated CCTV system — *3 baar galat code try kiya? Gate band, police ko call!*
+> - **umask** = Naye rooms ka default lock — *jab room banta hai tab se hi locked rehta hai, tujhe manually lock nahi karna padta*
+> - **sysctl** = Building ki walls ko bulletproof banana — *kernel level pe protection, structural defense*
+> - **auditd** = Visitor register + CCTV log — *kaun aaya, kya kiya, kab kiya — sab recorded*
 
 ---
+## 🔬 Technical Deep Dive
 
----
-## Technical Deep Dive
 ### 1. SELinux (Security-Enhanced Linux)
-SELinux enforces Mandatory Access Control (MAC), meaning it overrides user file permissions (DAC). Even if root has access to a file, SELinux can block access if the security contexts do not match.
-* **SELinux Modes**:
-  * **Enforcing**: Policy is enforced. Unauthorized actions are blocked and logged.
-  * **Permissive**: Policy is NOT enforced. Actions are allowed, but warnings/violations are logged.
-  * **Disabled**: SELinux is completely turned off. (Requires system reboot to change back).
-* **SELinux Context**: Every process, file, and port has a context containing `user:role:type:sensitivity`. Type (e.g., `httpd_sys_content_t`) is the most important for application permissions.
+
+> [!info] Key Concept
+> SELinux enforces **Mandatory Access Control (MAC)** — yeh user file permissions (DAC) ko override karta hai. ==Even root bhi blocked ho sakta hai agar SELinux context match nahi karta.==
+
+* **SELinux Modes:**
+  * **Enforcing** — Policy enforce hoti hai. Unauthorized actions **blocked + logged**.
+  * **Permissive** — Policy enforce nahi hoti. Actions allowed hain, but violations **logged** hain. *Troubleshooting ke liye best mode.*
+  * **Disabled** — SELinux bilkul band. ==Reboot lagta hai wapas enable karne mein. Production mein kabhi Disabled mat karo!==
+
+* **SELinux Context:** Har process, file, aur port ka ek context hota hai → `user:role:type:sensitivity`
+  * **Type** sabse important hai (e.g., `httpd_sys_content_t`)
+  * *Jaise har insaan ka ID card hota hai — har file ka SELinux context hai*
+
+> [!danger] Common Mistake
+> SELinux **disable** karna instead of context fix karna. Yeh sabse badi galti hai! ==Hamesha `setenforce 0` (Permissive) use karo troubleshooting ke liye, `Disabled` kabhi nahi.==
+
+==**Exam Tip:** `getenforce` current mode dikhata hai, `sestatus` detailed info deta hai. RHCSA mein dono yaad rakho!==
+
+---
 
 ### 2. Sudoers Privilege Escalation
-Allowing users to run commands as `root` must be strictly regulated.
-* The configuration file is `/etc/sudoers`, but it should **never** be edited directly with a normal editor. Instead, use `visudo`, which checks for syntax errors before saving.
-* Individual configs are placed in `/etc/sudoers.d/` for modular management.
+
+> [!info] Key Concept
+> Users ko root commands dene ke liye `/etc/sudoers` file use hoti hai. ==Isko directly edit karna = system lock-out ka risk!==
+
+* **`visudo`** use karo — yeh syntax check karta hai save karne se pehle
+* Individual configs `/etc/sudoers.d/` mein rakho — *modular management*
+* **Syntax:** `username ALL=(run_as_user) NOPASSWD: /path/to/command`
+
+```bash
+# Example: developer ko sirf httpd restart karne do
+developer ALL=(root) NOPASSWD: /usr/bin/systemctl restart httpd, /usr/bin/systemctl reload httpd
+```
+
+> [!danger] Common Mistake
+> `/etc/sudoers` mein `ALL=(ALL) NOPASSWD: ALL` dena. *Yeh root access de deta hai — security ka sabse bada hole!*
+
+==**Exam Tip:** `visudo -f /etc/sudoers.d/filename` se modular sudoers files banao. RHCSA mein yahi tarika expected hai.==
+
+---
 
 ### 3. SSH Service Hardening
-SSH is the primary entry point for remote admins. Hardening includes:
-* Disabling root password logins.
-* Enforcement of SSH Key authentication.
-* Restricting accessible users (`AllowUsers`).
-* Changing the default port (22) to a non-standard port to avoid automated brute-force scripts.
 
-### 4. auditd & fail2ban
-* **auditd**: The Linux Audit Daemon tracks system calls, file changes, and access requests. It writes logs to `/var/log/audit/audit.log` based on rules defined in `/etc/audit/rules.d/audit.rules`.
-* **fail2ban**: A Python service that parses log files (like `/var/log/secure`) and automatically blocks offending IP addresses in the firewall if they exceed login failure thresholds.
+> [!info] Key Concept
+> SSH server ka primary entry point hai — *agar yeh kamzor hai toh poora server kamzor hai.*
 
-### 5. umask & sysctl
-* **umask (User Mask)**: Determines default file creation permissions. A umask of `027` means new files get `640` (rw-r-----) and directories get `750` (rwxr-x---), keeping them hidden from unrelated users.
-* **sysctl**: Used to configure kernel parameters at runtime. Modifying `/etc/sysctl.conf` can disable IP forwarding, prevent ICMP redirects, and ignore ping requests (ICMP echo) to shield the server.
+**Key hardening steps:**
+
+| 🔒 Setting | 📝 Value | 💡 Kyun |
+|-----------|---------|-------|
+| `Port` | `2222` (non-standard) | *Automated brute-force scripts port 22 pe chalte hain* |
+| `PermitRootLogin` | `no` | *Root direct login band — sudo use karo* |
+| `PasswordAuthentication` | `no` | *Password guessing band — SSH keys mandatory* |
+| `AllowUsers` | `sysadmin` | *Sirf specific users ko allow karo* |
+| `MaxAuthTries` | `3` | *3 se zyada attempts band* |
+| `ClientAliveInterval` | `300` | *5 min idle = disconnect* |
+
+> [!danger] Common Mistake
+> SSH port change karne ke baad **SELinux update bhool jaana** aur **firewall rule add na karna**. Dono zaroori hain warna sshd start hi nahi hoga!
+
+==**Exam Tip:** SSH port change = 3 steps yaad rakho: (1) `sshd_config` edit, (2) `semanage port -a`, (3) `firewall-cmd --add-port`. Teeno miss kiya toh locked out!==
 
 ---
 
----
+### 4. auditd — Linux Audit Daemon
 
-### Enterprise RHEL Service & Network Configurations
+> [!info] Key Concept
+> auditd system calls, file changes, aur access requests track karta hai. *Server pe kya hua — sab recorded.*
 
-#### 1. Custom Systemd Service Creation
-Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
-```ini
-[Unit]
-Description=My Custom Enterprise Application
-After=network.target
+* **Config file:** `/etc/audit/rules.d/audit.rules`
+* **Log file:** `/var/log/audit/audit.log`
+* **Key commands:**
+  * `auditctl -l` — current rules dekho
+  * `ausearch -k <key>` — specific events search karo
+  * `aureport` — summary report generate karo
 
-[Service]
-Type=simple
-User=sysadmin
-ExecStart=/usr/bin/python3 /opt/myapp/server.py
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-Enable and start the service:
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now myapp.service
+# Sudoers file ko monitor karo
+sudo auditctl -w /etc/sudoers -p wa -k sudo_changes
+
+# Password file ko monitor karo
+sudo auditctl -w /etc/passwd -p wa -k passwd_changes
 ```
 
-#### 2. Log Rotation & Rsyslog Configuration
-Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
-```text
-/var/log/myapp/*.log {
-    daily
-    rotate 7
-    compress
-    delaycompress
-    missingok
-    notifempty
-    create 0660 sysadmin sysadmin
-}
-```
-Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
-```text
-if $programname == 'myapp' then /var/log/myapp/syslog.log
-& stop
-```
-Restart Rsyslog service:
-```bash
-sudo systemctl restart rsyslog
-```
-
-#### 3. Network Bonding & Teaming (LACP Link Aggregation)
-Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
-```text
-DEVICE=team0
-DEVICETYPE=Team
-BOOTPROTO=none
-IPADDR=192.168.1.100
-PREFIX=24
-GATEWAY=192.168.1.1
-ONBOOT=yes
-TEAM_CONFIG='{"runner": {"name": "lacp"}}'
-```
-Bind slave physical interfaces (e.g., `eth1`) to the team interface:
-```text
-# /etc/sysconfig/network-scripts/ifcfg-eth1
-DEVICE=eth1
-ONBOOT=yes
-TEAM_MASTER=team0
-DEVICETYPE=TeamPort
-```
+> [!tip] Pro Tip
+> *auditd rules ko permanent banane ke liye `/etc/audit/rules.d/audit.rules` mein likho, warna reboot pe rules ud jaayenge.*
 
 ---
-## Step-by-Step Lab
+
+### 5. fail2ban — Automated Intrusion Prevention
+
+> [!info] Key Concept
+> fail2ban log files parse karke repeated login failures detect karta hai aur automatically IP ban karta hai.
+
+* **Config:** `/etc/fail2ban/jail.local` (kabhi `jail.conf` edit mat karo!)
+* **Log monitored:** `/var/log/secure` (SSH failures ke liye)
+* **Key parameters:**
+  * `maxretry` — kitne failed attempts ke baad ban
+  * `bantime` — kitni der tak IP banned rehega
+  * `findtime` — kitne time window mein failures count hongi
+
+> [!tip] Pro Tip
+> *`jail.conf` ko directly edit mat karo — `jail.local` mein override likho. Updates aane pe `jail.conf` overwrite ho jaata hai, `jail.local` safe rehta hai.*
+
+---
+
+### 6. umask & sysctl — Default Permissions & Kernel Tuning
+
+> [!info] Key Concept
+> **umask** naye files ki default permissions decide karta hai. **sysctl** kernel parameters runtime pe configure karta hai.
+
+**umask values:**
+
+| 🔢 umask | 📄 File Permissions | 📁 Dir Permissions | 💡 Use Case |
+|---------|-------------------|-------------------|-----------|
+| `022` | `644` (rw-r--r--) | `755` (rwxr-xr-x) | Default — *sabko read access* |
+| `027` | `640` (rw-r-----) | `750` (rwxr-x---) | ==Recommended for servers== |
+| `077` | `600` (rw-------) | `700` (rwx------) | Maximum security — *sirf owner* |
+
+**Critical sysctl parameters:**
+
+```bash
+# /etc/sysctl.d/99-security.conf
+
+# Ping responses band karo (ICMP echo ignore)
+net.ipv4.icmp_echo_ignore_all = 1
+
+# IP forwarding band karo (agar router nahi hai)
+net.ipv4.ip_forward = 0
+
+# SYN flood protection enable karo
+net.ipv4.tcp_syncookies = 1
+
+# Source routing disable karo
+net.ipv4.conf.all.accept_source_route = 0
+
+# ICMP redirect band karo
+net.ipv4.conf.all.accept_redirects = 0
+```
+
+==**Exam Tip:** `umask 027` production servers ke liye recommended value hai. RHCSA mein umask calculation zaroor puchha jaata hai!==
+
+---
+## 🛠️ Step-by-Step Lab
+
 > [!warning] Pre-requisites
-> - A running RHEL 8/9 or CentOS Stream VM.
-> - Root or sudo access on the machine.
-> - Firewall daemon (`firewalld`) active.
+> - A running RHEL 8/9 or CentOS Stream VM
+> - Root or sudo access on the machine
+> - Firewall daemon (`firewalld`) active
+> - Internet access (fail2ban install ke liye EPEL repo chahiye)
 
-### Step 1: Harden SSH Server Configuration
-We will disable root logins, change the default port, and allow only specific users.
+### Step 1: SSH Server Harden Karo
 
-1. Open SSH configuration:
 ```bash
+# SSH configuration edit karo
 sudo vi /etc/ssh/sshd_config
 ```
-2. Modify or add the following lines:
+
+Modify or add these lines:
 ```text
 Port 2222
 PermitRootLogin no
 PasswordAuthentication no
 AllowUsers sysadmin
+MaxAuthTries 3
+ClientAliveInterval 300
 ```
-3. Update Firewalld to allow the new SSH port:
+
 ```bash
+# Firewall mein naya port allow karo
 sudo firewall-cmd --add-port=2222/tcp --permanent
 sudo firewall-cmd --remove-service=ssh --permanent
 sudo firewall-cmd --reload
-```
-4. Update SELinux to permit SSH on port 2222:
-```bash
+
+# SELinux mein naya port register karo
 sudo semanage port -a -t ssh_port_t -p tcp 2222
-```
-5. Restart sshd service:
-```bash
+
+# sshd restart karo
 sudo systemctl restart sshd
 ```
-**Expected Output:** Verifying the service status (`systemctl status sshd`) shows it listening on port 2222.
+
+> [!success] Expected Output
+> ```
+> $ systemctl status sshd
+> ● sshd.service - OpenSSH server daemon
+>    Active: active (running)
+>    Listen: 0.0.0.0:2222
+> ```
 
 ---
 
-### Step 2: Configure Limited Sudo Access via visudo
-We will configure a user named `developer` to only reload services, without full root access.
+### Step 2: Limited Sudo Access Configure Karo
 
-1. Run visudo to create a new config chunk:
 ```bash
+# Developer ke liye specific sudo rule banao
 sudo visudo -f /etc/sudoers.d/developer
 ```
-2. Write the following rule:
+
+Write this rule:
 ```text
 developer ALL=(root) NOPASSWD: /usr/bin/systemctl restart httpd, /usr/bin/systemctl reload httpd
 ```
-3. Save and exit.
-**Expected Output:** Sudo validates syntax. The developer user can now run `sudo systemctl restart httpd` without entering root's password.
+
+```bash
+# Verify karo
+sudo -l -U developer
+```
+
+> [!success] Expected Output
+> ```
+> User developer may run the following commands:
+>     (root) NOPASSWD: /usr/bin/systemctl restart httpd
+>     (root) NOPASSWD: /usr/bin/systemctl reload httpd
+> ```
 
 ---
 
-### Step 3: Install and Configure Fail2ban for SSH Protection
-We will deploy fail2ban to automatically block brute force attempts on our hardened port.
+### Step 3: Fail2ban Install aur Configure Karo
 
-1. Install EPEL repository and fail2ban:
 ```bash
+# EPEL repo aur fail2ban install karo
 sudo dnf install epel-release -y
 sudo dnf install fail2ban -y
-```
-2. Create local configuration file `/etc/fail2ban/jail.local`:
-```bash
+
+# Local config banao
 sudo vi /etc/fail2ban/jail.local
 ```
-3. Add the configuration configuration blocks:
+
+Add configuration:
 ```ini
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 3
+
 [sshd]
 enabled = true
 port = 2222
@@ -207,85 +296,277 @@ logpath = /var/log/secure
 maxretry = 3
 bantime = 1h
 ```
-4. Start and enable fail2ban:
+
 ```bash
+# Start aur enable karo
 sudo systemctl enable --now fail2ban
+
+# Status check karo
+sudo fail2ban-client status sshd
 ```
-**Expected Output:** Checking fail2ban client status: `sudo fail2ban-client status sshd` should output active jails and count blocked IPs.
+
+> [!success] Expected Output
+> ```
+> Status for the jail: sshd
+> |- Filter
+> |  |- Currently failed: 0
+> |  |- Total failed:     0
+> |  `- File list:        /var/log/secure
+> `- Actions
+>    |- Currently banned: 0
+>    |- Total banned:     0
+>    `- Banned IP list:
+> ```
 
 ---
 
-### Step 4: Secure Network Parameters using sysctl
-We will protect against network attacks by hardening network parameters.
+### Step 4: Kernel Parameters Secure Karo (sysctl)
 
-1. Edit `/etc/sysctl.d/99-security.conf`:
 ```bash
+# Security parameters add karo
 sudo vi /etc/sysctl.d/99-security.conf
 ```
-2. Write the security parameters:
+
 ```ini
-# Ignore ICMP echo requests (disable ping response)
+# Ping response band karo
 net.ipv4.icmp_echo_ignore_all = 1
 
-# Disable IP forwarding (if server is not acting as a router)
+# IP forwarding band karo
 net.ipv4.ip_forward = 0
 
-# Enable TCP SYN Cookie protection against SYN floods
+# SYN flood protection
 net.ipv4.tcp_syncookies = 1
+
+# Source routing band karo
+net.ipv4.conf.all.accept_source_route = 0
 ```
-3. Load the configuration:
+
 ```bash
+# Configuration load karo
 sudo sysctl --system
+
+# Verify karo
+sysctl net.ipv4.icmp_echo_ignore_all
 ```
-**Expected Output:** Terminal outputs the newly parsed values showing `net.ipv4.icmp_echo_ignore_all = 1`.
+
+> [!success] Expected Output
+> ```
+> net.ipv4.icmp_echo_ignore_all = 1
+> ```
 
 ---
 
----
-## Cheat Sheet / Quick Reference
-| Command | Description | Example |
-|---------|-------------|---------|
-| `getenforce` | Check current SELinux status | `getenforce` |
-| `setenforce [0\|1]` | Toggle SELinux between Enforcing (1) and Permissive (0) | `sudo setenforce 0` |
-| `semanage port -l` | List SELinux allowed ports for services | `sudo semanage port -l \| grep ssh` |
-| `visudo` | Edit sudoers configuration with syntax checking | `sudo visudo` |
-| `sysctl -a` | List all current kernel parameters | `sysctl -a` |
-| `fail2ban-client status` | Show active fail2ban configuration status | `sudo fail2ban-client status` |
+### Step 5: auditd Rule Set Karo
+
+```bash
+# Sudoers aur passwd file monitor karo
+sudo auditctl -w /etc/sudoers -p wa -k sudo_changes
+sudo auditctl -w /etc/passwd -p wa -k passwd_changes
+sudo auditctl -w /etc/ssh/sshd_config -p wa -k ssh_config_changes
+
+# Verify rules
+sudo auditctl -l
+```
+
+> [!success] Expected Output
+> ```
+> -w /etc/sudoers -p wa -k sudo_changes
+> -w /etc/passwd -p wa -k passwd_changes
+> -w /etc/ssh/sshd_config -p wa -k ssh_config_changes
+> ```
+
+```bash
+# Permanent banane ke liye rules file mein likho
+sudo vi /etc/audit/rules.d/audit.rules
+```
+
+```text
+-w /etc/sudoers -p wa -k sudo_changes
+-w /etc/passwd -p wa -k passwd_changes
+-w /etc/ssh/sshd_config -p wa -k ssh_config_changes
+```
 
 ---
+## ⌨️ Command Cheat Sheet
+
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `getenforce` | SELinux current mode check karo | `getenforce` |
+| `sestatus` | SELinux detailed status dekho | `sestatus` |
+| `setenforce 0` | SELinux Permissive mode (temporary) | `sudo setenforce 0` |
+| `semanage port -l` | SELinux allowed ports list karo | `sudo semanage port -l \| grep ssh` |
+| `semanage port -a` | Naya port SELinux mein add karo | `sudo semanage port -a -t ssh_port_t -p tcp 2222` |
+| `visudo` | Sudoers file safely edit karo | `sudo visudo` |
+| `visudo -f` | Specific sudoers file edit karo | `sudo visudo -f /etc/sudoers.d/dev` |
+| `sudo -l -U user` | User ki sudo permissions dekho | `sudo -l -U developer` |
+| `sysctl -a` | Sab kernel parameters list karo | `sysctl -a \| grep forward` |
+| `sysctl --system` | Sab sysctl config files reload karo | `sudo sysctl --system` |
+| `fail2ban-client status` | Fail2ban overall status dekho | `sudo fail2ban-client status` |
+| `fail2ban-client status sshd` | SSH jail ka status dekho | `sudo fail2ban-client status sshd` |
+| `fail2ban-client unban <IP>` | Banned IP unban karo | `sudo fail2ban-client unban 192.168.1.50` |
+| `auditctl -l` | Current audit rules dekho | `sudo auditctl -l` |
+| `ausearch -k <key>` | Audit events search karo | `sudo ausearch -k sudo_changes` |
+| `aureport` | Audit summary report dekho | `sudo aureport --summary` |
+| `umask` | Current umask value check karo | `umask` |
 
 ---
-## Troubleshooting
-| Problem | Likely Cause | Fix |
-|---------|-------------|-----|
-| **SSH service fails to start after port change** | SELinux blocked the new port configuration. | Add the new port to SELinux policy: `semanage port -a -t ssh_port_t -p tcp [new_port]` |
-| **Sudo command throws syntax error error** | Direct edit of `/etc/sudoers` contained typos. | Log in as root, run `visudo` to locate the syntax error, correct the line, and save. |
-| **Fail2ban not blocking IPs** | Log path incorrect or jail not enabled. | Check `jail.local` configuration logpath matches `/var/log/secure` and service is enabled. |
+## 🚑 Troubleshooting Guide
+
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| **SSH service fails to start after port change** | SELinux ne naya port block kiya | `sudo semanage port -a -t ssh_port_t -p tcp <new_port>` |
+| **Sudo command throws syntax error** | `/etc/sudoers` mein direct edit se typo | Root se login karo → `visudo` se error locate karo → fix karo |
+| **Fail2ban not blocking IPs** | Log path galat ya jail enabled nahi | `jail.local` mein `logpath = /var/log/secure` check karo, `enabled = true` confirm karo |
+| **User cannot SSH even with correct key** | `AllowUsers` mein username missing | `/etc/ssh/sshd_config` mein `AllowUsers` list mein user add karo → `systemctl restart sshd` |
+| **SELinux denials on httpd** | File context galat hai | `sudo restorecon -Rv /var/www/html/` se default context restore karo |
+| **auditd rules reboot pe lost** | Rules sirf `auditctl` se add kiye, file mein nahi likhe | `/etc/audit/rules.d/audit.rules` mein permanent rules likho |
+| **fail2ban ne legitimate user ko ban kar diya** | User ne multiple baar password galat daala | `sudo fail2ban-client unban <IP>` → whitelist mein IP add karo `ignoreip = <IP>` |
+
+---
+## 🎫 Real-World Ticket Scenarios
+
+### 🎫 Scenario 1: SSH Port Changed but Service Won't Start
+
+> [!example] Ticket
+> "We changed the SSH port to 2222 as per hardening policy, but now sshd service is failing to start. We are locked out of the server."
+
+**L1 Response:** Console access le kar `systemctl status sshd` aur `journalctl -xe` check karo. Error mein "Permission denied" ya "SELinux" word dhundho.
+
+**Escalation Trigger:** Agar `/var/log/audit/audit.log` mein SELinux denial messages dikh rahe hain.
+
+**L2 Resolution:**
+```bash
+# SELinux mein naya port allow karo
+sudo semanage port -a -t ssh_port_t -p tcp 2222
+# Firewall rule bhi check karo
+sudo firewall-cmd --add-port=2222/tcp --permanent
+sudo firewall-cmd --reload
+# sshd restart karo
+sudo systemctl restart sshd
+```
 
 ---
 
+### 🎫 Scenario 2: Developer Locked Out After Sudoers Edit
+
+> [!example] Ticket
+> "I was editing sudoers file to add a new developer, but now no user can run sudo commands. Getting 'syntax error' message."
+
+**L1 Response:** Verify karo ki koi bhi user `sudo` nahi chala pa raha. Console access se root login try karo.
+
+**Escalation Trigger:** Jab multiple users affected hon aur root direct login bhi disabled ho SSH hardening ki wajah se.
+
+**L2 Resolution:**
+```bash
+# Console/ILO se root login karo
+# visudo se error fix karo — yeh syntax check karega
+visudo
+# Error line pe cursor jaayega — fix karo aur save karo
+# Future mein hamesha visudo use karo, direct edit kabhi nahi!
+```
+
+> [!tip] Pro Tip
+> *Hamesha `/etc/sudoers.d/` mein separate files banao. Agar ek file corrupt ho gayi toh baaki sab safe rahenge.*
+
 ---
-## Interview Questions
-**Q1: What is the difference between DAC (Discretionary Access Control) and MAC (Mandatory Access Control) in Linux?**
-> A: **DAC** controls access based on user/group permissions (e.g., chmod), where the file owner decides access permissions. **MAC** (enforced by SELinux) controls access based on security policies set by system administrators that processes and users cannot override, even if they are root.
 
-**Q2: How do you temporarily change the SELinux mode without rebooting?**
-> A: Use `sudo setenforce 1` to switch to Enforcing mode, or `sudo setenforce 0` to switch to Permissive mode. Changes made via setenforce are lost upon reboot. To make them permanent, edit `/etc/selinux/config`.
+### 🎫 Scenario 3: Fail2ban Ne Legitimate Admin Ko Ban Kar Diya
 
-**Q3: Why should you always use `visudo` instead of editing `/etc/sudoers` directly?**
-> A: `visudo` performs lock protection and syntax validation before writing changes. If there is a typo in your sudo configuration, direct editing can lock everyone out of root/sudo capabilities. `visudo` catches these mistakes and prevents saving invalid configurations.
+> [!example] Ticket
+> "Our senior admin's IP got banned by fail2ban. He was trying to connect via SSH but kept getting 'Connection refused'. He says his password was correct."
 
-**Q4: How do you check if a specific port is permitted under SELinux rules?**
-> A: Use the command `semanage port -l | grep <port_number>` or check by service name, such as `semanage port -l | grep ssh_port_t`.
+**L1 Response:** Fail2ban banned IP list check karo: `sudo fail2ban-client status sshd`. Kya admin ka IP listed hai?
+
+**Escalation Trigger:** Agar IP banned hai aur admin confirm karta hai ki password sahi tha — investigate kyun multiple failures log hue.
+
+**L2 Resolution:**
+```bash
+# IP unban karo
+sudo fail2ban-client unban 10.0.1.50
+
+# Permanent whitelist mein daalo
+sudo vi /etc/fail2ban/jail.local
+# [DEFAULT] section mein add karo:
+# ignoreip = 127.0.0.1/8 10.0.1.0/24
+
+# Fail2ban restart karo
+sudo systemctl restart fail2ban
+```
 
 ---
 
----
-## Seedha Simple Mein
-*Seedha simple mein: Hardening ka matlab hai server ko surakshit (secure) banana. Faaltu services ko band karna, SSH logins ko safe banana, permissions tight karna, aur monitoring tools active rakhna taaki koi system ke sath chhed-chhad na kar sake.*
+### 🎫 Scenario 4: Web Application Files Not Accessible Despite Correct chmod
+
+> [!example] Ticket
+> "Apache web server is returning 403 Forbidden error. We checked file permissions and they are 755. Still not working."
+
+**L1 Response:** `ls -lZ /var/www/html/` run karo — SELinux context check karo. Kya files ka context `httpd_sys_content_t` hai?
+
+**Escalation Trigger:** Agar context galat hai ya `unconfined_u:object_r:default_t` dikh raha hai.
+
+**L2 Resolution:**
+```bash
+# SELinux context restore karo
+sudo restorecon -Rv /var/www/html/
+
+# Verify karo
+ls -lZ /var/www/html/
+# Expected: system_u:object_r:httpd_sys_content_t:s0
+
+# Apache restart karo
+sudo systemctl restart httpd
+```
+
+==**Key Learning:** chmod correct hone se kaam nahi chalta agar SELinux context galat hai. DAC + MAC dono sahi hone chahiye!==
 
 ---
-## Related Notes
-- [[02-Operating-Systems/04-Linux-RHEL/L-09 SSH Configuration and Security]]
-- [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership]]
-- [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust]]
+## 🎤 Interview Questions
+
+> [!question] Q1: DAC aur MAC mein kya fark hai?
+> **Answer:** ==DAC (Discretionary Access Control)== mein file owner decide karta hai ki kise access milega — jaise normal Linux `chmod`. ==MAC (Mandatory Access Control)== mein system-wide policy decide karti hai — SELinux enforce karta hai yeh policy, ==root bhi override nahi kar sakta.==
+>
+> **Real Example:** Agar root bhi `/var/www/html/` ko delete karne ki koshish kare aur SELinux mein `httpd_sys_content_t` context set hai — SELinux block kar dega.
+
+> [!question] Q2: SELinux mode temporarily kaise change karte hain bina reboot ke?
+> **Answer:** `sudo setenforce 1` → Enforcing mode. `sudo setenforce 0` → Permissive mode. ==Yeh changes reboot pe lost ho jaate hain.== Permanent change ke liye `/etc/selinux/config` edit karo aur `SELINUX=enforcing` set karo.
+
+> [!question] Q3: `visudo` kyun use karte hain instead of directly `/etc/sudoers` edit karna?
+> **Answer:** `visudo` do kaam karta hai: ==(1) File lock karta hai== taaki ek hi samay pe do log edit na karein, aur ==(2) Save karne se pehle syntax validate karta hai.== Agar typo ho toh save nahi hone deta. Direct edit mein ek galat line se ==poore system ka sudo kaam karna band ho sakta hai== — aur agar root SSH bhi disabled hai toh lockout ho jaoge.
+
+> [!question] Q4: Kaise check karoge ki koi specific port SELinux mein allowed hai ya nahi?
+> **Answer:** `sudo semanage port -l | grep <port_number>` ya service name se: `sudo semanage port -l | grep ssh_port_t`. Agar port listed nahi hai, toh `semanage port -a -t <type> -p tcp <port>` se add karo.
+
+> [!question] Q5: fail2ban aur firewalld mein kya fark hai?
+> **Answer:** ==firewalld ek static firewall hai== — tu manually rules set karta hai (allow/deny ports, IPs). ==fail2ban ek dynamic/reactive tool hai== — yeh logs monitor karta hai aur automatically offending IPs ko firewall mein ban karta hai. *Dono complementary hain — firewalld hamesha on rehna chahiye, fail2ban uske upar ek intelligent layer hai.*
+
+> [!question] Q6: umask 027 ka matlab kya hai? Naye file aur directory ke permissions kya honge?
+> **Answer:** umask 027 ka matlab:
+> - ==Naye files: `640` (rw-r-----)== — Owner read+write, group read, others nothing
+> - ==Naye directories: `750` (rwxr-x---)== — Owner full, group read+execute, others nothing
+>
+> *Calculation: Files → 666 - 027 = 640. Directories → 777 - 027 = 750.*
+
+> [!question] Q7: Ek server pe security audit fail hua hai. Top 5 hardening steps kya honge?
+> **Answer:**
+> 1. ==SSH hardening== — Root login disable, key-based auth, non-standard port
+> 2. ==SELinux Enforcing== mode on karo
+> 3. ==fail2ban== install karo SSH protection ke liye
+> 4. ==umask 027== set karo `/etc/profile` mein
+> 5. ==sysctl== se IP forwarding band karo, SYN cookies enable karo
+>
+> *Bonus: auditd rules lagao critical files pe, unnecessary services disable karo.*
+
+> [!question] Q8: `restorecon` command kya karta hai aur kab use karte hain?
+> **Answer:** `restorecon` files ka ==SELinux context reset karta hai default policy ke according.== Jab bhi files copy/move karte ho toh context galat ho sakta hai. `sudo restorecon -Rv /path/` recursively sab files ka context fix karta hai. *Most common use case: Apache 403 errors jab files ka context `httpd_sys_content_t` nahi hota.*
+
+==**Exam Tip:** RHCSA mein SELinux se related 2-3 questions pakka aate hain. `getenforce`, `setenforce`, `semanage`, `restorecon` — yeh 4 commands ratt lo!==
+
+---
+## 🔗 Related Notes
+
+- [[02-Operating-Systems/04-Linux-RHEL/L-09 SSH Configuration and Security|L-09 SSH Configuration and Security]] — SSH ki complete deep dive
+- [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership|L-06 File Permissions and Ownership]] — DAC permissions ka foundation
+- [[02-Operating-Systems/04-Linux-RHEL/L-19 SELinux-and-AppArmor|L-19 SELinux and AppArmor]] — SELinux ka advanced deep dive
+- [[02-Operating-Systems/04-Linux-RHEL/L-20 Kernel-Tuning-and-sysctl|L-20 Kernel Tuning and sysctl]] — sysctl parameters ki complete guide
+- [[02-Operating-Systems/04-Linux-RHEL/L-22 Firewalld|L-22 Firewalld]] — Firewall rules aur zones
+- [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — Security ke foundational principles

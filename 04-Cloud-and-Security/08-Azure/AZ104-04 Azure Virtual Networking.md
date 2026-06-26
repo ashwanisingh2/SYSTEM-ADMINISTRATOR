@@ -7,136 +7,162 @@ difficulty: #advanced
 cert-relevant: #az-104
 ---
 
+> [!NOTE|color-blue]
+> ☁️ **AZURE CLOUD**
+
+`#complete` `#advanced` `#az-104`
+
 # AZ104-04: Azure Virtual Networking
 
 > [!abstract] Overview
-> This note covers advanced Azure networking. It details VNet IP planning, subnet allocations (including Microsoft reserved IPs), Application Security Groups (ASG), User Defined Routes (UDR), VNet Peering transit, Azure Bastion, Private/Service Endpoints, and Private DNS zones.
+> Yeh note advanced Azure networking ko cover karta hai. Isme VNet IP planning, subnets (aur Microsoft reserved IPs), Application Security Groups (ASG), UDR (User-Defined Routes), VNet Peering, Azure Bastion, aur Private/Service Endpoints ki jaankari hai. Ek support engineer ke liye network connectivity aur security troubleshoot karne mein yeh bahut zaroori hai.
 
 ---
+## 🧠 Concept Overview
+
+- **What it is** — Azure cloud mein aapka apna private network, jahan aap apne resources (VMs, DBs) ko secure aur isolate kar sakte hain.
+- **Why it matters** — Bina secure virtual networking ke aapke cloud resources internet pe open ho sakte hain ya aapas mein baat nahi kar payenge.
+- **Where you see this** — Jab do VMs aapas mein connect nahi ho rahe, ya on-premise se Azure secure connection chahiye.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Basic connectivity check karna (ping, telnet) aur Azure portal se status dekhna. |
+| **L2** | NSG rules configure karna, VNet peering setup karna, aur routing issues fix karna. |
+| **L3** | Enterprise level hub-and-spoke architecture design karna aur complex VPN/ExpressRoute integration karna. |
+
+> [!tip] Seedha Simple Mein
+> *Azure virtual networking ek badi office building ki tarah hai jahan alag-alag departments (subnets) hain. Peering corridor ka kaam karta hai, aur Bastion ek secure check-in desk hai bina bahar ki road (internet) use kiye.*
 
 ---
-## Concept Overview
-Think of Azure virtual networking as designing a secure multi-department corporate office campus:
-- **VNet Peering** is building a private corridor between the Sales building (VNet A) and the HR building (VNet B) so employees can walk back and forth without going out onto the public street (the Internet).
-- **Azure Bastion** is a secure, armored visitor check-in desk at the entrance. Instead of letting remote administrators RDP directly to servers over public ports (a major security risk), administrators log into a web browser SSL portal, and Bastion projects a secure console inside the browser.
-- **Private Endpoints** are running a private, dedicated telephone line straight to a secure remote cloud database (PaaS), completely bypassing public network routing.
-- **ASG (Application Security Groups)** allow you to group servers logically: instead of writing NSG rules for 50 different IP addresses, you label the servers "WebServers" and write one rule for the group.
+## 💡 Real-World Analogy
 
+> [!info] Think of it like this...
+> **Azure Virtual Networking** is like designing a secure **Multi-Department Corporate Campus** because...
+>
+> - **VNet Peering** is building a private corridor between the Sales building (VNet A) and HR building (VNet B) so employees can walk without going out on the public street.
+> - **Azure Bastion** is a secure, armored visitor check-in desk at the entrance. Instead of public access, visitors use a secure monitored console.
+> - **Private Endpoints** are running a dedicated private telephone line straight to a secure vault.
+> - **ASG** is like labelling rooms as "Meeting Rooms" instead of listing room numbers 101 to 150.
 
 ---
+## 🔬 Technical Deep Dive
 
----
-## Technical Deep Dive
 ### 1. VNet IP Address Planning & Subnet Sizing
-- **VNet Allocation:** Choose non-overlapping address spaces (e.g., `10.1.0.0/16`). If subnets overlap, you cannot establish VNet Peering later.
-- **Reserved IP Addresses:** For every subnet created, **Azure reserves 5 IP addresses** automatically:
-  - `.0` — Network address.
-  - `.1` — Default Gateway address.
-  - `.2` & `.3` — DNS mapping.
-  - `.255` — Broadcast address (not physically used but reserved).
-  - *Example:* A `/28` subnet normally has 16 IPs, but in Azure, only $16-5=\mathbf{11}$ usable IP addresses are available for host VMs.
 
-### 2. Application Security Groups (ASGs)
-ASGs allow you to configure network security rules based on application logic rather than IP addresses.
-- **Use Case:** You have 10 Web VMs and 5 Database VMs. Instead of updating an NSG with 15 different IP addresses, you create two ASGs: `asg-web` and `asg-db`.
-- **NSG Rule:** "Allow inbound TCP 1433 from Source: `asg-web` to Destination: `asg-db`."
+> [!info] Key Concept
+> IP Address space design karte waqt non-overlapping ranges use karein. Har subnet mein Azure **5 IP addresses reserve** karta hai.
+
+- `.0` — Network address.
+- `.1` — Default Gateway address.
+- `.2` & `.3` — DNS mapping.
+- `.255` — Broadcast address (not physically used but reserved).
+
+> [!danger] Common Mistake
+> Agar subnets ka IP range overlap ho gaya, toh aap baad mein VNet Peering establish nahi kar payenge. Hamesha future expansion ka dhyan rakhein.
+
+### 2. Application Security Groups (ASGs) & NSG
+
+> [!info] Key Concept
+> ASGs allow you to configure network security rules based on application logic rather than IP addresses.
+
+- **Use Case:** 10 Web VMs aur 5 DB VMs ke liye alag alag IPs ki jagah `asg-web` aur `asg-db` use karein.
+- **Rule Example:** Allow inbound TCP 1433 from Source: `asg-web` to Destination: `asg-db`.
 
 ### 3. Routing: System Routes vs. UDR (User-Defined Routes)
-By default, Azure automatically creates system route tables to route traffic between subnets, VNets, and the internet.
-- **UDR (Custom Route Tables):** Allows administrators to override default system routing.
-  - *Example:* Force all outbound internet traffic from the Database subnet to route through a virtual firewall appliance (NVA) first (called "forced tunneling").
-  - *Configuration:* Create a Route Table -> Add route `0.0.0.0/0` -> Next hop type: **Virtual Appliance** -> IP: `10.1.1.4` (the NVA IP).
 
-### 4. VNet Peering & Transit
-- **VNet Peering:** Connects two VNets. Traffic runs over Microsoft's private network.
-- **Global Peering:** Connects VNets located in different physical Azure regions.
-- **Gateway Transit:** Allows peered spoke VNets to share a single VPN Gateway located in the Hub VNet, saving infrastructure costs.
+- **System Routes:** Azure default routing between subnets, VNets, and internet.
+- **UDR:** Custom route tables to override defaults. (e.g., Forced tunneling via NVA virtual firewall).
 
-### 5. Secure Access: Azure Bastion
-Provides secure RDP/SSH access to VMs directly over SSL (port 443) via the Azure Portal.
-- **How it works:** The Bastion host is deployed in a dedicated subnet named **`AzureBastionSubnet`** (requires minimum `/26` size). It assigns a public IP, but the target VMs do not need public IPs. The administrator connects to Bastion over HTTPS, and Bastion proxies the RDP/SSH connection inside the VNet.
+### 4. Secure Access: Azure Bastion
 
-### 6. Private Endpoints vs. Service Endpoints
-- **Service Endpoint:** Directs traffic from your VNet to Azure PaaS services (like Storage or SQL) over the Microsoft backbone. The PaaS service still uses a public IP address, but firewalls restrict access exclusively to your VNet subnet.
-- **Private Endpoint:** Creates a physical network interface (NIC) with a **private IP address** from your subnet inside the VNet, linking it directly to the PaaS resource. The PaaS resource behaves as a local VM, completely removing public IP accessibility.
+- Deploys in `AzureBastionSubnet` (minimum `/26`).
+- Secure RDP/SSH access directly over SSL (port 443) via Azure Portal without assigning public IPs to VMs.
+
+### 5. Private Endpoints vs. Service Endpoints
+
+- **Service Endpoint:** Directs traffic to PaaS over Microsoft backbone. PaaS still has a public IP but firewall restricts access to your VNet.
+- **Private Endpoint:** Creates a physical NIC with a private IP in your VNet linking to the PaaS resource. Completely removes public accessibility.
 
 ---
+## 🛠️ Step-by-Step Lab
 
----
-## Step-by-Step Lab
-> [!info] Lab Setup Needed
-> Access to the Azure Portal.
+> [!warning] Pre-requisites
+> - Access to Azure Portal
+> - RG `rg-lab-infrastructure` created.
 
 ### Step 1: Create a Hub-Spoke VNet Topology
-1. Log into the Azure Portal. Search for and click **Virtual networks**. Click **+ Create**.
-2. **Hub VNet:**
-   - Resource Group: `rg-lab-infrastructure`.
-   - Name: `vnet-hub`. Region: **East US**.
-   - IP Address: `10.1.0.0/16`.
-   - Subnets: Create `default` subnet (`10.1.0.0/24`) and `GatewaySubnet` (`10.1.254.0/24` - reserved for VPN gateways).
-   - Click Create.
-3. **Spoke VNet:** Click Create again.
-   - Resource Group: `rg-lab-infrastructure`.
-   - Name: `vnet-spoke01`. Region: **East US**.
-   - IP Address: `10.2.0.0/16` (non-overlapping).
-   - Subnets: Create `web` subnet (`10.2.1.0/24`).
-   - Click Create.
+
+```bash
+# Example CLI command for VNet creation (conceptual for portal steps)
+az network vnet create --name vnet-hub --resource-group rg-lab-infrastructure --address-prefixes 10.1.0.0/16
+```
+
+1. Azure Portal > Virtual networks > **+ Create**.
+2. **Hub VNet:** IP: `10.1.0.0/16`. Subnets: `default` (`10.1.0.0/24`) and `GatewaySubnet` (`10.1.254.0/24`).
+3. **Spoke VNet:** Name: `vnet-spoke01`, IP: `10.2.0.0/16`. Subnet: `web` (`10.2.1.0/24`).
 
 ### Step 2: Establish VNet Peering
-1. Go to the **vnet-hub** page. In the left panel, click **Peerings** (under Settings). Click **+ Add**.
-2. Configuration:
-   - Peering link name (Hub to Spoke): `hub-to-spoke01`.
-   - Partner Virtual Network: Select `vnet-spoke01`.
-   - Peering link name (Spoke to Hub): `spoke01-to-hub`.
-   - Traffic settings: Allow traffic forwarding, leave Gateway Transit unchecked for this lab.
-3. Click **Add**.
-4. **Verify:** Check the peering status on both VNets. Once it changes to **Connected**, VMs in `vnet-hub` can ping VMs in `vnet-spoke01` directly using private IPs.
+
+1. Go to **vnet-hub** > **Peerings** > **+ Add**.
+2. Name (Hub to Spoke): `hub-to-spoke01`. Select partner VNet `vnet-spoke01`.
+3. Name (Spoke to Hub): `spoke01-to-hub`.
+4. Click Add.
+
+> [!success] Expected Output
+> Peering status will change to **Connected**, allowing VMs to communicate via private IPs.
 
 ### Step 3: Deploy Azure Bastion
-1. Go to the `vnet-hub` page -> click **Subnets** -> click **+ Subnet**.
-2. Name: **Must be exact:** `AzureBastionSubnet`.
-3. Range: `10.1.2.0/26`. Click Save.
-4. Search for **Bastions** in the portal search. Click **Create**.
-5. Project Details: RG `rg-lab-infrastructure`. Name `bastion-hub`.
-6. Virtual Network: Select `vnet-hub`.
-7. Subnet: It auto-selects `AzureBastionSubnet`.
-8. Public IP: Create new. Click **Review + create**, then **Create** (Deployment takes 5-10 mins). You can now RDP/SSH securely to any VM in the VNet using the Bastion option in the portal.
+
+1. Add subnet named `AzureBastionSubnet` (`10.1.2.0/26`) to `vnet-hub`.
+2. Create Bastion > Select VNet `vnet-hub`.
+3. Create New Public IP. Click **Review + create**.
 
 ---
+## ⌨️ Command Cheat Sheet
+
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `Test-NetConnection` | Check network path & port via PowerShell | `Test-NetConnection 10.2.0.4 -Port 3389` |
+| `nc -zv` | Check open ports via Linux netcat | `nc -zv 10.2.0.4 22` |
+| `az network vnet peering list` | List Azure peerings via CLI | `az network vnet peering list -g RG1 --vnet-name VNet1` |
 
 ---
-## Cheat Sheet / Quick Reference
-| Command / Configuration | Scope | Purpose / Example |
-|---|---|---|
-| `systemctl status <service>` | Linux | Check status of system service |
-| `ip address show` | Linux | Display local interface network details |
-| `Get-Service` | PowerShell | Verify service status on Windows hosts |
-| `Test-NetConnection` | PowerShell | Check network path connectivity to target ports |
+## 🚑 Troubleshooting Guide
+
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| VMs in peered VNets cannot communicate | Peering status is "Initiated" or "Disconnected" | Ensure peering is created on BOTH sides (bidirectional). |
+| Bastion deployment fails | Subnet name incorrect or too small | Create exactly `AzureBastionSubnet` with `/26` minimum. |
+| Cannot access PaaS via Private Endpoint | DNS resolution failure | Configure Azure Private DNS Zone and link it to the VNet. |
 
 ---
-## Troubleshooting
-| Problem | Cause | Fix | Command |
-|---|---|---|---|
-| Service connection timeout | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall | `ping -c 4 <ip>` / `nc -zv <ip> <port>` |
-| Access Denied error | User account lacks permissions or invalid credentials | Verify account access permissions or reset password | N/A |
-| Resource not found | Object or path is misspelled or deleted | Verify spelling of target path or query active objects | N/A |
+## 🎫 Real-World Ticket Scenarios
+
+### 🎫 Scenario 1: VM Connectivity Issue
+
+> [!example] Ticket
+> "I cannot RDP to the newly deployed application server from my local machine."
+
+**L1 Response:** Verify VM is running and Bastion/Public IP is correctly assigned. Guide user to use Bastion.
+**Escalation Trigger:** If Bastion fails or NSG blocks traffic despite correct rules.
+**L2 Resolution:** Check NSG Effective Rules. Ensure inbound port 443 is allowed for Bastion and internal RDP port 3389 is allowed from Bastion Subnet.
 
 ---
-## Interview Questions
-> [!question] L1 Question
-> **Q:** How do you verify if the target service is running?
-> **A:** On Linux, I would execute `systemctl status <service-name>`. On Windows, I would run `Get-Service <service-name>` in PowerShell or check Services.msc.
+## 🎤 Interview Questions
 
-> [!question] L2 Question
-> **Q:** Explain how you would troubleshoot a network connectivity issue to a remote server.
-> **A:** I would verify local IP configuration, test routing gateway using `ping`, trace hops using `traceroute` or `tracert`, and check port accessibility using `telnet` or `Test-NetConnection` on target port.
+> [!question] Q1: How many IP addresses are reserved by Azure in a subnet, and what are they used for?
+> **Answer:** Azure reserves 5 IPs: `.0` (network), `.1` (gateway), `.2` and `.3` (DNS), and `.255` (broadcast).
 
----
-## Seedha Simple Mein
-*Seedha simple mein: AZ-104 networking Hub-Spoke topology, NSG/ASG security filtering, VNet Peering, and Private Endpoints par based hota hai. Subnets design karte waqt yaad rakhna chahiye ki Azure har subnet mein 5 IPs reserve karta hai.*
+> [!question] Q2: What is the main difference between Service Endpoints and Private Endpoints?
+> **Answer:** Service Endpoint routes traffic over MS backbone but the PaaS service retains a public IP. Private Endpoint assigns a private IP from your VNet directly to the PaaS resource, disabling public access.
+
+==**Exam Tip:** For Bastion, the subnet must be named EXACTLY `AzureBastionSubnet` and must be `/26` or larger.==
 
 ---
-## Related Notes
+## 🔗 Related Notes
+
 - [[01-Foundations/02-Networking/N-04 IPv4 Addressing Complete Guide|N-04 IPv4 Addressing Complete Guide]] — Dynamic subnetting calculations.
 - [[04-Cloud-and-Security/08-Azure/AZ9-04 Azure Storage and Networking|AZ9-04 Azure Storage and Networking]] — Base Virtual Network basics.
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines|AZ104-03 Azure Virtual Machines]] — Connecting VMs to subnet interfaces.

@@ -1,195 +1,209 @@
 ---
-tags: [sysadmin, networking, hardware, devices]
-difficulty: Intermediate
-lab-required: Yes
-read-time: 15 mins
+tags: [networking, hardware, devices]
+aliases: [network-devices]
+created: 2026-06-26
+status: #complete
+difficulty: #intermediate
+cert-relevant: #ccna
 ---
+
+> [!NOTE|color-yellow]
+> 🌐 **NETWORKING**
+
+`#complete` `#intermediate` `#ccna`
 
 # N-02: Network Devices Deep Dive
 
 > [!abstract] Overview
-> This note analyzes the operation, packet-forwarding logic, and configuration roles of standard network hardware. It covers Hubs, Bridges, Switches, Routers, Firewalls, WAPs, and NICs, providing a reference for network design and diagnostics.
+> Yeh note standard network hardware jaise Hubs, Switches, Routers, Firewalls, WAPs, aur NICs ke packet-forwarding logic aur configuration roles ko cover karta hai. Ek support engineer ke liye yeh jaanna zaroori hai kyunki network design aur diagnostics ke bina kisi bhi connectivity issue ko troubleshoot karna namumkin hai.
 
 ---
-## Concept
-Think of network devices as the staff in a large sorting office:
-- A **Hub** is a blind worker who receives a letter, makes copies of it, and runs around screaming the message to everyone in the building.
-- A **Switch** is a smart clerk who checks the name on the envelope, looks up their desk location in a registry (MAC Table), and walks the letter directly to that specific desk.
-- A **Router** is the dispatcher who looks at the city and zip code (IP Address) and decides which delivery truck or airplane path is the fastest route to get the letter to a completely different office building.
-- A **Firewall** is the security guard standing at the main entrance, checking credentials and only allowing approved visitors or mail packages into the building.
+## 🧠 Concept Overview
 
-*Seedha simple mein: Network devices hardware components hain jo data ko sahi direction mein bhejte hain. Hub sabko data bhejta hai, Switch specific computer ko bhejta hai, Router pure network ke beech traffic route karta hai, aur Firewall security check lagata hai.*
+- **What it is** — Network devices are hardware components that connect computers, printers, and other devices to a network, allowing them to communicate and share data.
+- **Why it matters** — Every IT infrastructure relies on these devices to route traffic securely and efficiently. Understanding them is crucial for diagnosing network slowdowns, outages, and connectivity drops.
+- **Where you see this** — In corporate offices connecting employee PCs, in data centers routing server traffic, and in enterprise Wi-Fi deployments.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Basic task — Check physical connections, verify link lights, basic ping tests, and confirm IP settings. |
+| **L2** | Configure switch ports, VLANs, check MAC address tables, analyze port statistics for errors, and escalate complex routing issues. |
+| **L3** | Architecture, design, core routing protocols (OSPF, BGP), firewall policy design, and enterprise SD-WAN implementations. |
+
+> [!tip] Seedha Simple Mein
+> *Network devices hardware components hain jo data ko sahi direction mein bhejte hain. Hub sabko data bhejta hai, Switch specific computer ko bhejta hai, Router pure network ke beech traffic route karta hai, aur Firewall security check lagata hai.*
 
 ---
-## Technical Deep Dive
+## 💡 Real-World Analogy
+
+> [!info] Think of it like this...
+> **A Sorting Office** is like **Network Devices** because...
+> 
+> - A **Hub** is a blind worker who receives a letter, makes copies of it, and runs around screaming the message to everyone in the building.
+> - A **Switch** is a smart clerk who checks the name on the envelope, looks up their desk location in a registry (MAC Table), and walks the letter directly to that specific desk.
+> - A **Router** is the dispatcher who looks at the city and zip code (IP Address) and decides which delivery truck or airplane path is the fastest route to get the letter to a completely different office building.
+> - A **Firewall** is the security guard standing at the main entrance, checking credentials and only allowing approved visitors.
+
+---
+## 🔬 Technical Deep Dive
 
 ### 1. Hub (Layer 1 - Physical)
-- **Operation:** A passive multi-port repeater. It has no intelligence. When a frame enters one port, it electrical-copies the signal and floods it out of all other ports.
-- **Why deprecated:** 
-  - **Shared Bandwidth:** All ports share the same bandwidth.
-  - **Single Collision Domain:** Devices must use CSMA/CD to detect electrical collisions. Only one device can transmit at a time.
-  - **Security Risk:** Every device connected to the hub can inspect all traffic (using promiscuous mode).
 
-### 2. Bridge (Layer 2 - Data Link)
-- **Operation:** A software-based device used to split a large collision domain into two. It keeps a record of MAC addresses on each side of the link.
-- **Significance:** It solved the problem of excessive collisions in early coax-cable bus networks by filtering traffic: if Host A sends a frame to Host B on the same side of the bridge, the bridge blocks the frame from crossing to the other side.
+> [!info] Key Concept
+> A passive multi-port repeater. It has no intelligence. When a frame enters one port, it electrical-copies the signal and floods it out of all other ports.
 
-### 3. Switch (Layer 2 - Data Link)
-- **Operation:** A hardware-based multi-port bridge. It uses ASICs (Application-Specific Integrated Circuits) to forward frames in microsecond speeds.
+**Why deprecated:** 
+- **Shared Bandwidth:** All ports share the same bandwidth.
+- **Single Collision Domain:** Devices must use CSMA/CD to detect electrical collisions. Only one device can transmit at a time.
+- **Security Risk:** Every device connected to the hub can inspect all traffic (using promiscuous mode).
+
+### 2. Bridge & Switch (Layer 2 - Data Link)
+
+> [!info] Key Concept
+> A **Switch** is a hardware-based multi-port bridge that uses ASICs to forward frames in microsecond speeds based on MAC addresses.
+
 - **CAM (Content Addressable Memory) Table:** The switch learns the source MAC address of incoming frames and maps them to the physical port number.
 - **Forwarding Methods:**
-  - **Store-and-Forward:** Receives the entire frame, calculates the CRC checksum to verify integrity, then forwards. Safe but slowest.
-  - **Cut-Through:** Reads only the destination MAC address (first 14 bytes) and immediately starts forwarding. Lowest latency but forwards corrupted frames.
-  - **Fragment-Free:** Reads the first 64 bytes (the collision window) to ensure no collision has occurred, then forwards.
+  - **Store-and-Forward:** Receives the entire frame, calculates CRC checksum. Safe but slowest.
+  - **Cut-Through:** Reads only the destination MAC (first 14 bytes) and forwards. Lowest latency but forwards corrupted frames.
+  - **Fragment-Free:** Reads the first 64 bytes to ensure no collision occurred.
 
-### 4. Router (Layer 3 - Network)
-- **Operation:** Connects different networks (broadcast domains). Reads Layer 3 IP headers.
+> [!danger] Common Mistake
+> **Assuming a switch routes traffic between subnets:** Connecting two networks with different subnets to a Layer 2 switch and wondering why they cannot communicate. L2 switches only forward traffic based on MAC addresses within the same subnet. Use a Router or a Layer 3 Switch to perform routing between different IP subnets.
+
+### 3. Router & SD-WAN (Layer 3 - Network)
+
+> [!info] Key Concept
+> Connects different networks (broadcast domains) and reads Layer 3 IP headers to make forwarding decisions.
+
 - **Routing Table:** Matches destination IP networks to outbound interfaces or next-hop IP addresses.
-- **ASIC vs. CPU:** Route processing (determining the path) is handled in software/control plane; packet forwarding is offloaded to specialized hardware ASICs (data plane).
+- **ASIC vs. CPU:** Route processing (determining path) is handled in software (control plane); packet forwarding is offloaded to ASICs (data plane).
+- **SD-WAN Basics:** Decouples network control plane from physical hardware. Automatically routes business-critical traffic over the lowest latency links.
 
-### 5. Repeater & Access Point
-- **Repeater (L1):** Receives weak signals, cleans up electrical noise, amplifies, and retransmits.
-- **Wireless Access Point (WAP) (L2):** Acts as a bridge between wireless networks (802.11) and wired networks (802.3). Operates in modes like Root (standard WAP), Bridge (connecting two LANs), or Repeater (extending wireless range).
-  - **SSID (Service Set Identifier):** The logical name of the wireless network.
-  - **Channels:** Frequency segments (e.g., Channels 1, 6, 11 in 2.4GHz) selected to prevent overlapping signal interference.
+### 4. Firewall (Layer 3 - 7)
 
-### 6. Firewall (Layer 3 - 7)
-- **Stateless Firewall (Packet Filtering):** Inspects individual packets in isolation based on static rules (Source IP, Destination IP, Port, Protocol). Does not track connection state.
-- **Stateful Firewall:** Tracks the state of active TCP connections (using a state table). If an outbound connection is established (e.g., client requests a web page), return traffic is allowed automatically.
-- **Next-Generation Firewall (NGFW):** Inspects the actual application layer payload (deep packet inspection). Detects malware, prevents intrusions (IPS), and filters traffic based on user identities rather than just IP ports.
+> [!info] Key Concept
+> A security device that inspects and filters traffic based on predefined rules.
 
-### 7. Network Interface Card (NIC)
-- **Operation:** The physical controller connecting a device to network media. 
-- **MAC Address:** Burned into the ROM of the NIC.
-- **Duplex Modes:**
-  - **Half-Duplex:** Device can transmit or receive, but not both at the same time (like a walkie-talkie). Common in hubs.
-  - **Full-Duplex:** Device can transmit and receive simultaneously (like a telephone). Common in modern switches.
-  - **Auto-Negotiation:** NIC and switch port communicate to automatically select the highest matching speed (e.g., 1 Gbps) and duplex mode (Full-Duplex).
+- **Stateless Firewall:** Inspects individual packets based on static rules (IP, Port, Protocol).
+- **Stateful Firewall:** Tracks the state of active TCP connections, allowing return traffic automatically.
+- **Next-Generation (NGFW):** Inspects actual application layer payload (deep packet inspection). Detects malware and filters based on user identities.
+
+### 5. Wireless & Access Points
+
+> [!info] Key Concept
+> A Wireless Access Point (WAP) acts as a bridge between wireless networks (802.11) and wired networks (802.3).
+
+- **SSID:** The logical name of the wireless network.
+- **Channels:** Frequency segments selected to prevent overlapping signal interference.
+- **Enterprise Wi-Fi Troubleshooting:**
+  - **802.1X EAP Failure:** Verify certificate validation on RADIUS server.
+  - **Roaming Failure:** Adjust Minimum RSSI settings on APs or ensure 15-20% overlap.
+  - **RF Interference:** Run a channel survey; move to clean 5GHz/6GHz channels using 20/40MHz widths.
+
+### 6. Network Interface Card (NIC)
+
+> [!info] Key Concept
+> The physical controller connecting a device to network media, with a burned-in MAC address.
+
+- **Duplex Modes:** Half-Duplex (transmit or receive, not both simultaneously), Full-Duplex (transmit and receive simultaneously).
+- **Auto-Negotiation:** NIC and switch port automatically select highest matching speed and duplex mode.
 
 ---
-## Lab — Step by Step
-> [!info] Lab Setup Needed
-> Cisco Packet Tracer software installed on a workstation.
+## 🛠️ Step-by-Step Lab
+
+> [!warning] Pre-requisites
+> - Cisco Packet Tracer software installed on a workstation.
 
 ### Step 1: Set up the Topology
-1. Open Cisco Packet Tracer.
-2. Add the following devices to the canvas:
-   - 1x Generic Hub
-   - 1x Catalyst 2960 Switch
-   - 1x 1941 Router
-   - 3x PCs
-3. Connect PC0, PC1, and PC2 to ports 1, 2, and 3 on the **Hub**. Labeled this subnet `192.168.1.0/24`.
-4. Run another link from the Hub to the **Switch**.
-5. Connect the Switch to the Gig0/0 port on the **Router**.
+
+```bash
+# Devices needed in Cisco Packet Tracer:
+# 1x Generic Hub, 1x Catalyst 2960 Switch, 1x 1941 Router, 3x PCs
+```
+1. Connect PC0, PC1, and PC2 to ports 1, 2, and 3 on the **Hub**. Label this subnet `192.168.1.0/24`.
+2. Run another link from the Hub to the **Switch**.
+3. Connect the Switch to the Gig0/0 port on the **Router**.
 
 ### Step 2: Configure IP Addresses
+
 1. Click on **PC0** -> Desktop -> IP Configuration. Assign IP `192.168.1.10`, Mask `255.255.255.0`, Gateway `192.168.1.1`.
 2. Click on **PC1** -> Desktop -> IP Configuration. Assign IP `192.168.1.11`, Mask `255.255.255.0`, Gateway `192.168.1.1`.
 
 ### Step 3: Observe Packet Flow in Simulation Mode
-1. Switch to **Simulation Mode** (bottom right stopwatch icon).
-2. Click **Add Simple PDU** (the envelope icon). Click **PC0** (source) then click **PC1** (destination).
-3. Click the **Play** button.
-4. **Observe the Hub:** Watch the packet arrive at the Hub. The Hub copies the packet and broadcasts it to both PC2 and the Switch. PC2 discards the packet (since the IP doesn't match), and the Switch receives it.
-5. **Observe the Switch:** Now, send a packet from PC1 to PC0. The Switch checks its MAC table, realizes PC0 is located on the port leading back to the Hub, and forwards the packet *only* down that port, avoiding any other ports connected directly to the Switch.
+
+1. Switch to **Simulation Mode** (stopwatch icon).
+2. Click **Add Simple PDU** (envelope icon). Click **PC0** (source) then **PC1** (destination).
+3. Click **Play**.
+4. **Observe the Hub:** It copies the packet and broadcasts to PC2 and Switch. PC2 discards it.
+5. **Observe the Switch:** Send a packet from PC1 to PC0. Switch checks MAC table, forwards *only* down the port to the Hub.
+
+> [!success] Expected Output
+> ```
+> Packets successfully routed to specific destination via Switch, while Hub broadcasts to all ports.
+> ```
 
 ---
-## Commands Reference
-Operating system and switch command sequences for network device inspection:
+## ⌨️ Command Cheat Sheet
 
-```bash
-# Cisco IOS (Switch CLI)
-show mac address-table            # Display the switch's learned MAC-to-Port mappings
-clear mac address-table dynamic   # Flush the dynamic MAC table to force relearning
-show interfaces status            # Check port speeds, duplex configurations, and VLANs
-
-# Windows
-# Query details about the physical network interface cards (NICs)
-Get-NetAdapter | Select-Object Name, InterfaceDescription, MacAddress, LinkSpeed, Status
-netsh interface show interface    # Show state of local interfaces
-```
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `show mac address-table` | Display the switch's learned MAC-to-Port mappings | `show mac address-table` |
+| `clear mac address-table dynamic` | Flush the dynamic MAC table to force relearning | `clear mac address-table dynamic` |
+| `show interfaces status` | Check port speeds, duplex configurations, and VLANs | `show interfaces status` |
+| `Get-NetAdapter` | Query details about Windows physical NICs | `Get-NetAdapter \| Select-Object Name` |
+| `netsh interface show interface` | Show state of local Windows interfaces | `netsh interface show interface` |
+| `http.request.method == "POST" && http.response.code >= 400` | Wireshark: HTTP POST Request Error isolation | `http.request.method == "POST"` |
+| `tcp.analysis.retransmission \|\| tcp.analysis.duplicate_ack` | Wireshark: Isolate TCP Retransmissions (Packet Loss) | `tcp.analysis.retransmission` |
+| `dns.flags.response == 1 && dns.flags.rcode != 0` | Wireshark: DNS Server response failures check | `dns.flags.response == 1` |
 
 ---
-## Troubleshooting Scenarios
+## 🚑 Troubleshooting Guide
 
-**Scenario 1:**
-- **Problem:** Workstation users connected to a network segment complain of extremely slow speeds and frequent disconnections. Ping packet loss is high ($15\%-30\%$).
-- **Root Cause:** A duplex mismatch. The switch port is manually configured for Full-Duplex, while the workstation NIC is configured for Half-Duplex (or vice versa), causing collision errors.
-- **Fix:**
-  1. Check the switch port statistics. Look for high counts of **CRC errors**, **runts**, and **collisions**.
-  2. Access the switch CLI or workstation NIC settings.
-  3. Change the settings on both ends to **Auto-Negotiation**, or force both to **1000Mbps / Full-Duplex**.
-  4. Verify that interface collision errors stop increasing.
-
-**Scenario 2:**
-- **Problem:** A server cannot communicate with a database server located on a different VLAN/Subnet. Pinging the database returns "Request timed out".
-- **Root Cause:** Layer 3 routing configuration failure or firewall blocking the traffic.
-- **Fix:**
-  1. Run `tracert [Database_IP]` from the source server. Note where the path stops.
-  2. If the trace stops at the local default gateway, the router lacks a route to the destination network, or the firewall at the gateway is blocking the ports.
-  3. Log into the router. Run `show ip route` to check if a route exists.
-  4. If a route exists, check the stateful firewall logs between the zones to verify if traffic on the database port (e.g., TCP 1433 for SQL) is blocked by security policy rules.
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| Extremely slow speeds, frequent disconnects, high ping packet loss. | Duplex mismatch (one end Full-Duplex, other Half-Duplex). | Check switch port for CRC errors/collisions. Set both ends to Auto-Negotiation or force 1000Mbps/Full-Duplex. |
+| Server cannot communicate with a DB on different VLAN. Ping returns "Request timed out". | Layer 3 routing configuration failure or firewall blocking traffic. | Run `tracert`. Check router with `show ip route`. Verify stateful firewall logs to ensure port isn't blocked. |
 
 ---
-## Common Mistakes
-> [!warning] Avoid These
-> **Assuming a switch routes traffic between subnets:** Connecting two networks with different subnets (e.g., `192.168.1.0/24` and `10.0.0.0/24`) to a Layer 2 switch and wondering why they cannot communicate. L2 switches only forward traffic based on MAC addresses within the same subnet.
-> **Correct approach:** Use a Router or a Layer 3 Switch to perform routing between different IP subnets.
+## 🎫 Real-World Ticket Scenarios
+
+### 🎫 Scenario 1: Inter-VLAN Routing Failure
+
+> [!example] Ticket
+> "Database team reports that web servers in VLAN 10 cannot reach the SQL server in VLAN 20."
+
+**L1 Response:** Ping the SQL server from the web server. Check physical links and verify basic IP configuration on both servers.
+**Escalation Trigger:** Pass to L2 if ping fails and IP configuration is correct.
+**L2 Resolution:** Check the router or Layer 3 switch for correct inter-VLAN routing setup. Verify `show ip route` for both subnets. Check firewall logs to ensure port 1433 isn't blocked between zones.
+
+### 🎫 Scenario 2: Wi-Fi Dropouts
+
+> [!example] Ticket
+> "Users in the high-rise office complain of unstable Wi-Fi connections and constant dropouts."
+
+**L1 Response:** Verify the users' laptop Wi-Fi settings and check if the issue is isolated to one area or affecting everyone.
+**Escalation Trigger:** Pass to L2 if multiple users in the same area report issues.
+**L2 Resolution:** Use a Wi-Fi analyzer tool. Identify co-channel interference on 2.4 GHz. Reconfigure WAPs to use non-overlapping channels (1, 6, 11) or migrate users to the 5 GHz band.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When configuring ports on critical servers, always disable auto-negotiation and manually lock both the server NIC and the switch ports to their maximum supported speed and Full-Duplex. This prevents rare negotiation failures during server reboots that could drop a gigabit link down to 10Mbps half-duplex.
+## 🎤 Interview Questions
+
+> [!question] Q1: What is the difference between a Layer 2 Switch and a Layer 3 Switch?
+> **Answer:** A **Layer 2 Switch** forwards traffic based purely on physical MAC addresses. A **Layer 3 Switch** combines the speed of switch hardware (ASICs) with the routing capabilities of a router, performing Inter-VLAN routing at wire speed.
+
+==**Exam Tip:** Layer 3 switches use ASICs for fast routing, whereas traditional routers use software/CPU.==
+
+> [!question] Q2: Explain how a switch builds its MAC address table (CAM table).
+> **Answer:** It builds its CAM table dynamically by inspecting the **Source MAC Address** of incoming frames. If the Destination MAC is unknown, it performs "unknown unicast flooding." Once the destination responds, the switch records it.
+
+==**Exam Tip:** Switches learn from the SOURCE MAC address, not the destination!==
 
 ---
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Hub | Passive Layer 1 repeater; floods traffic to all ports, creating a single collision domain. |
-| 2 | Switch | Layer 2 device; uses a MAC address table to forward frames directly to target ports. |
-| 3 | Router | Layer 3 device; forwards packets between distinct networks based on IP routing tables. |
-| 4 | Stateful Firewall | Security device that tracks the state of TCP sessions, allowing reply traffic automatically. |
-| 5 | CAM Table | The switch's internal map linking physical ports to the MAC addresses of connected devices. |
+## 🔗 Related Notes
 
----
-## Interview Q&A
-
-**Q1: What is the difference between a Layer 2 Switch and a Layer 3 Switch?**
-A: A **Layer 2 Switch** forwards traffic based purely on physical MAC addresses (Data Link Layer). It cannot read IP headers or route traffic between different subnets. A **Layer 3 Switch** (also known as a Multilayer Switch) combines the speed of switch hardware (ASICs) with the routing capabilities of a router. It can read Layer 3 IP headers, configure routing protocols (like OSPF or static routes), and perform Inter-VLAN routing at wire speed using hardware routing tables.
-
-**Q2: A company's Wi-Fi network suffers from constant dropouts in a crowded high-rise office. You suspect co-channel interference. How do you resolve this?**
-A: 
-- **Situation:** The company's Wi-Fi is unstable in a high-density office area.
-- **Task:** Identify the frequency overlap and reconfigure channels to minimize interference.
-- **Action:** I will use a Wi-Fi analyzer tool to map the surrounding SSIDs and active channels. In the 2.4 GHz spectrum, only channels 1, 6, and 11 do not overlap. If nearby offices are using channels 2, 3, or 4, they create co-channel and adjacent-channel interference. I will configure the WAPs to use non-overlapping channels (1, 6, 11) or migrate users to the 5 GHz band, which has many more non-overlapping channels.
-- **Result:** Transitioning devices to 5 GHz and locking 2.4 GHz WAPs to clean, non-overlapping channels resolves the dropouts.
-
-**Q3: Explain how a switch builds its MAC address table (CAM table).**
-A: A switch builds its CAM table dynamically by inspecting the **Source MAC Address** of incoming frames. When Host A (MAC: `00aa.bbcc.ddee`) plugs into Port 1 and transmits its first frame, the switch reads the source field and registers `Port 1 -> 00aa.bbcc.ddee` in its table. If the Destination MAC in that frame is unknown (not yet in the table), the switch performs "unknown unicast flooding," copying the frame to all active ports except Port 1. When the destination host responds, the switch records its MAC address and port, ending the need to flood frames for that path.
-
----
-## Related Notes
 - [[01-Foundations/02-Networking/N-01 Networking Fundamentals|N-01 Networking Fundamentals]] — Overview of network topologies and the OSI model.
 - [[01-Foundations/02-Networking/N-03 Ethernet and MAC Address|N-03 Ethernet and MAC Address]] — Details on frames, MAC formats, and ARP.
 - [[01-Foundations/02-Networking/N-06 Switching — VLANs and Trunking|N-06 Switching — VLANs and Trunking]] — Dynamic switch configurations and VLAN design.
-
-
----
-
-### Enterprise Networking & Wireless Analysis
-
-#### 1. Wireshark Packet Capture Filtering
-Use these filters during packet capture analysis to isolate issues quickly:
-- **HTTP POST Request Error isolation**: `http.request.method == "POST" && http.response.code >= 400`
-- **Isolate TCP Retransmissions (Packet Loss)**: `tcp.analysis.retransmission || tcp.analysis.duplicate_ack`
-- **DNS Server response failures check**: `dns.flags.response == 1 && dns.flags.rcode != 0`
-- **Isolate host traffic (excluding noise)**: `ip.addr == 192.168.1.50 && !arp && !dns`
-
-#### 2. Wireless Troubleshooting (Enterprise Wi-Fi)
-- **802.1X EAP Authentication Failed**: Verify certificate validation settings on RADIUS server (NPS); check client identity store configuration.
-- **Roaming failure (sticky client)**: Adjust Minimum RSSI settings on wireless access points (APs) or check that both APs broadcast identical SSIDs with overlapping coverage ranges (15-20% overlap).
-- **RF Interference**: Run a channel survey; move corporate APs from saturated 2.4GHz bands to clean 5GHz/6GHz channels using 20MHz or 40MHz channel widths.
-
-#### 3. Software-Defined WAN (SD-WAN) Basics
-- **What it is**: SD-WAN decouples the network control plane from the physical hardware forwarding plane. It manages WAN links (MPLS, Broadband, LTE) dynamically.
-- **Why it matters**: It automatically routes business-critical traffic (like VoIP) over the lowest latency links while routing general web traffic over cheap broadband, using real-time link quality metrics (jitter, packet loss, latency).

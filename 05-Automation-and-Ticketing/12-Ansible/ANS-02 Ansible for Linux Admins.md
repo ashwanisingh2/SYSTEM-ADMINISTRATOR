@@ -19,12 +19,17 @@ cert-relevant: #rhcsa
 - **Why it matters for a support engineer** — Maintaining configuration drift on 100+ RHEL servers manually is impossible. Ansible ensures all servers maintain identical configurations, security policies, and package updates.
 - **Where you encounter this in real job** — Patching system kernels via DNF, automating local user account creation, deploying configurations via templates, and scheduling cron jobs.
 - **L1 vs L2 vs L3 responsibility split for this topic:**
-  - ****L1 Resolution:**** Checks target host reachability using `ansible -m ping`, reviews playbook results, and restarts failed system services.
-  - **Escalation Trigger:** Escalate to L2 if playbooks fail due to SSH permission denied issues, missing python dependencies, or playbook syntax failures.
-  - ****L2 Resolution:**** Configures SSH key-based access for Ansible, writes task playbooks, sets up cron schedules via Ansible, and encrypts secrets with `ansible-vault`.
-  - ****L3 Resolution:**** Writes custom ansible modules, architects highly reusable Ansible Roles, configures dynamic inventory for cloud VMs, and schedules multi-stage rollouts.
+  - **L1:** Checks target host reachability using `ansible -m ping`, reviews playbook results, and restarts failed system services.
+  - **L2:** Configures SSH key-based access for Ansible, writes task playbooks, sets up cron schedules via Ansible, and encrypts secrets with `ansible-vault`.
+  - **L3:** Writes custom ansible modules, architects highly reusable Ansible Roles, configures dynamic inventory for cloud VMs, and schedules multi-stage rollouts.
 
 *Seedha simple mein: Linux systems me Ansible SSH key-based connectivity ke through connect karta hai. Target nodes par python installed hona chahiye. Hum control node se commands run karke package installation (yum/dnf), files copying, user accounts aur cron jobs automate kar sakte hain.*
+
+---
+## Real-World Analogy
+
+> [!tip] Think of it like this...
+> Think of Ansible like a school principal's circular system. The principal (control node) writes one circular (playbook) and sends it to all class teachers (managed nodes) through the school peon (SSH). Each teacher reads the circular and follows the instructions exactly — arrange desks, update attendance register, change display boards. The principal doesn't need to visit each classroom (agentless). If a teacher is absent (node unreachable), the principal gets a report (error log). The peon just needs a key to each classroom door (SSH key) — no special training needed (no agent installation).
 
 ---
 

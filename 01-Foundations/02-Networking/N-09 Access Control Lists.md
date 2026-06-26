@@ -1,28 +1,57 @@
 ---
 tags: [sysadmin, networking, security, acl]
-difficulty: Advanced
-lab-required: Yes
-read-time: 15 mins
+aliases: [N-09]
+created: 2026-06-26
+status: #complete
+difficulty: #advanced
+cert-relevant: #ccna
 ---
+
+> [!NOTE|color-yellow]
+> 🌐 **NETWORKING**
+
+`#complete` `#advanced` `#ccna`
 
 # N-09: Access Control Lists (ACL)
 
 > [!abstract] Overview
-> This note covers Layer 3/4 security filtering using Access Control Lists (ACLs). It details standard, extended, and named ACL configurations, placement rules, wildcard masking, and verification commands.
+> Yeh note Layer 3/4 security filtering using Access Control Lists (ACLs) cover karta hai. Yeh standard, extended, aur named ACL configurations, placement rules, wildcard masking, aur verification commands detail karta hai. Ek support engineer ko yeh aana chahiye taaki wo network traffic properly control aur troubleshoot kar sake.
 
 ---
-## Concept
-Think of an Access Control List (ACL) as a guest list managed by a nightclub bouncer (the Router) standing at the door. 
-- A **Standard ACL** is a simple rule: "If you are from Sector A (Source IP), you are not allowed in." The bouncer doesn't care where you are going or what you are wearing.
-- An **Extended ACL** is a detailed rule: "If you are from Sector A (Source IP) AND you want to go to the VIP Lounge (Destination IP) AND you are wearing casual clothes (Port 80/HTTP), you are denied. But if you want to go to the Dance Floor (VLAN 10) wearing formal clothes (Port 443/HTTPS), you are allowed."
-- The **Implicit Deny** is the rule that if your name is not explicitly written on the list, the bouncer denies entry by default.
+## 🧠 Concept Overview
 
-*Seedha simple mein: ACL router par traffic filtering ke liye rules ki list hoti hai. Standard ACL sirf Source IP check karta hai. Extended ACL Source, Destination, Port, aur Protocol sab check karta hai. Har ACL ke aakhri mein ek hidden 'Deny All' rule hota hai.*
+- **What it is** — Access Control Lists (ACLs) are a set of rules defined on a router to filter incoming or outgoing network traffic based on parameters like IP addresses, protocols, and port numbers.
+- **Why it matters** — They are the fundamental building blocks of network security, preventing unauthorized access and controlling traffic flow to conserve bandwidth.
+- **Where you see this** — Configuring firewalls, securing router interfaces, restricting remote management access (SSH/Telnet), and protecting servers in data centers.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Basic task — Check if ACLs are applied to an interface using show commands. |
+| **L2** | Configure basic standard/extended ACLs, fix sequence number issues, edit named ACLs. |
+| **L3** | Architecture, design enterprise-wide access policies, automate ACL deployment, complex troubleshooting. |
+
+> [!tip] Seedha Simple Mein
+> *ACL router par traffic filtering ke liye rules ki list hoti hai. Standard ACL sirf Source IP check karta hai. Extended ACL Source, Destination, Port, aur Protocol sab check karta hai. Har ACL ke aakhri mein ek hidden 'Deny All' rule hota hai.*
 
 ---
-## Technical Deep Dive
+## 💡 Real-World Analogy
+
+> [!info] Think of it like this...
+> **An ACL** is like **a guest list managed by a nightclub bouncer** because...
+>
+> - **Standard ACL:** "If you are from Sector A, you are not allowed in." The bouncer doesn't care where you are going or what you are wearing.
+> - **Extended ACL:** "If you are from Sector A AND you want to go to the VIP Lounge AND you are wearing casual clothes, you are denied."
+> - **Implicit Deny:** If your name is not explicitly written on the list, the bouncer denies entry by default.
+
+---
+## 🔬 Technical Deep Dive
 
 ### 1. ACL Classifications
+
+> [!info] Key Concept
+> Standard ACLs filter solely on source IP. Extended ACLs filter on source, destination, protocol, and port. Named ACLs allow descriptive names and easy editing.
 
 - **Standard ACLs (Numbered 1-99 & 1300-1999):**
   - Inspects **Source IP Address** only.
@@ -40,8 +69,6 @@ Wildcard masks are used in OSPF and ACLs to define IP match boundaries.
 - **Calculation Formula:** $\text{Wildcard Mask} = 255.255.255.255 - \text{Subnet Mask}$.
   - *Example 1:* For Subnet `255.255.255.0` (/24):
     $255.255.255.255 - 255.255.255.0 = \mathbf{0.0.0.255}$ (Match first three octets, ignore the last).
-  - *Example 2:* For Subnet `255.255.255.224` (/27):
-    $255.255.255.255 - 255.255.255.224 = \mathbf{0.0.0.31}$.
 
 ### 3. ACL Placement Rules
 - **Rule for Standard ACLs:** Place **as close to the destination as possible**. Because standard ACLs only check the source IP, placing it close to the source would block the sender from accessing *all* networks connected to the router, rather than just the target network.
@@ -50,198 +77,87 @@ Wildcard masks are used in OSPF and ACLs to define IP match boundaries.
 ### 4. Processing Order & The Implicit Deny
 - ACLs are processed sequentially from top to bottom.
 - When a packet matches a rule, the permit or deny action is taken, and processing stops. No subsequent lines are read.
-- **THE GOLDEN RULE:** At the end of every ACL, there is an invisible, silent **`deny any`** statement. If a packet does not match any permit rules, it is dropped by default. Therefore, every ACL must contain at least one `permit` statement to function.
 
----
-## Cisco IOS Configuration Commands
-
-### Numbered Standard ACL Configuration
-Blocks host `192.168.10.5` from accessing the LAN connected to interface `Gi0/1`.
-```text
-Router(config)# access-list 10 deny host 192.168.10.5           ! (Block single host)
-Router(config)# access-list 10 permit any                       ! (Allow all other traffic - overrides Implicit Deny)
-Router(config)# interface gigabitethernet 0/1
-Router(config-if)# ip access-group 10 out                       ! (Apply outbound to interface)
-```
-
-### Numbered Extended ACL Configuration
-Permits VLAN 10 (`192.168.10.0/24`) to access Web Server `10.0.0.50` on port 443, but blocks all other traffic.
-```text
-Router(config)# access-list 101 permit tcp 192.168.10.0 0.0.0.255 host 10.0.0.50 eq 443
-Router(config)# access-list 101 deny ip any any                 ! (Explicitly write deny for logging/readability)
-Router(config)# interface gigabitethernet 0/0                   ! (Interface closest to VLAN 10 source)
-Router(config-if)# ip access-group 101 in                       ! (Apply inbound to interface)
-```
-
-### Named Extended ACL Configuration (Editing Lines)
-```text
-Router(config)# ip access-list extended SECURE_ACCESS
-Router(config-ext-nacl)# 10 permit tcp 192.168.1.0 0.0.0.255 host 10.0.0.10 eq 80
-Router(config-ext-nacl)# 20 permit tcp 192.168.1.0 0.0.0.255 host 10.0.0.10 eq 443
-Router(config-ext-nacl)# exit
-```
-- *To insert a line between 10 and 20:*
-  ```text
-  Router(config)# ip access-list extended SECURE_ACCESS
-  Router(config-ext-nacl)# 15 permit tcp 192.168.1.0 0.0.0.255 host 10.0.0.10 eq 22
-  ```
-- *To delete a single line:*
-  ```text
-  Router(config-ext-nacl)# no 10
-  ```
-
----
-## Lab — Step by Step
-> [!info] Lab Setup Needed
-> Cisco Packet Tracer with 1x 1941 Router, 1x Switch, and 3x PCs.
-
-### Step 1: Topology Configuration
-1. Connect PC0 and PC1 to Switch. Labeled Subnet: `192.168.1.0/24`.
-   - PC0: `192.168.1.10`, Gateway: `192.168.1.1`
-   - PC1: `192.168.1.20`, Gateway: `192.168.1.1`
-2. Connect Switch Gi0/1 to Router Gi0/0.
-3. Connect Router Gi0/1 to PC2 (Simulating Web Server).
-   - Server PC2: `10.0.0.50`, Gateway: `10.0.0.1`
-
-### Step 2: Configure Router Interfaces
-1. Enter CLI on Router:
-   ```text
-   en
-   conf t
-   interface gi0/0
-   ip address 192.168.1.1 255.255.255.0
-   no shut
-   interface gi0/1
-   ip address 10.0.0.1 255.255.255.0
-   no shut
-   ```
-
-### Step 3: Configure Extended ACL to Block PC0 but Permit PC1
-Goal: Block PC0 from pinging Web Server PC2, but allow PC1 to ping.
-1. Create Extended ACL on Router:
-   ```text
-   R1(config)# ip access-list extended FILTER_ICMP
-   R1(config-ext-nacl)# 10 deny icmp host 192.168.1.10 host 10.0.0.50
-   R1(config-ext-nacl)# 20 permit ip any any
-   R1(config-ext-nacl)# exit
-   ```
-2. Apply the ACL inbound to the interface closest to the source (Gi0/0):
-   ```text
-   R1(config)# interface gi0/0
-   R1(config-if)# ip access-group FILTER_ICMP in
-   ```
-
-### Step 4: Verify
-1. Ping from PC0 (`192.168.1.10`) to Server (`10.0.0.50`).
-   - **Verify:** The ping should return **Destination Host Unreachable**.
-2. Ping from PC1 (`192.168.1.20`) to Server (`10.0.0.50`).
-   - **Verify:** The ping should succeed.
-3. Run verification command on Router:
-   ```text
-   R1# show ip access-lists
-   ```
-   Confirm that the deny match count has increased.
-
----
-## Commands Reference
-Advanced content only — basics in [[Basic networking commands]]
-
-Show access rules and active filters:
-
-```text
-# Cisco IOS commands
-show ip access-lists              ! View all configured ACLs and match counters
-show ip interface gi0/0           ! Check which access-list is active (inbound/outbound) on the interface
-```
-
----
-## Troubleshooting Scenarios
-
-**Scenario 1:**
-- **Problem:** After configuring a new ACL to block security threats, users report they have completely lost connection to local fileservers and the Internet.
-- **Root Cause:** The ACL lacks a permit statement, triggering the default invisible `deny any` at the bottom of the list.
-- **Fix:**
-  1. Inspect the configuration: `show ip access-lists`.
-  2. Verify if the list only contains `deny` statements.
-  3. Append a permit statement to the bottom of the list:
-     ```text
-     Router(config)# ip access-list extended [NAME]
-     Router(config-ext-nacl)# permit ip any any
-     ```
-
-**Scenario 2:**
-- **Problem:** An extended ACL is configured to permit HTTP traffic (`port 80`) to a server, but deny all other protocols. When users try to browse to the site, it fails to load, but pinging the server works.
-- **Root Cause:** Incorrect order of rules. A broad `deny ip any any` or `deny host` rule was placed *above* the specific `permit tcp port 80` rule. The router hits the deny rule first and discards the packet.
-- **Fix:**
-  1. Inspect the sequence numbers: `show ip access-lists`.
-  2. Locate the sequence order (e.g., Line 10: Deny, Line 20: Permit).
-  3. Delete the offending deny rule, insert it below the permit rule:
-     ```text
-     Router(config)# ip access-list extended FILTER_TRAFFIC
-     Router(config-ext-nacl)# no 10
-     Router(config-ext-nacl)# 30 deny ip any host 10.0.0.50
-     ```
-
----
-## Common Mistakes
-> [!warning] Avoid These
+> [!danger] Common Mistake
 > **Applying an ACL in the wrong direction:** Applying an inbound ACL on an interface outbound (or vice-versa). For example, applying `ip access-group 10 in` on an interface where traffic is leaving the router. The filter will never inspect the packets, allowing unauthorized traffic to pass.
 > **Correct approach:** Map the traffic flow direction from the router's perspective. Inbound is traffic entering the router; outbound is traffic exiting the router interface.
 
 ---
-## Pro Tips
-> [!tip] Field Experience
-> When configuring ACLs on remote production routers over SSH, always configure a reload timer before applying changes (e.g., `reload in 10`). If you make a mistake and lock yourself out by blocking SSH traffic (port 22), the router will automatically reboot to its saved config after 10 minutes, saving you from a physical trip to the site. If the config works, cancel the reload: `reload cancel`.
+## 🛠️ Step-by-Step Lab
+
+> [!warning] Pre-requisites
+> - Cisco Packet Tracer with 1x 1941 Router, 1x Switch, and 3x PCs.
+> - Topology Setup: PC0 (`192.168.1.10`) & PC1 (`192.168.1.20`) on Switch (Gi0/1) connected to Router Gi0/0 (`192.168.1.1`). Web Server PC2 (`10.0.0.50`) connected to Router Gi0/1 (`10.0.0.1`).
+
+### Step 1: Configure Extended ACL to Block PC0 but Permit PC1
+
+```bash
+# Enter config mode and create Extended ACL
+R1(config)# ip access-list extended FILTER_ICMP
+# Deny PC0 from pinging Web Server
+R1(config-ext-nacl)# 10 deny icmp host 192.168.1.10 host 10.0.0.50
+# Permit all other IP traffic (overrides Implicit Deny)
+R1(config-ext-nacl)# 20 permit ip any any
+R1(config-ext-nacl)# exit
+```
+
+### Step 2: Apply the ACL to Interface
+
+```bash
+# Apply inbound to the interface closest to the source (Gi0/0)
+R1(config)# interface gi0/0
+R1(config-if)# ip access-group FILTER_ICMP in
+```
+
+> [!success] Expected Output
+> ```
+> Ping from PC0 (192.168.1.10) to Server (10.0.0.50) returns Destination Host Unreachable.
+> Ping from PC1 (192.168.1.20) to Server (10.0.0.50) succeeds.
+> R1# show ip access-lists shows incremented matches on the deny statement.
+> ```
 
 ---
-## Quick Revision Table
-| # | Concept | One Line Summary |
-|---|---------|-----------------|
-| 1 | Standard ACL | Filters source IP only; should be placed as close to the destination as possible. |
-| 2 | Extended ACL | Filters source, destination, port, and protocol; place close to the source. |
-| 3 | Wildcard Mask | Inverse subnet mask; binary 0 means match, 1 means ignore/don't care. |
-| 4 | Implicit Deny | The silent default rule at the bottom of every ACL that drops all non-matched traffic. |
-| 5 | Named ACL | Modern ACL style allowing easy line insertion/deletion via sequence numbers. |
+## ⌨️ Command Cheat Sheet
+
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `access-list [num] [permit/deny] [source]` | Creates a numbered standard ACL | `access-list 10 deny host 192.168.1.5` |
+| `ip access-list extended [NAME]` | Creates a named extended ACL | `ip access-list extended SECURE_ACCESS` |
+| `ip access-group [num/name] [in/out]` | Applies an ACL to an interface | `ip access-group 10 out` |
+| `show ip access-lists` | View all configured ACLs and match counters | `show ip access-lists` |
+| `show ip interface [int]` | Check which access-list is active on the interface | `show ip interface gi0/0` |
 
 ---
-## Interview Q&A
+## 🚑 Troubleshooting Guide
 
-**Q1: What is the difference between a Standard ACL and an Extended ACL?**
-A: A **Standard ACL** only inspects the source IP address of packets. It cannot check the destination network, transport layer protocol (TCP/UDP), or port numbers. It is configured using numbers 1-99. An **Extended ACL** inspects the source IP, destination IP, protocol (IP, TCP, UDP, ICMP), and source/destination port numbers. It is configured using numbers 100-199 and allows fine-grained security filtering (e.g., blocking only SSH but permitting HTTPS).
-
-**Q2: A technician wants to block all hosts in the subnet 192.168.10.0/28 from accessing a specific server. Calculate the Wildcard Mask and write the Cisco command.**
-A: 
-- **Situation:** A `/28` subnet needs to be blocked from accessing a host.
-- **Task:** Calculate the wildcard mask and write the extended ACL command.
-- **Action:** First, I convert the `/28` mask to decimal: `255.255.255.240`. Second, I calculate the wildcard mask: $255.255.255.255 - 255.255.255.240 = \mathbf{0.0.0.15}$. Third, I write the extended ACL statement.
-- **Result:** The command is: `access-list 101 deny ip 192.168.10.0 0.0.0.15 host [Server_IP]`.
-
-**Q3: Explain how the router processes ACLs and what happens if a packet matches line 15 of a 50-line list.**
-A: The router processes ACLs sequentially from top to bottom. It compares the packet headers against the conditions of each line in order of sequence numbers. The moment a packet matches the criteria of a line (e.g., Line 15), the router immediately executes the defined action (permit or deny) and stops processing. It does not read any of the remaining 35 lines. If no match is found across all 50 lines, the packet is discarded by the implicit deny rule.
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| Users lost all connection after new ACL | The ACL lacks a permit statement, triggering the default invisible `deny any` at the bottom. | Append a `permit ip any any` statement to the bottom of the list. |
+| Specific permit rule not working, traffic dropped | Incorrect order of rules. A broad deny rule was placed *above* the specific permit rule. | Delete the offending deny rule, insert it below the permit rule using sequence numbers. |
 
 ---
-## Related Notes
+## 🎫 Real-World Ticket Scenarios
+
+### 🎫 Scenario 1: Network Access Blocked
+
+> [!example] Ticket
+> "I can't access the internet or local fileservers after the security team updated the firewall rules."
+
+**L1 Response:** Verify connection, run `show ip interface` to identify applied ACLs, and use `show ip access-lists` to check drop counters.
+**Escalation Trigger:** The ACL is configured but there is no explicit permit statement allowing regular user traffic, and it's hitting the implicit deny.
+**L2 Resolution:** Review the ACL requirements, and add the necessary permit statement (e.g., `permit ip 192.168.1.0 0.0.0.255 any`) before the implicit deny.
+
+---
+## 🎤 Interview Questions
+
+> [!question] Q1: What is the difference between a Standard ACL and an Extended ACL?
+> **Answer:** A **Standard ACL** only inspects the source IP address of packets. It is configured using numbers 1-99. An **Extended ACL** inspects the source IP, destination IP, protocol (IP, TCP, UDP, ICMP), and source/destination port numbers. It is configured using numbers 100-199 and allows fine-grained security filtering.
+
+==**Exam Tip:** Standard ACLs are placed as close to the destination as possible, whereas Extended ACLs are placed as close to the source as possible.==
+
+---
+## 🔗 Related Notes
+
 - [[01-Foundations/02-Networking/N-04 IPv4 Addressing Complete Guide|N-04 IPv4 Addressing Complete Guide]] — Subnets and wildcard calculations.
 - [[01-Foundations/02-Networking/N-07 Routing — Static and Dynamic|N-07 Routing — Static and Dynamic]] — Routing configuration filters.
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — Interface security helpers.
-
-
----
-
-### Enterprise Networking & Wireless Analysis
-
-#### 1. Wireshark Packet Capture Filtering
-Use these filters during packet capture analysis to isolate issues quickly:
-- **HTTP POST Request Error isolation**: `http.request.method == "POST" && http.response.code >= 400`
-- **Isolate TCP Retransmissions (Packet Loss)**: `tcp.analysis.retransmission || tcp.analysis.duplicate_ack`
-- **DNS Server response failures check**: `dns.flags.response == 1 && dns.flags.rcode != 0`
-- **Isolate host traffic (excluding noise)**: `ip.addr == 192.168.1.50 && !arp && !dns`
-
-#### 2. Wireless Troubleshooting (Enterprise Wi-Fi)
-- **802.1X EAP Authentication Failed**: Verify certificate validation settings on RADIUS server (NPS); check client identity store configuration.
-- **Roaming failure (sticky client)**: Adjust Minimum RSSI settings on wireless access points (APs) or check that both APs broadcast identical SSIDs with overlapping coverage ranges (15-20% overlap).
-- **RF Interference**: Run a channel survey; move corporate APs from saturated 2.4GHz bands to clean 5GHz/6GHz channels using 20MHz or 40MHz channel widths.
-
-#### 3. Software-Defined WAN (SD-WAN) Basics
-- **What it is**: SD-WAN decouples the network control plane from the physical hardware forwarding plane. It manages WAN links (MPLS, Broadband, LTE) dynamically.
-- **Why it matters**: It automatically routes business-critical traffic (like VoIP) over the lowest latency links while routing general web traffic over cheap broadband, using real-time link quality metrics (jitter, packet loss, latency).
