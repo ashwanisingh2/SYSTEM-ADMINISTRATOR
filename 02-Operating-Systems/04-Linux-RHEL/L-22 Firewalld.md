@@ -1,7 +1,7 @@
 ---
-tags: [desktop-support, linux, rhel, L2, firewall, network-security]
-aliases: [firewalld]
-created: 2026-06-25
+tags: [linux, rhel, firewalld, security, networking]
+aliases: [firewalld-config, linux-firewall]
+created: 2026-06-26
 status: #complete
 difficulty: #intermediate
 cert-relevant: #rhcsa
@@ -15,203 +15,236 @@ cert-relevant: #rhcsa
 # L-22: Firewalld
 
 > [!abstract] Overview
-> Firewalld is the standard dynamic firewall manager daemon on Red Hat Enterprise Linux (RHEL). It provides a stateful packet filtering firewall using Zones to classify network interface trust levels, allowing rules to be updated without dropping active connections. Ek support engineer ko yeh jaanna zaroori hai kyunki server ki local firewall sabse primary defense hoti hai ports open ya malicious traffic ko block karne ke liye.
+> Firewalld is the default firewall management tool in RHEL-based systems. It acts as a frontend for nftables/iptables, providing dynamic firewall management with support for network zones. *Yeh note network traffic control, zones aur port management cover karta hai.* Ek system admin ko firewalld zaroor aana chahiye kyunki server security aur access control isike through manage hota hai.
 
 ---
 ## 🧠 Concept Overview
 
-- **What it is** — Firewalld is a dynamic firewall manager daemon standard on RHEL systems that provides stateful packet filtering using Zones.
-- **Why it matters** — A server's local firewall is its primary defense. Support engineers open network ports for newly deployed services, restrict administrative access to trusted management IP subnets, and block malicious scanning traffic in real-time.
-- **Where you see this** — Opening port `80/443` for web servers, blocking brute-force SSH attacks, checking active firewall rules, and assigning network interfaces to zones.
+- **What it is** — Firewalld is a dynamic firewall manager for Linux operating systems. It uses "zones" and "services" rather than complex iptables chains and rules.
+- **Why it matters** — Server pe kaunsa traffic allowed hai aur kaunsa blocked, yeh firewalld decide karta hai. Bina iske, aapka server open to internet (unsecured) ho sakta hai.
+- **Where you see this** — Web server (port 80/443) ya SSH (port 22) access allow karte waqt, database access restrict karte waqt.
 
 **L1 / L2 / L3 Split:**
 
 | 👨‍💻 Level | 📋 Responsibility |
 |---------|-----------------|
-| **L1** | Checks firewall status (`systemctl status firewalld`), lists active rules (`firewall-cmd --list-all`), and verifies port availability. |
-| **L2** | Configures zone bindings, opens permanent TCP/UDP ports, permits pre-configured system services, and reloads firewall daemons. |
-| **L3** | Designs complex packet routing schemes, writes rich rules for custom network logging/rate-limiting, configures IP masquerading (NAT), and troubleshoots panic mode lockouts. |
+| **L1** | Status check karna, basic ports allow/block karna, rules list karna. |
+| **L2** | Custom zones create karna, rich rules likhna, port forwarding setup karna. |
+| **L3** | Enterprise firewall architecture design, complex NAT rules, integration with IDPS. |
 
 > [!tip] Seedha Simple Mein
-> *Seedha simple mein: Firewalld aapke Linux server ka security guard hai. Yeh dekhta hai ki kaunsa traffic andar aa sakta hai aur kaunsa bahar jaa sakta hai, zones aur ports ke rules ke hisaab se.*
+> *Firewalld ek security guard ki tarah hai jo server (building) ke alag-alag gates (ports) par khada hai. Woh decide karta hai ki kaun andar aayega (allow) aur kaun bahar jayega (block).*
 
 ---
 ## 💡 Real-World Analogy
 
 > [!info] Think of it like this...
-> **Firewalld** is like a **Building Security System** because...
+> **Firewalld Zones** is like **Airport Security Zones** because...
 >
-> - **Zones** are like different security checkpoints (Public lobby vs. Employee-only areas).
-> - **Ports/Services** are like ID badges allowing access to specific rooms (HTTP/80 is the public cafeteria, SSH/22 is the server room).
-> - **Rich Rules** are like the VIP or Banned lists (Allowing only the CEO's IP, or dropping a known hacker's IP).
+> - **Public Zone:** Airport ka entry gate jahan har koi aa sakta hai (only specific services allowed like HTTP).
+> - **Drop Zone:** Security check jahan unauthorized log bina soche bahar nikal diye jaate hain (all incoming traffic dropped).
+> - **Trusted Zone:** VIP lounge jahan sab allow hai bina checking ke (all traffic from trusted IPs allowed).
+> - **Internal Zone:** Staff-only area jahan strictly defined rules hote hain.
 
 ---
 ## 🔬 Technical Deep Dive
 
-### 1. The Concept of Firewall Zones
+### 1. Firewalld vs Iptables
 
 > [!info] Key Concept
-> Firewalld organizes network traffic filtering using **Zones** based on the level of trust assigned to network interfaces.
+> Firewalld is dynamic. It applies changes immediately without restarting the firewall service or dropping active connections, unlike old `iptables` scripts.
 
-- **`public`**: (Default) For untrusted networks. Allows only selected inbound connections (e.g., SSH).
-- **`external`**: For external routers. Used when masquerading (NAT) is enabled to protect internal networks.
-- **`dmz`**: For isolated demilitarized zone servers with limited access to internal networks.
-- **`work` / `home` / `internal`**: For trusted local networks, permitting more standard services.
+Firewalld uses two configuration sets:
+1. **Runtime Configuration:** Jo currently memory mein active hai. Reboot ya service restart pe flush ho jaati hai.
+2. **Permanent Configuration:** Jo disk pe save hoti hai. Next reboot ya reload par apply hoti hai.
 
-> [!danger] Common Mistake
-> Assigning interfaces to the `trusted` zone. **WARNING**: All network packets are accepted. Use only for internal loopbacks or isolated testing switches. Never use this to bypass firewall issues quickly.
-
-### 2. Runtime vs. Permanent Configuration
-
-> [!info] Key Concept
-> Changes in firewalld can be temporary (Runtime) or permanent.
-
-- **Runtime Configuration**: Changes take effect immediately but **are lost** when the firewalld service is reloaded, restarted, or the server reboots. Great for temporary rule testing.
-- **Permanent Configuration**: Changes are written to XML configuration files on disk. They **do not apply** immediately, but survive restarts. To activate permanent rules, you must run `firewall-cmd --reload`.
+*Hamesha yaad rakho ki agar aap permanent rule add kar rahe ho, toh usko active karne ke liye `firewall-cmd --reload` chalana padta hai.*
 
 > [!danger] Common Mistake
-> Forgetting to run `--reload` after a permanent change. Always run `firewall-cmd --reload` to copy disk configuration changes into active memory.
+> Admin rule add kar dete hain but `--permanent` flag bhool jaate hain. Agle din server reboot hota hai aur rules gayab! Ya fir `--permanent` lagate hain par `--reload` bhool jaate hain, jisse rule turant apply nahi hota.
+
+### 2. Zones in Firewalld
+
+Zones define the trust level of network connections or interfaces.
+
+- **drop:** Any incoming network packets are dropped, there is no reply. Only outgoing network connections are possible.
+- **block:** Incoming network connections are rejected with an icmp-host-prohibited message.
+- **public:** Represents public, untrusted networks. You don't trust other computers but may allow selected incoming connections on a case-by-case basis. (Default zone)
+- **trusted:** All network connections are accepted.
 
 ### 3. Rich Rules
 
-> [!info] Key Concept
-> Rich Rules provide fine-grained, advanced access controls.
-
-While standard rules open a port to everyone, Rich Rules allow you to define combinations of source IP addresses, destination ports, logging, and actions.
-*Example Syntax*: `rule family="ipv4" source address="192.168.1.100" port port="22" protocol="tcp" accept`
+Rich rules allow you to create more complex firewall rules in a very expressive way. You can log, audit, accept, drop, or reject traffic based on various conditions.
 
 ---
 ## 🛠️ Step-by-Step Lab
 
 > [!warning] Pre-requisites
-> - A RHEL VM
-> - Root or sudo access
+> - RHEL/CentOS 8/9 system
+> - Root privileges (`sudo`)
+> - Network interface (e.g., `eth0` or `ens160`)
 
-### Step 1: View active zones and configuration
+### Step 1: Install and Enable Firewalld
 
 ```bash
-# View active zones and configuration
-firewall-cmd --get-active-zones
+# Verify if installed, install if not
+sudo dnf install firewalld -y
+
+# Start the service
+sudo systemctl start firewalld
+
+# Enable it to start on boot
+sudo systemctl enable firewalld
 ```
 
 > [!success] Expected Output
 > ```
-> public
->   interfaces: eth0
+> Created symlink /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service → /usr/lib/systemd/system/firewalld.service.
+> Created symlink /etc/systemd/system/multi-user.target.wants/firewalld.service → /usr/lib/systemd/system/firewalld.service.
 > ```
 
-### Step 2: Create a new custom zone named `secureapp`
+### Step 2: Check Firewall Status and Zones
 
 ```bash
-# Create a new custom zone named secureapp and reload
-firewall-cmd --permanent --new-zone=secureapp
-firewall-cmd --reload
+# Check if running
+sudo firewall-cmd --state
+
+# Get the default zone
+sudo firewall-cmd --get-default-zone
+
+# List everything in the default zone
+sudo firewall-cmd --list-all
 ```
 
-### Step 3: Add the `http` service and TCP port `9000` permanently to the new zone
+### Step 3: Allowing a Service (e.g., HTTP)
 
 ```bash
-# Add the http service and TCP port 9000 permanently to the new zone
-firewall-cmd --permanent --zone=secureapp --add-service=http
-firewall-cmd --permanent --zone=secureapp --add-port=9000/tcp
+# Add HTTP service permanently
+sudo firewall-cmd --zone=public --add-service=http --permanent
+
+# Reload to apply the permanent configuration
+sudo firewall-cmd --reload
+
+# Verify
+sudo firewall-cmd --zone=public --list-services
 ```
 
-### Step 4: Add a rich rule to the `secureapp` zone allowing SSH ONLY from a lab IP (`192.168.50.10`) permanently
+### Step 4: Port Forwarding (NAT)
+
+*Hum port 8080 ka traffic port 80 pe redirect karenge.*
 
 ```bash
-# Add a rich rule to the secureapp zone allowing SSH ONLY from a lab IP
-firewall-cmd --permanent --zone=secureapp --add-rich-rule='rule family="ipv4" source address="192.168.50.10" service name="ssh" accept'
+# Enable masquerading (required for port forwarding)
+sudo firewall-cmd --zone=public --add-masquerade --permanent
+
+# Add forward port rule
+sudo firewall-cmd --zone=public --add-forward-port=port=8080:proto=tcp:toport=80 --permanent
+
+sudo firewall-cmd --reload
 ```
 
-### Step 5: Reload the firewall to apply changes and Verify
+### Step 5: Adding a Rich Rule
+
+*Sirf ek specific IP (192.168.1.100) ko SSH (port 22) allow karna hai, baaki sabko block karna hai.*
 
 ```bash
-# Reload the firewall to apply changes
-firewall-cmd --reload
-
-# Verification: List the configuration of the custom zone
-firewall-cmd --zone=secureapp --list-all
+sudo firewall-cmd --zone=public --add-rich-rule='rule family="ipv4" source address="192.168.1.100" port port="22" protocol="tcp" accept' --permanent
+sudo firewall-cmd --reload
 ```
-
-> [!success] Expected Output
-> ```
-> secureapp
->   target: default
->   icmp-block-inversion: no
->   interfaces: 
->   sources: 
->   services: http
->   ports: 9000/tcp
->   protocols: 
->   forward: no
->   masquerade: no
->   forward-ports: 
->   source-ports: 
->   icmp-blocks: 
->   rich rules: 
->         rule family="ipv4" source address="192.168.50.10" service name="ssh" accept
-> ```
 
 ---
 ## ⌨️ Command Cheat Sheet
 
 | ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
 |-----------|-----------------|-----------|
-| `firewall-cmd --state` | Check if firewalld is active and running | `firewall-cmd --state` |
-| `firewall-cmd --list-all` | List all active configurations for the default zone | `firewall-cmd --list-all` |
-| `firewall-cmd --set-default-zone` | Change the default zone | `firewall-cmd --set-default-zone=work` |
-| `firewall-cmd --add-service` | Add a service temporarily (Runtime only) | `firewall-cmd --add-service=http` |
-| `firewall-cmd --permanent --add-port` | Add a port permanently | `firewall-cmd --permanent --add-port=8080/tcp` |
-| `firewall-cmd --reload` | Reload the firewall to apply all permanent configurations | `firewall-cmd --reload` |
-| `firewall-cmd --permanent --add-rich-rule` | Add a Rich Rule permanently | `firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198.51.100.0/24" reject'` |
+| `firewall-cmd --state` | Checks if firewalld is running | `firewall-cmd --state` |
+| `firewall-cmd --reload` | Reloads rules without dropping connections | `firewall-cmd --reload` |
+| `firewall-cmd --list-all` | Shows all active rules in current zone | `firewall-cmd --list-all` |
+| `firewall-cmd --get-zones` | Lists all available zones | `firewall-cmd --get-zones` |
+| `firewall-cmd --add-port` | Opens a specific port | `firewall-cmd --add-port=8080/tcp --permanent` |
+| `firewall-cmd --add-service` | Opens default ports for a service | `firewall-cmd --add-service=https --permanent` |
+| `firewall-cmd --remove-port` | Closes a specific port | `firewall-cmd --remove-port=8080/tcp --permanent` |
+| `firewall-cmd --add-source` | Adds IP to a specific zone | `firewall-cmd --zone=trusted --add-source=10.0.0.5/32 --permanent` |
+| `firewall-cmd --panic-on` | Drops all network packets immediately | `firewall-cmd --panic-on` |
 
 ---
 ## 🚑 Troubleshooting Guide
 
 | ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
 |-----------|----------------|-------|
-| **Service connection timeout** | Network firewall or routing blocking traffic | Check network route and enable target ports on firewall using `firewall-cmd --add-port` |
-| **Changes not applying after server reboot** | Forgetting to add the `--permanent` flag when configuring firewall rules | Always use `--permanent` flag and run `firewall-cmd --reload` to apply |
-| **Locked out of a remote server after bad firewall rule** | Active attack or misconfiguration blocking legitimate traffic | Use the Panic Mode switch: `firewall-cmd --panic-on` (cuts off all traffic). Then fix rules and `firewall-cmd --panic-off`. |
+| Added a rule but it's not working | Rule was added permanently but not reloaded | Run `sudo firewall-cmd --reload` |
+| Rebooted and all rules vanished | Rules were added without `--permanent` flag | Re-add rules with `--permanent` flag and reload |
+| Cannot SSH to the server | SSH service or port 22 is missing in the active zone | Add ssh service using `sudo firewall-cmd --add-service=ssh --permanent` then reload |
+| `firewall-cmd` returns "FirewallD is not running" | The firewalld service is stopped or crashed | Run `systemctl start firewalld` and check `systemctl status firewalld` |
+| Traffic from a specific IP is blocked | The IP is in the drop zone or a rich rule is blocking it | Check rich rules with `firewall-cmd --list-rich-rules` and remove if necessary |
 
 ---
 ## 🎫 Real-World Ticket Scenarios
 
-### 🎫 Scenario 1: New Web Service on Port 8080 is Unreachable Externally
+### 🎫 Scenario 1: Web Server Unreachable
 
 > [!example] Ticket
-> "The application runs locally, and I can curl it from the server console. However, when I try to open 'http://server-ip:8080' from my laptop, the connection times out."
+> "Hi IT Support, I just deployed a new Nginx web server on our RHEL 8 VM, but the website is not loading from the outside network. Local curl works fine."
 
-**L1 Response:** Verify application port status using `ss -tunlp | grep 8080`. Query active firewalld rules using `firewall-cmd --list-all`. Confirm port 8080 is blocked.
-**Escalation Trigger:** Pass to L2 to modify the permanent firewall rules.
-**L2 Resolution:** Add the port rule permanently to the default public zone (`firewall-cmd --permanent --add-port=8080/tcp`) and reload the firewall (`firewall-cmd --reload`). Verify connection from developer workstation.
+**L1 Response:** *Check karenge ki port 80/443 open hai ya nahi using `firewall-cmd --list-ports` aur `firewall-cmd --list-services`.*
+**Escalation Trigger:** Agar port open hai fir bhi connect nahi ho raha (routing issue).
+**L2 Resolution:** L2 admin will ensure that `firewalld` has the HTTP/HTTPS services allowed in the correct zone (`public` or custom).
+```bash
+firewall-cmd --zone=public --add-service=http --permanent
+firewall-cmd --zone=public --add-service=https --permanent
+firewall-cmd --reload
+```
 
-### 🎫 Scenario 2: Blocking a Brute-Force SSH Attack on a Public Linux Server
+### 🎫 Scenario 2: Restrict Database Access
 
 > [!example] Ticket
-> "A Linux server hosted in our cloud environment is experiencing a high volume of failed SSH login attempts from IP address 198.51.100.42, risking account compromises."
+> "Security Team requirement: Our MySQL database server (port 3306) should only be accessible from the App Server IP (10.1.2.50). Block all other incoming connections to 3306."
 
-**L1 Response:** Audit the secure log (`tail -n 20 /var/log/secure | grep "Failed password"`) to confirm the attack IP.
-**Escalation Trigger:** Pass to L2/L3 to immediately block the malicious IP.
-**L2 Resolution:** Add a rich rule to drop all traffic from the malicious IP address immediately (Runtime first to cut connection, then permanent): `firewall-cmd --add-rich-rule='rule family="ipv4" source address="198.51.100.42" drop'` and `firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="198.51.100.42" drop'`.
+**L1 Response:** Ticket ko acknowledge karenge aur L2 Security/System Admin ko assign karenge kyunki yeh restrictive access ka requirement hai.
+**Escalation Trigger:** Immediate L2 task.
+**L2 Resolution:** L2 engineer rich rule apply karega.
+```bash
+# Add rich rule for specific IP
+firewall-cmd --zone=public --add-rich-rule='rule family="ipv4" source address="10.1.2.50" port port="3306" protocol="tcp" accept' --permanent
+# Ensure global mysql service is not allowed
+firewall-cmd --zone=public --remove-service=mysql --permanent
+firewall-cmd --reload
+```
+
+### 🎫 Scenario 3: Temporary Access for Vendor
+
+> [!example] Ticket
+> "A vendor needs SSH access to server X for exactly 2 hours to perform maintenance."
+
+**L1 Response:** Vendor ki IP address aur server access details verify karenge.
+**Escalation Trigger:** Standard L2 request.
+**L2 Resolution:** L2 engineer timeout option use karega firewalld mein.
+```bash
+# Allows SSH access from vendor IP for 7200 seconds (2 hours)
+firewall-cmd --add-rich-rule='rule family="ipv4" source address="203.0.113.45" service name="ssh" accept' --timeout=7200
+# Note: Timeout rules are runtime only and do not require --permanent or --reload.
+```
 
 ---
 ## 🎤 Interview Questions
 
-> [!question] Q1: How do you verify if a port rule will persist across a firewalld reload?
-> **Answer:** I check if the rule was written with the `--permanent` flag. I run `firewall-cmd --permanent --list-all` to inspect the rules stored on disk. If the port is listed there, it will persist after running `firewall-cmd --reload`.
+> [!question] Q1: What is the difference between `--permanent` and runtime configurations in firewalld?
+> **Answer:** Runtime rules active memory mein hote hain aur immediately apply hote hain but reboot ke baad erase ho jaate hain. `--permanent` rules disk pe save hote hain, but unko active karne ke liye `firewall-cmd --reload` chalana padta hai.
 
-> [!question] Q2: What is the difference between running a firewall-cmd command with and without the '--permanent' flag?
-> **Answer:** Without the `--permanent` flag, the change is applied immediately to the runtime memory but is deleted when the firewall is reloaded or the server reboots. With the `--permanent` flag, the change is written to configuration files on disk; it survives reboots but does not apply until you run `firewall-cmd --reload`.
+> [!question] Q2: How do you completely lock down a system using firewalld in an emergency?
+> **Answer:** We can use the panic mode. Command: `firewall-cmd --panic-on`. This drops all network packets immediately, acting as a network kill switch.
 
-> [!question] Q3: A database server needs to accept connections on port 3306 (MySQL) but only from our application server (IP: 10.0.1.15). How do you configure this?
-> **Answer:** I implement a Rich Rule in the default zone. I run: `firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="10.0.1.15" port port="3306" protocol="tcp" accept'`, then `firewall-cmd --reload`.
+> [!question] Q3: How do you port forward traffic from port 80 to port 8080 using firewalld?
+> **Answer:** First, enable masquerading using `firewall-cmd --add-masquerade --permanent`. Then add the forward port rule using `firewall-cmd --add-forward-port=port=80:proto=tcp:toport=8080 --permanent`, followed by a reload.
 
-==**Exam Tip:** Permanent rules do not take effect until `firewall-cmd --reload` is executed!==
+> [!question] Q4: What is a firewalld "zone"?
+> **Answer:** A zone defines the trust level for network connections. Based on the zone an interface is assigned to, firewalld determines which traffic to allow or deny. Examples include `public`, `drop`, `trusted`.
+
+==**Exam Tip:** RHCSA exam mein firewall configuration zaroor aati hai. Yaad rakho ki har `--permanent` change ke baad `firewall-cmd --reload` zaroor chalana hai warna test script fail ho jayegi!==
 
 ---
 ## 🔗 Related Notes
 
-- [[01-Foundations/02-Networking/TCP-IP-and-Ports|TCP/IP and Ports]] — Underpins the port protocols filtered by firewalld.
-- [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl]] — The service manager that controls the firewalld daemon.
-- [[04-Cloud-and-Security/09-Security/Zero-Trust|Zero Trust]] — The identity security model utilizing local host firewalls.
+- [[L-21 Networking|Networking in Linux]] — Network interface concepts
+- [[L-23 SELinux|SELinux Basics]] — For additional system security layers
+- [[L-15 SSH Configuration|SSH Security]] — Securing SSH access

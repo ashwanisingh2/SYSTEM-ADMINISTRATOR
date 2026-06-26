@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, windows-server, server-roles, L1]
 aliases: [server-roles, roles-vs-features]
 created: 2026-06-25

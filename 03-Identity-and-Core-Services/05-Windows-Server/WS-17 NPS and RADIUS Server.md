@@ -1,7 +1,7 @@
 ---
-tags: [sysadmin, windows-server, nps, radius, security]
-aliases: [nps-radius]
-created: 2026-06-25
+tags: [windows-server, nps, radius, networking, security]
+aliases: [NPS, RADIUS Server, Network Policy Server]
+created: 2026-06-26
 status: #complete
 difficulty: #intermediate
 cert-relevant: #none
@@ -15,186 +15,208 @@ cert-relevant: #none
 # WS-17: NPS and RADIUS Server
 
 > [!abstract] Overview
-> Yeh note Network Policy Server (NPS) in Windows Server 2022 cover karta hai. Ek support engineer ke liye yeh janna bahut zaroori hai kyunki yeh RADIUS server/proxy ki tarah kaam karta hai aur enterprise networks (Wi-Fi, VPN, switches) ke liye Authentication, Authorization, aur Accounting (AAA) centralize karta hai.
+> Yeh note Network Policy Server (NPS) aur RADIUS protocol ke baare mein hai. NPS Windows Server mein Microsoft ka RADIUS server implementation hai jo central authentication, authorization, aur accounting (AAA) provide karta hai network access ke liye. Ek system administrator ke liye yeh samajhna zaroori hai kyunki VPN, Wi-Fi, aur wired switches pe secure access manage karne ke liye NPS use hota hai. Agar NPS fail ho jaye, toh naye users network se connect nahi kar payenge.
 
 ---
 ## 🧠 Concept Overview
 
-- **What it is** — NPS Microsoft ka RADIUS (Remote Authentication Dial-In User Service) server aur proxy hai. Yeh network access ke liye ek central gatekeeper ki tarah kaam karta hai.
-- **Why it matters** — Enterprise networks mein har switch ya VPN par user credentials configure karna mushkil hai. NPS ise centralize karta hai taaki koi bhi device connect hone se pehle Active Directory se permission le.
-- **Where you see this** — Corporate Wi-Fi authentication (802.1X), network switches (switch port security) ko secure karne, ya remote access VPN authentication control karne mein.
+- **What it is** — NPS (Network Policy Server) is a role in Windows Server that acts as a RADIUS (Remote Authentication Dial-In User Service) server and proxy. RADIUS is a networking protocol that provides centralized Authentication, Authorization, and Accounting (AAA) management.
+- **Why it matters** — Iske bina, agar aapke paas 50 Wi-Fi access points aur 20 VPN servers hain, toh sabpe alag alag users create karne padenge. NPS ek central point ban jaata hai jahan se saare devices Active Directory credentials use karke users ko verify kar sakte hain. *Real job mein central management aur security ke liye yeh vital hai.*
+- **Where you see this** — Corporate Wi-Fi (802.1X), VPN connections, Network switches, aur DirectAccess setups mein jahan users ko securely authenticate karna hota hai. IT environments mein BYOD (Bring Your Own Device) manage karne ke liye bhi NPS use hota hai.
 
 **L1 / L2 / L3 Split:**
 
 | 👨‍💻 Level | 📋 Responsibility |
 |---------|-----------------|
-| **L1** | Check basic user network connectivity, verify AD accounts are not locked out, check group membership, aur client-side Wi-Fi/VPN error messages gather karna. |
-| **L2** | Configure RADIUS Clients and Shared Secrets in NPS, inspect NPS logs (Event Viewer / IAS logs), aur test connection request policies. |
-| **L3** | Design connection request policies and network policies, manage enterprise CA certificates for PEAP/EAP-TLS, aur RADIUS proxies configure karna. |
+| **L1** | Basic task — Check karna agar user network (Wi-Fi/VPN) se connect ho pa raha hai ya nahi. AD mein account lock toh nahi hai dekhna. Event Viewer mein basic errors check karna. |
+| **L2** | Configure, fix — NPS server ke logs check karna, network policies ko adjust karna, aur failed authentications ka root cause find out karna. Naye RADIUS clients (switches/APs) add karna. |
+| **L3** | Architecture, design — Multi-site NPS architecture design karna, RADIUS proxies set up karna, certificates (PKI) deploy karna secure EAP-TLS ke liye. High availability aur load balancing set karna RADIUS servers ka. |
 
 > [!tip] Seedha Simple Mein
-> *NPS ek central security guard ki tarah hai. Jab bhi koi user corporate Wi-Fi, VPN, ya switch se connect hone ki koshish karta hai, toh woh device (RADIUS Client) user ke credentials check karne ke liye NPS ke paas bhejta hai. NPS Active Directory se pooch kar permission grant ya deny karta hai.*
+> *NPS ek security guard ki tarah hai jo ek register (Active Directory) leke baitha hai. Jab bhi koi Wi-Fi ya VPN se connect karne ki koshish karta hai, network device (jaise router ya access point) guard (NPS) se poochta hai ki "kya isko entry doon?". Guard register check karke "yes" ya "no" bolta hai, aur conditions dekhta hai (e.g. kya iske paas VPN_Users group ka pass hai?).*
 
 ---
 ## 💡 Real-World Analogy
 
 > [!info] Think of it like this...
-> **NPS** is like **a nightclub bouncer** because...
+> **A VIP Nightclub Entry System** is like **NPS/RADIUS Server** because...
 >
-> - The bouncer doesn't own the club, but checks the guest list (Active Directory).
-> - You show your ID to the bouncer (Authentication), they check if you are VIP or regular (Authorization), and write down what time you entered (Accounting).
+> - **The Bouncer (Network Device - AP/Switch):** Gate pe khada bouncer kisi ko pehchanta nahi hai, uske paas bas walkie-talkie hai. Wo apna dimaag nahi lagata, sirf instructions follow karta hai.
+> - **The Manager inside with the VIP List (NPS Server with AD):** Bouncer walkie-talkie (RADIUS protocol) se andar manager ko naam batata hai. Manager Active directory ka use karta hai.
+> - **The VIP List (Active Directory):** Manager list check karta hai ki user allowed hai ya nahi, kis area (authorization - like VIP lounge vs General) mein ja sakta hai, aur kab entry li (accounting). Bouncer bas manager ke YES ya NO ka wait karta hai.
+> - **Shared Secret:** Manager aur bouncer ke beech ka ek secret code, taaki koi random aadmi manager ko nakli message na bhej sake.
 
 ---
 ## 🔬 Technical Deep Dive
 
-### 1. RADIUS (AAA) Architecture
+### 1. The AAA Framework
 
 > [!info] Key Concept
-> RADIUS operates on the AAA model: Authentication, Authorization, and Accounting.
+> AAA stands for Authentication, Authorization, and Accounting. It's the core of how RADIUS operates over UDP ports (usually 1812 and 1813).
 
-- **Authentication**: Verifying who the user is (username/password or certificate check against Active Directory).
-- **Authorization**: Determining what they are allowed to do (based on policies like group membership, time of day).
-- **Accounting**: Keeping a record of when they logged in, logged out, and how much data they used (saved in local log files or SQL Database).
+- **Authentication:** *Yeh prove karna ki aap kaun hain.* (e.g., User ID aur password, ya certificate check karna). Client claims to be 'User1', server verifies this identity.
+- **Authorization:** *Aap network pe kya kar sakte hain aur kis resources ka access hai.* (e.g., VLAN assign karna, VPN access allow/deny karna AD group ke basis pe). If 'User1' is authenticated, are they allowed to access the VPN?
+- **Accounting:** *Aapne kab log in kiya, kitni der connected rahe, kitna data use kiya.* (Logs jo compliance, billing, aur auditing ke liye use hote hain). NPS can log these directly to a local text file or a SQL Server database.
 
-### 2. RADIUS Client vs. RADIUS Server vs. RADIUS Proxy
+### 2. NPS Components in Windows Server
 
-- **RADIUS Client (Network Access Server - NAS)**: The physical or virtual network device (like a Cisco switch, Ruckus Wi-Fi Access Point, or Windows RRAS Server) that forwards connection requests to the NPS.
-- **RADIUS Server**: The NPS itself, which processes authentication requests locally against Active Directory.
-- **RADIUS Proxy**: NPS configured to forward authentication requests to another RADIUS server (useful in multi-forest or external vendor scenarios).
+- **RADIUS Clients:** Yeh actual network devices (like Cisco Switches, Aruba Wi-Fi Access Points, VPN gateways) hote hain jo NPS ko requests bhejte hain. *Client ka matlab yahan user ka laptop ya phone nahi, balki networking hardware hai.*
+- **Connection Request Policies (CRP):** Yeh rules decide karte hain ki kaunsa RADIUS server is request ko process karega. In a large enterprise, ek NPS server local requests khud process kar sakta hai aur doosri requests ko kisi aur branch ke server pe forward (proxy) kar sakta hai.
+- **Network Policies:** Agar CRP decide karta hai ki request local server process karega, tab Network Policy hit hoti hai. Yeh rules decide karte hain ki user ko access milna chahiye ya nahi, based on conditions like Windows Groups (e.g., `Domain Admins`), Time of day, ya authentication type (EAP, PEAP).
 
-### 3. NPS Policies: Connection Request vs. Network Policies
+### 3. EAP and PEAP (Authentication Methods)
 
-NPS evaluates policies in a specific sequence:
-1. **Connection Request Policies (CRP)**: Determine *where* the authentication happens. It asks: "Should I authenticate this request locally, or should I forward it to another RADIUS server (Proxy)?"
-2. **Network Policies**: Determine *who* gets access and under what *conditions*. NPS evaluates these in order of priority. The first policy that matches the client's conditions is applied, and the access is either **Granted** or **Denied**.
+> [!info] Key Concept
+> EAP (Extensible Authentication Protocol) provides the framework for multiple authentication methods. EAP types determine exactly HOW the authentication happens securely over an insecure network.
 
-### 4. Authentication Methods (PEAP vs. EAP-TLS)
-
-- **PEAP-MSCHAPv2**: Requires a certificate only on the NPS server. Users authenticate using their standard AD username and password. High convenience, medium security.
-- **EAP-TLS**: Requires certificates on both the NPS server and the client machine/user. Extremely secure, zero passwords exchanged, but requires a functional PKI (AD CS).
+- **EAP-TLS:** Sabse secure method. User (client device) aur server dono ke paas digital certificates hone chahiye. *Isme username/password ki zarurat nahi hoti, sirf certificate.* Extremely secure but complex to set up because you need a PKI (Public Key Infrastructure).
+- **PEAP-MSCHAPv2:** Protected EAP. Most commonly used for corporate Wi-Fi. Isme server ke paas certificate hota hai (apni identity prove karne ke liye taaki user nakli AP se na connect ho), aur user apna AD username/password enter karta hai. Encryption tunnel banne ke baad password check hota hai.
 
 > [!danger] Common Mistake
-> Configuring a different Shared Secret on the RADIUS client and the NPS server. Mismatched shared secrets are the #1 cause of RADIUS authentication failures!
+> RADIUS clients ko NPS mein add karte time **Shared Secret** match hona bohot zaroori hai. Agar switch/AP aur NPS server pe shared secret mein ek bhi character alag hoga, toh communication silently fail ho jayega aur RADIUS client invalid mana jayega.
+
+### 4. Accounting Options in NPS
+
+Accounting is crucial for tracking who accessed what and when.
+- **Local File Logging:** Logs text format mein `C:\Windows\System32\LogFiles` mein save hote hain. Yeh troubleshooting ke liye best hai.
+- **SQL Server Logging:** Large enterprises mein jahan multiple NPS servers hain, saara data central SQL database mein bheja jaata hai for rich reporting and auditing.
 
 ---
 ## 🛠️ Step-by-Step Lab
 
 > [!warning] Pre-requisites
-> - Active Directory Domain Controller (`DC-01.corp.local` with IP `192.168.10.10`).
-> - A member server (`SVR-NPS01` with IP `192.168.10.15`) joined to the domain.
-> - Administrative credentials (Domain Admin).
+> - Windows Server 2019/2022 with Active Directory Domain Services installed.
+> - Domain Admin credentials.
+> - A test client machine or a network switch/AP.
 
-### Step 1: Install NPAS Role and Register in AD
+### Step 1: Install the NPS Role
+
+Aap Server Manager se "Network Policy and Access Services" check kar sakte hain, ya PowerShell use karein.
 
 ```powershell
-# Install NPS role and management tools
-Install-WindowsFeature -Name NPAS -IncludeManagementTools
+# Yeh command Server Manager ke bina NPS role install karti hai
+Install-WindowsFeature NPAS -IncludeManagementTools
 ```
 
 > [!success] Expected Output
 > ```
-> Success Restart Needed Exit Code Feature Result
-> ------- -------------- --------- --------------
-> True    No             Success   {Network Policy and Access Services...}
+> Success Restart Needed Exit Code      Feature Result
+> ------- -------------- ---------      --------------
+> True    No             Success        {Network Policy and Access Services...
 > ```
 
-1. Open NPS Console (`nps.msc`).
-2. Right-click **NPS (Local)** and select **Register server in Active Directory**.
-3. Click **OK** to confirm. This adds the NPS server to the `RAS and IAS Servers` security group in Active Directory.
+### Step 2: Register NPS Server in Active Directory
 
-### Step 2: Configure a RADIUS Client
+Active Directory ko pata hona chahiye ki yeh server users ke passwords aur dial-in properties read kar sakta hai. *Bina register kiye, NPS ko AD mein user check karne ki permission nahi milegi.*
 
-1. In the NPS console, expand **RADIUS Clients and Servers** and right-click **RADIUS Clients** -> **New**.
-2. Configure the client:
-   - Friendly name: `Corp-AP-01`
-   - Address (IP or DNS): `192.168.10.254`
-   - Shared secret (Manual): `SuperSecureRadiusSecret123!`
-   - Confirm shared secret: `SuperSecureRadiusSecret123!`
-3. Click **OK**.
+```powershell
+# Register the NPS Server in AD
+netsh nps add registeredserver
+```
 
-### Step 3: Configure Network Policy for Wi-Fi Access
+### Step 3: Add a RADIUS Client (e.g., Wi-Fi Access Point)
 
-1. Expand **Policies** and right-click **Network Policies** -> **New**.
-2. Policy Name: `Allow-Corp-WiFi`. Network Access Server Type: `Unspecified`. Click Next.
-3. Conditions: Click **Add**.
-   - Select **User Groups** -> Add `corp\G_WiFi_Users`.
-   - Select **NAS Port Type** -> Add `Wireless - IEEE 802.11` and `Wireless - Other`.
-   - Click Next.
-4. Access Permission: Select **Access granted**. Click Next.
-5. Authentication Methods:
-   - Click **Add** -> Select **Microsoft: Protected EAP (PEAP)** -> Click OK.
-   - Select PEAP and click **Edit**. Ensure your Server Certificate (from AD CS) is selected.
-   - Click Next.
-6. Click **Finish**. Ensure this policy is moved to the top of the processing list.
+Humein NPS ko batana hoga ki kis IP se requests aayengi. Naye devices ko allow karne ke liye unhe as RADIUS clients add karein.
 
-### Step 4: Verify Local Accounting Logs
+```powershell
+# Add a RADIUS client with a shared secret
+New-NpsRadiusClient -Name "HQ-WiFi-AP1" -Address "192.168.10.50" -SharedSecret "MyS3cr3tKey123!"
+```
 
-1. Click on **NPS (Local)** -> **Accounting** -> **Configure Accounting**.
-2. Choose **Log to a local file**.
-3. Select log file directory: `C:\Windows\System32\LogFiles`.
-4. Ensure **Log SQL-compatible format** is checked.
+### Step 4: Create a Network Policy for VPN/Wi-Fi Users
+
+UI method (`nps.msc`) is highly recommended because the wizard simplifies complex configurations.
+
+1. Run `nps.msc` from Run prompt.
+2. Under "Standard Configuration" choose "RADIUS server for 802.1X Wireless or Wired Connections".
+3. Click "Configure 802.1X".
+4. Add your RADIUS clients (if not already done).
+5. Choose an Authentication Method (e.g., Microsoft: Protected EAP (PEAP)). *Note: Iske liye ek server certificate chahiye.*
+6. Specify User Groups (e.g., `CORP\Wireless_Users`).
+7. Complete wizard. Ab `Wireless_Users` group ke log AP ke through connect kar payenge.
 
 ---
 ## ⌨️ Command Cheat Sheet
 
 | ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
 |-----------|-----------------|-----------|
-| `Install-WindowsFeature -Name NPAS` | Installs NPS role | `Install-WindowsFeature -Name NPAS -IncludeManagementTools` |
-| `Get-NpsRadiusClient` | Lists all RADIUS clients | `Get-NpsRadiusClient` |
-| `New-NpsRadiusClient` | Adds a new RADIUS client | `New-NpsRadiusClient -Name "AP1" -Address "192.168.10.50" -SharedSecret "P@ss123"` |
-| `Set-NpsRadiusClient` | Updates RADIUS client details | `Set-NpsRadiusClient -Name "AP1" -SharedSecret "NewSecret!"` |
-| `netsh nps export` | Exports NPS configuration | `netsh nps export filename="C:\npsconfig.xml" exportPrivateConfiguration=yes` |
-| `netsh nps import` | Imports NPS configuration | `netsh nps import filename="C:\npsconfig.xml"` |
+| `Install-WindowsFeature NPAS` | Install NPS Role on Windows Server | `Install-WindowsFeature NPAS -IncludeManagementTools` |
+| `nps.msc` | Opens the Network Policy Server GUI console | `nps.msc` |
+| `netsh nps add registeredserver` | AD mein NPS ko register karta hai taaki wo user properties read kar sake | `netsh nps add registeredserver` |
+| `New-NpsRadiusClient` | Naya RADIUS client (Switch/AP) add karta hai | `New-NpsRadiusClient -Name "Switch1" -Address "10.0.0.5" -SharedSecret "Key"` |
+| `Get-NpsRadiusClient` | List all configured RADIUS clients on the server | `Get-NpsRadiusClient` |
+| `Get-NpsNetworkPolicy` | Server ki saari Network Policies list karta hai | `Get-NpsNetworkPolicy` |
+| `Export-NpsConfiguration` | NPS ki poori configuration ka XML backup lene ke liye | `Export-NpsConfiguration -Path "C:\NpsBackup.xml"` |
+| `Import-NpsConfiguration` | XML backup se config restore karne ke liye | `Import-NpsConfiguration -Path "C:\NpsBackup.xml"` |
 
 ---
 ## 🚑 Troubleshooting Guide
 
 | ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
 |-----------|----------------|-------|
-| Connection fails with invalid credentials | Shared Secret mismatch between client and NPS | Re-enter the exact same secret key on both the NPS RADIUS Client and the switch/AP. |
-| Event log: "NPS is not authorized to read user dial-in properties" | NPS server is not registered in Active Directory | Right-click NPS (Local) -> Register server in Active Directory, then restart service. |
-| Event ID 6273, Reason 22 (Client certificate not trusted) | Client does not trust the Root CA certificate | Distribute AD Root CA certificate to all clients using a GPO. |
-| RADIUS Access-Request timeout | Firewall blocking UDP ports 1812/1813 | Enable inbound rules for "Network Policy Server (RADIUS-In)" (UDP ports 1812, 1813). |
-| Event ID 6273, Reason 66 (User dial-in properties deny access) | User dial-in permission is set to "Deny access" or no policy matches | Go to ADUC -> user properties -> Dial-in tab. Change to "Allow Access" or fix NPS Network Policy. |
+| Users cannot connect to Wi-Fi/VPN | NPS server is not registered in AD | Run `netsh nps add registeredserver` ya GUI se server name pe right click karke "Register server in AD" karein. |
+| Event ID 13 or 18 (Access Denied) | Wrong shared secret between NPS and AP | Dono taraf (Switch/AP aur NPS Client config) mein Shared Secret exactly re-enter aur verify karein. |
+| Event ID 22 (Client not configured) | NPS doesn't recognize the IP sending the request | Verify the IP address of the switch/AP in NPS under RADIUS Clients. Ensure firewall isn't NATting the IP. |
+| Authentication fails, Event ID 6273 | User does not meet Network Policy conditions | User ko sahi AD group (e.g., VPN Users) mein add karein, ya policy ki conditions (time of day, valid groups) verify karein. |
+| Certificate Error on Client Device | Server certificate expired or untrusted | NPS server ka certificate renew karein aur client ke Trusted Root CAs mein check karein. Policy mein naya cert select karein. |
 
 ---
 ## 🎫 Real-World Ticket Scenarios
 
-### 🎫 Scenario 1: Corporate Wi-Fi Authentication Loops
+### 🎫 Scenario 1: User Cannot Connect to Corporate Wi-Fi After Password Change
 
 > [!example] Ticket
-> "Users reporting they cannot connect to Corp_WiFi. Laptops are prompting for username and password repeatedly, even after entering correct credentials."
+> "I changed my Windows password this morning and now my phone and laptop won't connect to the 'Corp-Secure' Wi-Fi network."
 
-**L1 Response:** Verify user account status in AD. Check if this happens on multiple devices. Gather client-side Windows WLAN logs.
-**Escalation Trigger:** The issue occurs on all client devices, pointing to an untrusted or invalid server security certificate.
-**L2 Resolution:** Remote into `SVR-NPS01`. Open NPS Console -> Policies -> Network Policies. Right-click the active wireless policy -> Properties. Go to Constraints -> Authentication Methods. Select PEAP and click Edit. Check if the SSL certificate is expired. If expired, select the active, renewed certificate, apply, and restart the NPS service.
+**L1 Response:** *Pehle check karein agar user AD mein locked out toh nahi hai naye password aur phone mein save purane cached credentials conflict ki wajah se.*
+**Escalation Trigger:** Agar account unlocked hai aur AD mein credentials sahi hain, par sirf is user ko issue aa raha hai aur baaki users perfectly connect ho rahe hain, further logs check karne ke liye ticket L2 ko bhejein.
+**L2 Resolution:** NPS server ke Event Viewer (Custom Views -> Server Roles -> Network Policy and Access Services) mein check kiya. Agar error Reason Code 16 (Authentication failed due to user credentials mismatch) hai, toh user ko bataya gaya ki apne device pe Wi-Fi network ko "Forget" karein aur dobara naya password daal ke connect karein.
 
-### 🎫 Scenario 2: VPN Client Connection Fails with Access Denied
+### 🎫 Scenario 2: New Branch Office Switch Cannot Authenticate Any Users
 
 > [!example] Ticket
-> "A new user, Alice, cannot connect to the company VPN. She gets an Access Denied error (Error 812)."
+> "Network team just installed a new 48-port switch at the London Branch office, but nobody connecting to it can authenticate their PCs via 802.1X."
 
-**L1 Response:** Check if Alice's user account is enabled and not locked out. Verify if other users are connecting successfully.
-**Escalation Trigger:** Alice's account is active, but connection fails, indicating an NPS policy restriction.
-**L2 Resolution:** Open ADUC. Check Alice's group membership. Verify if she is a member of `G_VPN_Users` configured in the NPS Network Policy. If missing, add her. If she is there, check NPS Event Viewer for Event ID 6273 to see which policy denied her.
+**L1 Response:** *Confirm karein if it's a single user issue or global at the branch. Since it's global on a new switch, it's an infrastructure configuration issue.*
+**Escalation Trigger:** Pass to L2/L3 immediately as it involves adding infrastructure devices to the NPS server configuration.
+**L2 Resolution:** Check NPS Event Viewer logs for Event ID 22 or 13. Pata chala ki naye switch ka IP address (10.50.1.5) NPS mein as a "RADIUS Client" add hi nahi kiya gaya tha. `New-NpsRadiusClient` use karke naya switch configure kiya aur shared secret network team ko diya. Uske baad switch se sabhi PC authenticate hone lage.
+
+### 🎫 Scenario 3: Certificate Expiry Causing Global Outage
+
+> [!example] Ticket
+> "MASSIVE OUTAGE: No one can connect to the AnyConnect VPN or Corporate Wi-Fi. Everyone is getting an error saying certificate validation failed."
+
+**L1 Response:** *Agar sabhi ko ek saath same error aaye, this is a P1/Sev 1 incident.* L1 turant major incident bridge call trigger karta hai aur Server Admin on-call ko page karta hai.
+**Escalation Trigger:** Directly escalate to L3 / Server Admin team.
+**L3 Resolution:** NPS uses a digital certificate to prove its identity during PEAP/EAP-TLS authentication. L3 admin ne server pe check kiya, certificate ki validity kal raat expire ho gayi thi. Internal PKI/CA server se naya certificate issue karwaya, uske baad NPS console (nps.msc) mein jaakar Network Policies ko edit kiya aur naya valid certificate drop-down se select kiya. NPS service restart ki aur connection restore ho gaya.
 
 ---
 ## 🎤 Interview Questions
 
-> [!question] Q1: What is the primary function of RADIUS, and which UDP ports does it use?
-> **Answer:** RADIUS centralizes AAA management for network access. It uses **UDP Port 1812** for Authentication/Authorization and **UDP Port 1813** for Accounting.
+> [!question] Q1: What is the primary role of NPS in a Windows Server environment?
+> **Answer:** NPS (Network Policy Server) acts as a RADIUS server and proxy. It provides centralized Authentication, Authorization, and Accounting (AAA) for network access devices like VPN servers, wireless access points, and 802.1X capable switches by validating credentials against Active Directory.
 
-==**Exam Tip:** Port 1812 and 1813 are crucial to remember for RADIUS authentication and accounting.==
+> [!question] Q2: Why must an NPS server be registered in Active Directory?
+> **Answer:** *AD mein register hona zaroori hai taaki* the NPS server gets the necessary permissions to read user accounts' dial-in properties and group memberships. Without this registration, it cannot authorize users properly based on AD data.
 
-> [!question] Q2: Explain the difference between Connection Request Policies and Network Policies in NPS.
-> **Answer:** **Connection Request Policies (CRP)** determine *where* the request is authenticated (locally or forwarded to a proxy). **Network Policies** determine *who* gets access based on conditions like AD group membership, and are evaluated only if CRP decides to authenticate locally.
+> [!question] Q3: What is a RADIUS Client in the context of NPS? Is it the end-user's laptop?
+> **Answer:** No, the RADIUS client is NOT the end-user's device (laptop or phone). The RADIUS client is the network access server (NAS) — such as a wireless access point, VPN gateway, or a managed network switch — that forwards the user's authentication request to the NPS server.
 
-> [!question] Q3: You see Event ID 6273 with "The certificate chain was issued by an authority that is not trusted." Root cause?
-> **Answer:** The client device does not trust the Certificate Authority that issued the NPS server's certificate. Resolve by distributing the Enterprise Root CA certificate to client laptops via GPO.
+> [!question] Q4: What is the difference between Authentication and Authorization in RADIUS?
+> **Answer:** Authentication is verifying *who the user is* (e.g., checking password or certificate validity). Authorization is determining *what the user is allowed to do or access* (e.g., assigning a specific VLAN, or allowing VPN dial-in based on AD group membership after successful authentication).
+
+> [!question] Q5: Which protocol and port numbers does RADIUS commonly use?
+> **Answer:** RADIUS uses the **UDP** protocol. Default ports are **1812** for Authentication and Authorization, and **1813** for Accounting. (Historically, UDP ports 1645 and 1646 were also used and you may still see them in older legacy devices).
+
+> [!question] Q6: What is a Shared Secret in NPS?
+> **Answer:** It's a text string that serves as a password between the RADIUS client (like a Wi-Fi AP) and the RADIUS Server (NPS). *Dono side match hona chahiye taaki inke beech ka communication secure rahe.*
+
+==**Exam Tip:** Hamesha yaad rakhna ki RADIUS Client = Network Device (Switch/AP), NOT the user's PC. Aur Shared Secret mismatch is the #1 cause of silent authentication failures.==
 
 ---
 ## 🔗 Related Notes
 
-- [[03-Identity-and-Core-Services/05-Windows-Server/WS-14 VPN and Remote Access (RRAS)|WS-14 VPN and Remote Access (RRAS)]] — Integrates RRAS as a RADIUS client to NPS.
-- [[03-Identity-and-Core-Services/06-Active-Directory/WS-13 Active Directory Certificate Services|WS-13 Active Directory Certificate Services]] — Issues server certificates required for secure PEAP/TLS RADIUS authentication.
-- [[03-Identity-and-Core-Services/06-Active-Directory/WS-06 Active Directory — Users Groups OUs|WS-06 Active Directory — Users Groups OUs]] — Creating security groups used as conditions in NPS policies.
+- [[WS-01 Active Directory Domain Services]] — The backend database NPS uses for authentication.
+- [[WS-16 Certificate Authority (AD CS)]] — Used to issue the certificates required for PEAP and EAP-TLS.
+- [[VPN Concepts]] — VPN gateways often use NPS for authenticating dial-in users.
+- [[Network Access Control (NAC)]] — NPS plays a crucial role in NAC architectures.

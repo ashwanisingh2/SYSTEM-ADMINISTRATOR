@@ -1,16 +1,16 @@
 ---
-tags: [linux, rhel, security, hardening, selinux, ssh, fail2ban, L2]
+tags: [linux, rhel, security, hardening, selinux, ssh, fail2ban, L3]
 aliases: [l-14-linux-security-hardening, l-14, linux-hardening]
-created: 2026-06-25
+created: 2026-06-26
 status: #complete
-difficulty: #intermediate
+difficulty: #advanced
 cert-relevant: #rhcsa
 ---
 
 > [!NOTE|color-green]
-> 🐧 **LINUX / RHEL**
+> 🐧 **LINUX RHEL**
 
-`#complete` `#intermediate` `#rhcsa`
+`#complete` `#advanced` `#rhcsa`
 
 # L-14: Linux Security Hardening
 
@@ -27,7 +27,7 @@ cert-relevant: #rhcsa
 **L1 / L2 / L3 Split:**
 
 | 👨‍💻 Level | 📋 Responsibility |
-|---------|-----------------| 
+|---------|-----------------|
 | **L1** | SELinux status check (`getenforce`), password reset, sshd service monitor, basic login failure review |
 | **L2** | Sudoers configuration, SSH hardening policies, auditd rule writing, fail2ban jail setup, umask tuning |
 | **L3** | Enterprise-wide SELinux custom policies, kernel hardening via `sysctl`, auditd-to-SIEM integration, compliance framework implementation |

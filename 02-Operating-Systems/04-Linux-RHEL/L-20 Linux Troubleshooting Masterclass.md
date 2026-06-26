@@ -1,303 +1,256 @@
 ---
-tags: [desktop-support, linux, rhel, L2]
-aliases: [l-20-linux-troubleshooting-masterclass, l-20]
-created: 2026-06-25
+tags: [linux, rhel, troubleshooting, masterclass]
+aliases: [linux-troubleshooting, linux-masterclass]
+created: 2026-06-26
 status: #complete
 difficulty: #advanced
 cert-relevant: #rhcsa
 ---
 
+> [!NOTE|color-green]
+> 🐧 **LINUX RHEL**
+
+`#complete` `#advanced` `#rhcsa`
+
 # L-20: Linux Troubleshooting Masterclass
 
-**Verification:**
-- [ ] Diagnose boot-level failure alerts and read kernel ring buffer logs
-- [ ] Recover deleted filesystem capacity occupied by unlinked running processes
-- [ ] Investigate application runtime errors using system call tracing (`strace`)
-- [ ] Audit active listening sockets and resolve service port binding conflicts
-- [ ] Search logs using `journalctl` with specific boot, time, and service filters
-
 > [!abstract] Overview
-> This masterclass note aggregates critical Linux system diagnostics. It provides a structured methodology for identifying, isolating, and resolving runtime issues across CPU, memory, disk, network, and application layers, and features real-world troubleshooting scenarios.
+> Yeh note Linux/RHEL environments mein advanced troubleshooting scenarios, tools, aur methodology ko cover karta hai. Ek support engineer ke liye yeh extremely important hai kyunki jab production systems down hote hain, toh aapko exact pata hona chahiye ki kahaan dekhna hai aur issues ko step-by-step kaise isolate karna hai. It includes boot issues, performance bottlenecks, disk full problems, aur network connectivity issues. Is guide se aapko system failures ko debug karne ki ek structured approach milegi.
 
 ---
+## 🧠 Concept Overview
+
+- **What it is** — Systematically identifying, isolating, aur resolving problems Linux servers mein using built-in command-line tools aur logs. Ek scientific approach issues ko fix karne ki.
+- **Why it matters** — Real job mein server downtime sidha revenue loss karta hai. Fast aur accurate troubleshooting aapko hero banati hai. Isse aap SLA breaches ko rok sakte hain.
+- **Where you see this** — Boot failures (`grub` or `fstab` errors), high CPU/memory usage, "No space left on device" errors, zombie processes, aur network routing issues.
+
+**L1 / L2 / L3 Split:**
+
+| 👨‍💻 Level | 📋 Responsibility |
+|---------|-----------------|
+| **L1** | Basic alerts monitor karna, initial logs (`/var/log/messages`) check karna, service restart try karna. Server ping ho raha hai ya nahi dekhna. |
+| **L2** | Advanced logs analyze karna (`journalctl`), disk space / inode issues fix karna, user lockouts resolve karna, network connectivity test karna using `curl`/`nc`. |
+| **L3** | Kernel panics debug karna, crash dumps (kdump) analyze karna, system architecture or performance bottlenecks resolve karna, kernel parameters (`sysctl`) tune karna. |
+
+> [!tip] Seedha Simple Mein
+> *Troubleshooting ka matlab hai system ke symptoms dekh kar actual bimari (root cause) pakadna aur uska exact ilaaj (fix) apply karna. Andar se doctor wali feeling aati hai jab aisi commands chalate ho jo system ke internals dikhati hain.*
 
 ---
-## Concept Overview
-- **What it is** — Linux troubleshooting is the systematic process of diagnosing, isolating, and resolving system malfunctions, resource bottlenecks, boot issues, and service failures.
-- **Why it matters for a support engineer** — Production servers fail. When a business-critical database or web portal goes offline, a sysadmin cannot rely on guesswork. You must have a methodical approach using CLI diagnostic tools to pinpoint the exact failure point under pressure.
-- **Where you encounter this in real job** — Web service returning 502 Gateway Error, MySQL refusing to start, user filesystems turning read-only, ssh connections hanging, or high load alerts triggering in the middle of the night.
-- **L1 vs L2 vs L3 responsibility split for this topic:**
-  - **L1**: Collect error messages, run basic system checks (`df`, `free`, `top`, `ping`), view logs using `tail`, and escalate with documented steps.
-  - **L2**: Troubleshoot service startup failures (`systemctl status`), identify locked file descriptors, resolve network port conflicts, configure basic kernel logs, and extend full partitions.
-  - **L3**: Recover systems from grub/boot failures, run system call tracing (`strace`/`ltrace`), debug kernel panic core dumps, resolve advanced storage corruption, and perform packet analysis (`tcpdump`).
+## 💡 Real-World Analogy
 
-
----
+> [!info] Think of it like this...
+> **Linux Troubleshooting** is like **being a Detective at a crime scene** because...
+>
+> - Jo crime scene (server) pe evidences (logs and metrics) hain, unhe dhyan se collect aur preserve karna padta hai.
+> - Aap sidhe conclusion par nahi aate; pehle suspects (CPU, RAM, Disk, Network) ko question (commands) karte hain.
+> - Ek choti si detail (error message in a random file ya ek galat permission) poora case solve kar sakti hai.
 
 ---
-## Technical Deep Dive
-## Real-World Analogy
-Think of a Linux server as a **high-security hospital**:
-- If a patient is sick, you don't perform random surgery immediately. First, you check basic vitals (Temperature, Pulse) -> this is like checking `df -h` and `free -m`.
-- If they are coughing, you check the patient charts -> this is reviewing `/var/log/messages` or `journalctl`.
-- If you need a deep look inside the organs, you run an X-Ray or MRI -> this is like running `strace` or `tcpdump` to watch the system calls and packets in real time.
+## 🔬 Technical Deep Dive
+
+### 1. 🥾 Boot and Startup Issues
+
+> [!info] Key Concept
+> Linux boot process (BIOS -> MBR/GPT -> GRUB -> Kernel -> Systemd) mein kisi bhi stage par failure system ko unbootable bana sakta hai. Most common issues `/etc/fstab` misconfiguration ya corrupted GRUB bootloader ki wajah se aate hain.
+
+*Jab system boot na ho, toh sabse pehle vCenter console access ya rescue mode (Live CD) ki zaroorat padti hai, kyunki network start nahi hua hota, so SSH kaam nahi karega.*
+
+> [!danger] Common Mistake
+> Fstab (`/etc/fstab`) mein nayi disk add karne ke baad `mount -a` se verify na karna. Agar galat entry save kardi aur server reboot kiya, toh server emergency mode mein chala jayega aur remote access completely loose ho jayega.
+
+### 2. ⚡ Performance Bottlenecks
+
+> [!info] Key Concept
+> Performance issues mainly 4 major subsystems mein aate hain: CPU, Memory, Disk I/O, aur Network. 
+
+*Humesha `top` ya `htop` se start karein to check load average. Agar load average CPU cores se zyada hai, it means system overload hai. Agar CPU wait (wa) percentage high hai, toh matlab disk I/O slow hai aur processor disk operations complete hone ka wait kar raha hai.*
+
+### 3. 💾 Storage and File System Issues
+
+> [!info] Key Concept
+> "No space left on device" error hamesha sirf blocks (size) full hone par nahi aata, balki inodes full hone par bhi aa sakta hai (zyada choti files ki wajah se). File system corruption pe `fsck` run karna padta hai.
+
+*Hum `df -h` blocks ke liye aur `df -i` inodes ke liye use karte hain. Ek aur common issue hai "deleted open files" jo disk dikhate hain full par `du` mein size nahi milta.*
+
+### 4. 🌐 Network Connectivity Drops
+
+> [!info] Key Concept
+> Network issues mein firewall rules (iptables/firewalld), routing tables, ya closed ports ka problem hota hai.
+
+*Hamesha OSI model follow karein. Pehle Physical/Link (interface up hai ya nahi), phir Network (IP assign hua hai, ping), phir Transport (port open hai), aur aakhir mein Application (curl).*
 
 ---
+## 🛠️ Step-by-Step Lab
 
-### 1. The SysAdmin Diagnostic Pipeline
-To troubleshoot efficiently, always isolate the problem domain by checking layers in order:
-```
-+-----------------------------------------------------------+
-| 1. Physical/Virtual Layer (Is VM running? NIC connected?)  |
-+-----------------------------------------------------------+
-                             |
-+-----------------------------------------------------------+
-| 2. Storage & Filesystem (Is disk full? Read-only? inodes?)  |
-+-----------------------------------------------------------+
-                             |
-+-----------------------------------------------------------+
-| 3. Permission & Ownership (SELinux blocking? chmod/chown?) |
-+-----------------------------------------------------------+
-                             |
-+-----------------------------------------------------------+
-| 4. Network & Routing (DNS working? Firewall blocking port?)|
-+-----------------------------------------------------------+
-                             |
-+-----------------------------------------------------------+
-| 5. Process & Memory (OOM Killer hit? Port conflict?)      |
-+-----------------------------------------------------------+
-```
-
-### 2. Core Diagnostics Toolbox
-- **Logging Subsystems**:
-  - `journalctl`: Systemd's logging tool. Reads binary systemd journal logs.
-  - `dmesg`: Displays messages from the kernel ring buffer (vital for hardware/driver failures).
-  - `/var/log/messages` (or `/var/log/syslog` on Debian/Ubuntu): Central repository for general operating system events.
-- **Process Call Tracing**:
-  - `strace`: Traces system calls and signals received by a process. It intercepts calls to the Linux kernel (like opening files or binding network ports) to find where a process gets stuck.
-
----
-
----
-
-### Enterprise RHEL Service & Network Configurations
-
-#### 1. Custom Systemd Service Creation
-Create a custom systemd service configuration file `/etc/systemd/system/myapp.service`:
-```ini
-[Unit]
-Description=My Custom Enterprise Application
-After=network.target
-
-[Service]
-Type=simple
-User=sysadmin
-ExecStart=/usr/bin/python3 /opt/myapp/server.py
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-Enable and start the service:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now myapp.service
-```
-
-#### 2. Log Rotation & Rsyslog Configuration
-Configure log rotation rule in `/etc/logrotate.d/myapp` for automatic log cleaning:
-```text
-/var/log/myapp/*.log {
-    daily
-    rotate 7
-    compress
-    delaycompress
-    missingok
-    notifempty
-    create 0660 sysadmin sysadmin
-}
-```
-Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf` to redirect application logs to a dedicated file:
-```text
-if $programname == 'myapp' then /var/log/myapp/syslog.log
-& stop
-```
-Restart Rsyslog service:
-```bash
-sudo systemctl restart rsyslog
-```
-
-#### 3. Network Bonding & Teaming (LACP Link Aggregation)
-Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0` (RHEL standard):
-```text
-DEVICE=team0
-DEVICETYPE=Team
-BOOTPROTO=none
-IPADDR=192.168.1.100
-PREFIX=24
-GATEWAY=192.168.1.1
-ONBOOT=yes
-TEAM_CONFIG='{"runner": {"name": "lacp"}}'
-```
-Bind slave physical interfaces (e.g., `eth1`) to the team interface:
-```text
-# /etc/sysconfig/network-scripts/ifcfg-eth1
-DEVICE=eth1
-ONBOOT=yes
-TEAM_MASTER=team0
-DEVICETYPE=TeamPort
-```
-
----
-## Step-by-Step Lab
 > [!warning] Pre-requisites
-> - A Rocky Linux / RHEL system.
-> - Root or sudo access.
-> - `sysstat` and `strace` utilities installed:
->   ```bash
->   sudo dnf install -y sysstat strace
->   ```
+> - RHEL/CentOS/Ubuntu system with root privileges
+> - Basic understanding of common Linux command line utilities aur vi editor
+> - Backup hamesha pehle le lena chahiye kisi bhi config file ko edit karne se pehle
 
-### Step 1: Troubleshooting Space Reclamation (Deleted but Open Files)
-*Scenario:* Your `df -h` shows disk space is 100% full. You run `du -sh` on all directories, but the numbers don't add up (it shows only 10GB used on a 100GB disk).
-1. Generate a large log file:
-```bash
-dd if=/dev/zero of=/var/log/ghost.log bs=1M count=1000
-```
-2. Start a process that keeps this file open:
-```bash
-tail -f /var/log/ghost.log > /dev/null &
-```
-3. Delete the file using standard `rm`:
-```bash
-rm -f /var/log/ghost.log
-```
-4. Verify disk space using `df -h`. You will notice the space is **not** freed up because the background `tail` process still holds an active file descriptor.
-5. Identify the "deleted but open" file and the owning Process ID (PID):
-```bash
-lsof +L1
-# Or: lsof | grep deleted
-```
-**Expected Output:**
-```text
-COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NLINK NODE NAME
-tail    12345 root    3r   REG  253,0 104857600     0 9942 /var/log/ghost.log (deleted)
-```
-6. Safely free up the disk space by killing the process or truncating the file descriptor:
-```bash
-kill -9 12345
-```
-7. Verify with `df -h` that the disk space has returned.
+### Step 1: Fixing a "Disk Full" Issue (Block and Inodes)
 
-### Step 2: Debugging Application Failures using `strace`
-*Scenario:* An application crashes during execution, returning a generic "Failed to initialize" error.
-1. Run a trace on a basic command (e.g., trying to read a non-existent file) to watch system calls:
-```bash
-strace cat /etc/shadow_backup
-```
-**Expected Output:**
-```text
-execve("/usr/bin/cat", ["cat", "/etc/shadow_backup"], 0x7ffd...) = 0
-...
-openat(AT_FDCWD, "/etc/shadow_backup", O_RDONLY) = -1 ENOENT (No such file or directory)
-write(2, "cat: /etc/shadow_backup: No such"..., 40) = 40
-```
-*Note:* The output shows that `openat` returned `-1 ENOENT` (No such file or directory), which explains the exact system call failure.
+Kabhi kabhi user bolta hai space nahi hai par disk khali dikhti hai.
 
-### Step 3: Troubleshooting Service Port Conflicts
-*Scenario:* You try to start NGINX but it fails to start.
-1. Force a conflict by binding port 80 to a python web server:
 ```bash
-sudo python3 -m http.server 80 &
+# Check block space usage
+df -h
+
+# Check inode usage
+df -i
+
+# Agar block full hai, find largest directories under /
+du -sh /* | sort -hr | head -n 5
+
+# Agar inode full hai, find directories with most files
+find / -xdev -type d -size +100k -exec ls -ld {} \;
+# Ya aasan tareeka using for loop
+for i in /*; do echo $i; find $i |wc -l; done
 ```
-2. Attempt to start NGINX service:
+
+> [!success] Expected Output
+> ```
+> Filesystem      Inodes   IUsed   IFree IUse% Mounted on
+> /dev/sda1      1048576 1048576       0  100% /
+> ```
+> *Yahan dikh raha hai inode 100% use ho gaye hain. Ab inko delete karna hoga carefully.*
+
+### Step 2: Recovering Space from Deleted Open Files
+
+Bahut bar aap log file delete kar dete ho par disk space free nahi hoti.
+
 ```bash
-sudo systemctl start nginx
+# Check if any deleted files are still held open by processes
+lsof | grep deleted
+
+# The output will show process name and PID
+# Restart that specific service to free up space
+systemctl restart <service_name>
 ```
-**Expected Output:** `Job for nginx.service failed...`
-3. Inspect system logs to find the exact reason:
+
+### Step 3: Troubleshooting High Load Average
+
+Server slow respond kar raha hai aur CPU utilization dekhni hai.
+
 ```bash
-sudo journalctl -u nginx -n 20 --no-pager
+# Check system load and running processes
+top
+# Press '1' to see all CPU cores
+# Press 'M' to sort by Memory, 'P' to sort by CPU
+
+# Check historical load (sar -q) - if sysstat is installed
+sar -q
 ```
-**Expected Output:** `[emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)`
-4. Identify which PID is blocking the port:
+
+### Step 4: Analyzing System Logs with Journalctl
+
+Systemd environment mein logs efficiently filter karna aana chahiye bina `cat` ya `grep` kiye pure file ko.
+
 ```bash
-sudo ss -tulpn | grep :80
-```
-**Expected Output:**
-```text
-tcp   LISTEN 0      5          0.0.0.0:80        0.0.0.0:*    users:(("python3",pid=15432,fd=3))
-```
-5. Terminate the conflicting process:
-```bash
-sudo kill -9 15432
-```
-6. Verify NGINX now starts successfully:
-```bash
-sudo systemctl start nginx && sudo systemctl status nginx
+# Get logs for a specific service since last boot
+journalctl -u httpd.service -b
+
+# Check all error priority logs
+journalctl -p err
+
+# Follow logs in real time (like tail -f)
+journalctl -f
 ```
 
 ---
+## ⌨️ Command Cheat Sheet
+
+| ⌨️ Command | 🛠️ Kya karta hai | 📝 Example |
+|-----------|-----------------|-----------|
+| `top` / `htop` | System performance, CPU/Memory usage realtime dikhata hai | `top -c` (shows absolute path of command) |
+| `free -h` | Free aur used RAM human-readable format mein dikhata hai | `free -h` |
+| `df -hT` | Disk space usage (blocks) check karta hai with file system type | `df -hT /var` |
+| `df -i` | Inode usage check karta hai file limits janne ke liye | `df -i /var` |
+| `du -sh *` | Current folder ke andar kiska size kitna hai batata hai | `du -sh /var/log/*` |
+| `ss -tulnp` | Listening network ports aur unke piche konsa process run ho raha hai, woh dikhata hai | `ss -tulnp \| grep 80` |
+| `dmesg -T` | Kernel ring buffer (hardware/driver issues) check karta hai with human-readable timestamps | `dmesg -T \| grep -i error` |
+| `lsblk -f` | Block devices (disks/partitions) ka tree structure aur filesystem dikhata hai | `lsblk -f` |
+| `journalctl -xe` | Systemd logs ke end mein jump karta hai errors trace karne ke liye | `journalctl -u sshd -xe` |
+| `lsof` | List open files. Kaunsa process kis file ko use kar raha hai batata hai | `lsof -i :80` |
 
 ---
-## Cheat Sheet / Quick Reference
-| Command / Setting | Purpose | Example |
-|---|---|---|
-| `journalctl -xe` | Opens systemd journal logs at the end, displaying system errors | `journalctl -xe --no-pager` |
-| `journalctl -u nginx --since "1 hour ago"` | Filters logs for a specific service within a timeframe | `journalctl -u nginx --since "2 hours ago"` |
-| `dmesg -T \| tail -n 50` | Prints kernel log messages with human-readable timestamps | `dmesg -T \| grep -i "oom"` |
-| `lsof -i :22` | Lists all active processes holding port 22 open | `lsof -i :22` |
-| `ss -tulpn` | Displays all listening TCP/UDP sockets with process PIDs | `ss -tulpn` |
-| `strace -p <PID>` | Attaches to a running process to trace its active system calls | `strace -p 4321` |
-| `du -sh /* 2>/dev/null` | Summarizes disk usage per folder in root, hiding error alerts | `du -sh /var/*` |
-| `fuser -v /var/log/nginx` | Lists users/processes accessing a specific file or directory | `fuser -k -9 /var/log/nginx` |
+## 🚑 Troubleshooting Guide
+
+| ⚠️ Problem | 🔍 Wajah (Cause) | 🛠️ Fix |
+|-----------|----------------|-------|
+| **Server is very slow, SSH taking time** | High CPU Load or out of memory (OOM killer active, system swapping heavily). | Run `top`, check top CPU/Memory consumers. Check `/var/log/messages` for OOM killer logs. Restart/kill problematic process. |
+| **"No space left on device" error** | Ya toh disk block full ho gaya hai, ya inodes exhaust ho gaye hain. | `df -h` and `df -i`. Clean up old logs (`/var/log`) or temporary files (`/tmp`). Check open deleted files. |
+| **Service (e.g., Apache/Nginx) fails to start** | Configuration syntax error, port pehle se in-use hai, ya permissions issue (SELinux blocking). | `systemctl status <service>`, `journalctl -xe`, test config `nginx -t`, check port `ss -tulnp \| grep 80`. |
+| **User locked out or password expired** | `/etc/shadow` mein account expire ho gaya hai ya multiple fail attempts ki wajah se pam_tally2/faillock locked hai. | `faillock --user <user> --reset` ya `passwd -u <user>` to unlock. Change password if expired. |
+| **System boots into Emergency Mode** | Most common cause is `/etc/fstab` mein invalid entry ya corrupted file system causing mount failure. | Login with root password. Check `journalctl -xb`. Open `/etc/fstab`, comment wrong entry, run `mount -a`, `reboot`. |
 
 ---
+## 🎫 Real-World Ticket Scenarios
+
+### 🎫 Scenario 1: Critical Web Server Down (Out of Memory)
+
+> [!example] Ticket
+> "URGENT: Corporate website is not loading. Monitoring shows the server is pingable but HTTP is timing out constantly."
+
+**L1 Response:** Verify connectivity and basic service status. Check if Apache/Nginx service is running. Try to SSH into the server. If SSH works but very slow, escalate if basic restart doesn't help.
+**Escalation Trigger:** Service restart fails and `free -h` shows 0 available memory with Swap completely full.
+**L2 Resolution:** 
+1. SSH into the server and run `dmesg -T | grep -i oom` aur check journalctl.
+2. *Pata chala ki OOM-Killer ne Java backend process ko kill kar diya tha out of memory ki wajah se.*
+3. Run `top` and check what is consuming memory right now. 
+4. Check process limits. Identify a memory leak in the application code with the developer team. Increase instance memory size temporarily (if VM/Cloud).
+5. Restart the web service and monitor usage.
+
+### 🎫 Scenario 2: Can't create new files, disk full error
+
+> [!example] Ticket
+> "Database backups are failing with 'No space left on device' but `df -h` shows 30GB free space on `/data` partition."
+
+**L1 Response:** Confirms space issue by creating a test file (`touch /data/test`). It fails. Escalate to L2 because block size shows free space but it still fails.
+**Escalation Trigger:** Blocks space is free but file creation fails consistently.
+**L2 Resolution:** 
+1. Run `df -i /data` to check inodes. Inode usage is at 100%.
+2. *Wajah yeh thi ki application roz lakho zero-byte session files create kar rahi thi aur unko delete nahi kar rahi thi.*
+3. Run `find /data/sessions -type f -mtime +7 -delete` (Dhyan se chalayein!). Better to use `find /data/sessions -type f | xargs rm` if file count is too huge for simple rm.
+4. Issue resolved, space and inodes freed up. Setup a cronjob to clear old sessions automatically in the future.
+
+### 🎫 Scenario 3: Remote Server Unavailable After Reboot
+
+> [!example] Ticket
+> "After regular OS patching and reboot, server 'APP-SRV-01' is not coming up on network. Cannot SSH or ping."
+
+**L1 Response:** Ping server. Fails. Check vCenter/Cloud console for VM state. Shows VM is powered on but stuck on a black screen with text.
+**Escalation Trigger:** Server stuck during boot process. Needs console access.
+**L2 Resolution:** 
+1. Access server via vCenter/iLO console. Console shows system is in "Emergency Mode" and prompting for root password.
+2. Provide root password to enter maintenance mode.
+3. Run `journalctl -xb` or `cat /run/initramfs/rdsosreport.txt` to find the exact mount failure. 
+4. *Pata chala ki kisi ne `/etc/fstab` mein ek nayi storage LUN ki entry ki thi bina `nofail` flag ke, aur SAN connectivity issues se woh disk attach nahi hui thi.*
+5. Open `/etc/fstab` using `vi`, comment out the problematic line, save, and type `reboot`. Server boots successfully.
 
 ---
-## Troubleshooting
-| Problem | Cause | Fix |
-|---|---|---|
-| Server disk shows 100% full, but `du -sh` shows minimal file usage. | Deleted files are still held open in memory by active processes. | Run `lsof \| grep deleted`. Identify the PID and restart the service or run `kill -9 <PID>` to release the lock. |
-| SSH login is very slow (takes 10-30 seconds to show password prompt). | SSH daemon is trying to perform a reverse DNS lookup of the client IP, which fails or times out. | Edit `/etc/ssh/sshd_config`. Set `UseDNS no`. Save and run `sudo systemctl restart sshd`. |
-| "Read-only filesystem" error when trying to write files. | Filesystem has encountered block level corruption, prompting the kernel to lock it for protection. | Run `fsck -y /dev/sdX` (where sdX is the corrupt partition). Reboot the host. *Note: Never run fsck on a mounted filesystem.* |
-| Service fails with "Permission Denied" even though files have permissions `777`. | SELinux policies are blocking the service from accessing the target directory path. | Run `getenforce` to verify. Fix directory context: `semanage fcontext -a -t httpd_sys_content_t "/custom(/.*)?"` and `restorecon -Rv /custom`. |
-| High Load Average but CPU utilization shows 5% (Idle is 95%). | CPU cores are idle but processes are blocked waiting for slow storage or network disks (High I/O Wait). | Run `vmstat 1 5` and inspect the `wa` column. Run `iostat -xz 1 5` to locate the saturated disk device. |
+## 🎤 Interview Questions
+
+> [!question] Q1: Jab aapka server slow respond kar raha hai, toh aap pehla step kya karenge?
+> **Answer:** Main sabse pehle `top` command chalaunga system ka load average, CPU, aur RAM status dekhne ke liye. Agar load zyada hai, toh top consuming process isolate karunga. Phir disk I/O check karne ke liye `iostat` aur network check ke liye `ss`/`netstat` use karunga.
+
+==**Exam Tip:** *Humesha structured approach show karein. Direct restart bolna galat hai, pehle root cause dhoondna zaroori hai troubleshooting mein.*==
+
+> [!question] Q2: "No space left on device" error aa raha hai par `df -h` dikha raha hai 50% free. Kya wajah ho sakti hai aur kaise resolve karenge?
+> **Answer:** Inodes exhaust ho gaye hain. Linux mein har file ek inode leti hai. Agar millions of small files ban jayein (jaise session files ya email queues), toh disk space blocks bache honge but inodes khatam ho jayenge. Isko `df -i` command se confirm kar sakte hain aur un choti unnecessary files ko identify karke delete karna hoga.
+
+> [!question] Q3: `/etc/fstab` edit karte waqt kaunsi best practice follow karni chahiye?
+> **Answer:** Nayi entry dalne ke baad **humesha** `mount -a` command run karna chahiye. Yeh test karega ki fstab ki entries sahi mount ho rahi hain ya nahi bina reboot kiye. Agar koi error ho, toh system reboot karne se pehle use theek kar lena chahiye taaki server emergency mode mein na jaye. Also, non-critical / external mounts ke liye `nofail` option use karna chahiye.
+
+> [!question] Q4: Ek log file delete kar di hai, phir bhi `df -h` mein disk space free nahi hui. Yeh kyun hota hai aur ise bina server reboot kiye kaise fix karein?
+> **Answer:** Yeh tab hota hai jab woh file abhi bhi kisi running process (like a web server or database) ke open file descriptor dwara held ho. Linux mein space tabhi free hoti hai jab dono file link aur open file reference close (zero) ho jayein. Ise dhoondne ke liye main `lsof | grep deleted` run karunga. Phir us particular process ko gracefully reload ya restart kar dunga, toh space turant free ho jayegi.
+
+> [!question] Q5: Server load average `12.50, 10.20, 8.10` dikha raha hai ek 4-core CPU system pe. Iska kya matlab hai?
+> **Answer:** Load average numbers 1-minute, 5-minute, aur 15-minute intervals ka data dikhate hain. 4-core system mein 4.0 load ka matlab CPU 100% utilized hai. `12.50` load on a 4-core system matlab CPU severely overloaded hai aur processes CPU time ke liye queue mein wait kar rahe hain. Is situation mein humein `top` ya `htop` use karke heavy CPU consuming process ko identify karna hoga aur zaroorat padne par use kill (`kill -9`) ya nice value dekar priority kam karni hogi.
 
 ---
+## 🔗 Related Notes
 
----
-## Interview Questions
-> [!question] L1 Question
-> **Q:** How do you check if a specific port (like port 443) is open and listening on a Linux server?
-> **A:** I can use the socket statistics command `ss` or the older `netstat` tool. The command `sudo ss -tulpn | grep :443` will display listening sockets (`-l`), filtering for TCP (`-t`) and UDP (`-u`), while showing numerical port values (`-n`) and the associated process name/PID (`-p`). If nothing is returned, the port is closed or the service is stopped.
-
-> [!question] L2 Question
-> **Q:** If you delete a large database file but notice that the free disk space does not increase, what is the cause, and how do you resolve it?
-> **A:** This occurs because the database process still holds an active file descriptor lock on that file. Although the directory link is removed, the kernel will not release the file's disk sectors until all file descriptors referencing it are closed. To resolve this without stopping the system, I would:
-> 1. Run `lsof | grep deleted` to find the process ID (PID) holding the file open.
-> 2. Safely restart the database service (or kill the specific PID if safe).
-> 3. Alternatively, I can truncate the file descriptor by writing empty content to it under `/proc/<PID>/fd/<FD_NUM>`.
-
-> [!question] L3/Scenario Question
-> **Q:** An Apache/httpd web service is crashing on startup with a generic error code. The standard logs do not explain the failure. How would you debug this using system call tracing?
-> **A:** 
-> - **Situation:** Apache fails to start with zero diagnostic messages in standard log files.
-> - **Task:** Track the low-level system execution calls of the HTTPD binary on startup to locate the failure.
-> - **Action:** I will bypass systemctl and run the daemon binary directly inside `strace`: `strace -f -o /tmp/httpd_trace.txt /usr/sbin/httpd -X`. The `-f` flag traces spawned threads, and `-o` writes the trace to a file. I will search the text file `/tmp/httpd_trace.txt` from the bottom up, looking for failed system calls returning errors like `EACCES` (Permission Denied) or `ENOENT` (No such file).
-> - **Result:** This trace might reveal that Apache was crashing because it could not access a specific SSL key file due to a permissions mismatch, allowing me to correct the path ownership and successfully start the service.
-
----
-
----
-## Seedha Simple Mein
-*Seedha simple mein: Linux troubleshooting ka matlab hai server par aane wali problems ko step-by-step logic aur commands ke zariye pehchanna aur theek karna. Command line tools ka use karke hum pata karte hain ki problem storage, permissions, networking, ya code execution mein hai.*
-
----
-## Related Notes
-- [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]] — Explains unit configurations and debugging with systemctl.
-- [[02-Operating-Systems/04-Linux-RHEL/L-14 Linux Security Hardening|L-14 Linux Security Hardening]] — SELinux troubleshooting and audits.
-- [[02-Operating-Systems/04-Linux-RHEL/L-18 Linux Performance Monitoring|L-18 Linux Performance Monitoring]] — Identifying CPU, RAM, and Disk bottlenecks.
-
----
-*Tags: #linux #rhel #troubleshooting #sysadmin #diagnostics #cert-rhcsa*
+- [[02-Operating-Systems/04-Linux-RHEL/L-04 Linux File System Hierarchy|L-04 Linux File System Hierarchy]] — *For understanding paths mentioned.*
+- [[02-Operating-Systems/04-Linux-RHEL/L-08 Linux Disk Management|L-08 Linux Disk Management]] — *For LVM and partitioning troubleshooting details.*
+- [[02-Operating-Systems/04-Linux-RHEL/L-12 Linux Network Configuration|L-12 Linux Network Configuration]] — *For deeper network troubleshooting tools.*
+- [[02-Operating-Systems/04-Linux-RHEL/L-15 Linux Process Management|L-15 Linux Process Management]] — *For managing, killing, and nice values.*

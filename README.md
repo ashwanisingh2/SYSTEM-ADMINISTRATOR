@@ -6,23 +6,27 @@
 [![Obsidian Vault](https://img.shields.io/badge/Obsidian-Vault-purple?style=for-the-badge&logo=obsidian)](https://obsidian.md)
 
 ## 📊 Vault Stats
+
 | Category | Notes | Status |
 |----------|-------|--------|
 | 🔧 Hardware + Virtualization | H-01 to H-06, V-01 to V-04 | ✅ Complete |
 | 🌐 Networking | N-01 to N-12 | ✅ Complete |
 | 🪟 Windows OS | WIN-01 to WIN-12 | ✅ Complete |
-| 🐧 Linux RHEL | L-01 to L-20 | ✅ Complete |
-| 🏢 Windows Server | WS-01 to WS-18 | ✅ Complete |
-| 🔐 Active Directory | WS-02, WS-05 to WS-08, WS-13 | ✅ Complete |
-| ☁️ Microsoft 365 + Intune | M365-01 to M365-05, INT-01 to INT-10 | ✅ Complete |
-| ☁️ Azure | AZ9-01 to AZ9-06, AZ104-01 to AZ104-07 | ✅ Complete |
-| 🛡️ Security | 9 notes | ✅ Complete |
-| 📜 PowerShell | PS-01 to PS-06 | ✅ Complete |
-| 📋 ITSM/ITIL | 3 notes | ✅ Complete |
-| 🤖 Ansible | ANS-01 to ANS-03 | ✅ Complete |
-| 📊 Monitoring | MON-01 to MON-05 | ✅ Complete |
-| 🎯 Career Growth | 10+ notes | ✅ Complete |
-| **Total Notes** | **~165** | **✅ 100% Done** |
+| 🐧 Linux RHEL | L-01 to L-23 | ⏳ In Progress |
+| 🏢 Windows Server | WS-01 to WS-19 | ⏳ In Progress |
+| 🔐 Active Directory | WS-02, WS-05 to WS-08, WS-13 | ⏳ In Progress |
+| ☁️ Microsoft 365 + Intune | M365-01 to M365-05, INT-01 to INT-10 | ⏳ In Progress |
+| ☁️ Azure | AZ9-01 to AZ9-06, AZ104-01 to AZ104-07 | ⏳ In Progress |
+| 🛡️ Security | SEC-01 to SEC-08 | ⏳ In Progress |
+| 📜 PowerShell | PS-01 to PS-06 | ⏳ In Progress |
+| 📋 ITSM/ITIL | ITIL, Incident, Change | ⏳ In Progress |
+| 🤖 Ansible | ANS-01 to ANS-03 | ⏳ In Progress |
+| 📊 Monitoring | MON-01 to MON-05 | ⏳ In Progress |
+| ♾️ DevOps | DEV-01 to DEV-02 | ⏳ In Progress |
+| 🐍 Python | PY-01 to PY-02 | ⏳ In Progress |
+| 🌩️ AWS (NEW) | AWS-01 to AWS-05 | ⏳ In Progress |
+| 🎯 Career Growth | 13+ notes | ⏳ In Progress |
+| **Total Notes** | **~159** | **⏳ ~32% Done** |
 
 > **Last Updated:** June 2026
 
