@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Complete System Administrator Handbook</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-card: #141c2e;
+  --bg-card-hover: #1a2340;
+  --border: #1e2a42;
+  --accent-cyan: #00d4ff;
+  --accent-green: #00ff88;
+  --accent-red: #ff4757;
+  --accent-purple: #a855f7;
+  --accent-orange: #ff6b35;
+  --accent-yellow: #ffd32a;
+  --accent-blue: #60a5fa;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8892a4;
+  --text-muted: #4a5568;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  display: flex;
+}
+h1, h2, h3, h4, h5, h6, .mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Sidebar */
+#sidebar {
+  width: 260px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+.brand { margin-bottom: 2rem; }
+.brand h2 { color: var(--accent-cyan); font-size: 1.2rem; margin-bottom: 0.2rem; }
+.brand span { color: var(--text-secondary); font-size: 0.8rem; }
+#search-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 2rem;
+}
+#search-input:focus { outline: 1px solid var(--accent-cyan); }
+.nav-links { list-style: none; }
+.nav-links li { margin-bottom: 0.5rem; }
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  display: block;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.nav-links a:hover, .nav-links a.active {
+  background-color: rgba(0, 212, 255, 0.1);
+  color: var(--accent-cyan);
+}
+
+/* Main Content */
+#main-content {
+  margin-left: 260px;
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+}
+.content-wrapper { max-width: 900px; margin: 0 auto; }
+
+/* Hero Section */
+.hero { margin-bottom: 3rem; position: relative; }
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--accent-green);
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+.dot {
+  width: 8px; height: 8px;
+  background-color: var(--accent-green);
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.5); } 100% { opacity: 1; transform: scale(1); } }
+.hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #fff; }
+.hero p { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1.5rem; }
+.stats-row {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.stats-row span { color: var(--accent-cyan); font-weight: 700; }
+
+/* Tag Filter */
+.tag-filter { margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.tag {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.tag:hover, .tag.active {
+  background: var(--accent-cyan);
+  color: var(--bg-primary);
+  border-color: var(--accent-cyan);
+}
+
+/* Progress Bars */
+.progress-section { margin-bottom: 3rem; background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); }
+.progress-section h3 { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;}
+.progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+.progress-item { margin-bottom: 0.5rem; }
+.progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace;}
+.progress-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0; transition: width 1s ease-in-out; }
+
+/* Chapter Cards */
+.unit-section { margin-bottom: 3rem; }
+.unit-title { margin-bottom: 1.5rem; font-size: 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;}
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  display: flex; flex-direction: column;
+}
+.card:hover {
+  transform: translateY(-5px);
+  background: var(--bg-card-hover);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
+}
+.card-color-bar { position: absolute; top: 0; left: 0; width: 100%; height: 4px; }
+.card-header { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; }
+.card-cert { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(255,255,255,0.05); }
+.card-title { font-size: 1.1rem; margin-bottom: 0.8rem; color: #fff; font-family: 'JetBrains Mono', monospace;}
+.card-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; flex-grow: 1; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 1.5rem; color: var(--text-muted); }
+.card-tags { color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace;}
+.btn-open {
+  background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border);
+  padding: 0.6rem; border-radius: 6px; text-align: center; cursor: pointer; transition: all 0.2s; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+}
+.btn-open:hover { background: var(--accent-cyan); color: var(--bg-primary); border-color: var(--accent-cyan); }
+
+/* Chapter Detail View */
+#chapter-view { display: none; }
+.back-btn { background: none; border: none; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; cursor: pointer; font-size: 1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
+.back-btn:hover { color: #fff; }
+.detail-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.detail-header h1 { font-size: 2.5rem; color: #fff; margin: 1rem 0; font-family: 'JetBrains Mono', monospace;}
+.detail-tags { display: flex; gap: 0.5rem; margin-top: 1rem; }
+
+.detail-content h2 { margin: 2rem 0 1rem; font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;}
+.detail-content h3 { margin: 1.5rem 0 1rem; font-size: 1.2rem; color: #fff;}
+.detail-content p, .detail-content li { margin-bottom: 1rem; }
+.detail-content ul { margin-left: 1.5rem; margin-bottom: 1.5rem; }
+
+/* Callout Boxes */
+.callout { padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; background: rgba(255,255,255,0.02); border-left: 4px solid var(--border); }
+.callout strong { display: block; font-family: 'JetBrains Mono', monospace; margin-bottom: 0.5rem; }
+.callout p:last-child { margin-bottom: 0; }
+.callout.info { border-left-color: #00d4ff; background: rgba(0,212,255,0.05); }
+.callout.info strong { color: #00d4ff; }
+.callout.tip { border-left-color: #00ff88; background: rgba(0,255,136,0.05); }
+.callout.tip strong { color: #00ff88; }
+.callout.warning { border-left-color: #ffd32a; background: rgba(255,211,42,0.05); }
+.callout.warning strong { color: #ffd32a; }
+.callout.danger { border-left-color: #ff4757; background: rgba(255,71,87,0.05); }
+.callout.danger strong { color: #ff4757; }
+.callout.success { border-left-color: #00ff88; background: rgba(0,255,136,0.08); }
+.callout.success strong { color: #00ff88; }
+.callout.question { border-left-color: #a855f7; background: rgba(168,85,247,0.05); }
+.callout.question strong { color: #a855f7; }
+
+/* Code Blocks */
+pre { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem; margin: 1.5rem 0; overflow-x: auto; }
+code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #00ff88; }
+.comment { color: #4a5568; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 2rem 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: rgba(255,255,255,0.03); color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; }
+tr:last-child td { border-bottom: none; }
+tr:nth-child(even) { background: rgba(255,255,255,0.01); }
+
+/* Accordion */
+.accordion-item { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.accordion-btn {
+  width: 100%; text-align: left; padding: 1.2rem; background: rgba(168,85,247,0.05);
+  border: none; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; cursor: pointer; display: flex; justify-content: space-between;
+  align-items: center; transition: background 0.2s;
+}
+.accordion-btn:hover { background: rgba(168,85,247,0.1); }
+.accordion-content { padding: 0 1.2rem; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background: rgba(168,85,247,0.03); color: var(--text-secondary); }
+.accordion-content.active { padding: 1.2rem; max-height: 500px; border-top: 1px solid var(--border); }
+.arrow { transition: transform 0.3s; color: var(--accent-purple); }
+.accordion-btn.active .arrow { transform: rotate(180deg); }
+
+/* Bottom Nav */
+.bottom-nav { display: flex; justify-content: space-between; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+.b-btn { padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.05); color: #fff; text-decoration: none; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; border: 1px solid var(--border); transition: all 0.2s; cursor: pointer;}
+.b-btn:hover { background: var(--accent-cyan); color: var(--bg-primary); border-color: var(--accent-cyan); }
+
+/* Checkbox */
+.obj-list { list-style: none; margin: 0 0 1.5rem 0;}
+.obj-list li { margin-bottom: 0.5rem; display: flex; align-items: flex-start; gap: 0.8rem;}
+.obj-list li::before { content: '☑'; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; line-height: 1.2;}
+
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #main-content { margin-left: 0; padding: 1rem; }
+  .cards-grid { grid-template-columns: 1fr; }
+}
+
+.hamburger { display: none; position: fixed; top: 1rem; right: 1rem; z-index: 1000; background: var(--bg-card); border: 1px solid var(--border); color: #fff; padding: 0.5rem; border-radius: 4px; cursor: pointer; }
+@media (max-width: 768px) { .hamburger { display: block; } }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ Menu</button>
+
+<div id="sidebar">
+  <div class="brand">
+    <h2>📘 IT Handbook</h2>
+    <span>by Ashwani Singh</span>
+  </div>
+  <input type="text" id="search-input" placeholder="Search chapters..." onkeyup="filterChapters()">
+  <ul class="nav-links">
+    <li><a href="#" onclick="scrollToUnit('unit-1')" class="active">UNIT 1: Foundations</a></li>
+    <li><a href="#" onclick="scrollToUnit('unit-2')">UNIT 2: OS</a></li>
+    <li><a href="#" onclick="scrollToUnit('unit-3')">UNIT 3: Windows Server & AD</a></li>
+    <li><a href="#" onclick="scrollToUnit('unit-4')">UNIT 4: Cloud & M365</a></li>
+    <li><a href="#" onclick="scrollToUnit('unit-5')">UNIT 5-6: Security & Automation</a></li>
+    <li><a href="#" onclick="scrollToUnit('unit-7')">UNIT 7-8: ITSM & Career</a></li>
+  </ul>
+</div>
+
+<div id="main-content">
+  <div class="content-wrapper">
+    
+    <div id="dashboard-view">
+      
+      <div class="hero">
+        <div class="live-badge"><div class="dot"></div> LIVE EDITION 2026</div>
+        <h1>The Complete System Admin Handbook</h1>
+        <p>From fresher to L3 — ek complete journey</p>
+        <div class="stats-row">
+          <div><span>159</span> Notes</div> |
+          <div><span>15</span> Chapters</div> |
+          <div><span>8</span> Units</div> |
+          <div><span>4</span> Certs</div> |
+          <div><span>95%</span> Complete</div>
+        </div>
+      </div>
+
+      <div class="tag-filter">
+        <span class="tag active" onclick="filterByTag('all', this)">#all</span>
+        <span class="tag" onclick="filterByTag('linux', this)">#linux</span>
+        <span class="tag" onclick="filterByTag('windows', this)">#windows</span>
+        <span class="tag" onclick="filterByTag('azure', this)">#azure</span>
+        <span class="tag" onclick="filterByTag('security', this)">#security</span>
+        <span class="tag" onclick="filterByTag('networking', this)">#networking</span>
+        <span class="tag" onclick="filterByTag('automation', this)">#automation</span>
+        <span class="tag" onclick="filterByTag('career', this)">#career</span>
+        <span class="tag" onclick="filterByTag('rhcsa', this)">#rhcsa</span>
+        <span class="tag" onclick="filterByTag('az-104', this)">#az-104</span>
+        <span class="tag" onclick="filterByTag('md-102', this)">#md-102</span>
+      </div>
+
+      <div class="progress-section">
+        <h3>// Vault Completion Status</h3>
+        <div class="progress-grid">
+          <div class="progress-item">
+            <div class="progress-header"><span>Linux/RHEL</span><span>100%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-green);" data-width="100%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-header"><span>Windows Server</span><span>95%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-blue);" data-width="95%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-header"><span>Azure/Cloud</span><span>95%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-cyan);" data-width="95%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-header"><span>Microsoft 365</span><span>100%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-cyan);" data-width="100%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-header"><span>Security</span><span>90%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-red);" data-width="90%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-header"><span>Automation</span><span>85%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-purple);" data-width="85%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-header"><span>Monitoring</span><span>30%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="background: var(--accent-orange);" data-width="30%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UNIT 1 -->
+      <div id="unit-1" class="unit-section">
+        <h2 class="unit-title">UNIT 1 — FOUNDATIONS</h2>
+        <div class="cards-grid">
+          
+          <div class="card" data-title="CH-01 Computer Hardware & Architecture" data-tags="hardware, beginner">
+            <div class="card-color-bar" style="background: var(--accent-yellow);"></div>
+            <div class="card-header">
+              <span class="card-cert">CompTIA A+</span>
+              <span>📝 6 Notes</span>
+            </div>
+            <h3 class="card-title">CH-01 Computer Hardware & Architecture</h3>
+            <p class="card-desc">Motherboard, Storage (HDD/SSD/NVMe), SMPS, Laptop hardware, PC Assembly, BIOS/UEFI, Hardware troubleshooting</p>
+            <div class="card-footer"><span class="card-tags">#hardware #beginner</span></div>
+            <div class="btn-open" onclick="openChapter('ch-01')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-02 Virtualization & Lab Setup" data-tags="virtualization, beginner">
+            <div class="card-color-bar" style="background: var(--accent-purple);"></div>
+            <div class="card-header">
+              <span class="card-cert">Lab</span>
+              <span>📝 4 Notes</span>
+            </div>
+            <h3 class="card-title">CH-02 Virtualization & Lab Setup</h3>
+            <p class="card-desc">VMware Workstation, VirtualBox, Hyper-V, Lab Architecture.</p>
+            <div class="card-footer"><span class="card-tags">#virtualization #beginner</span></div>
+            <div class="btn-open" onclick="openChapter('ch-02')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-03 Networking Fundamentals" data-tags="networking, beginner">
+            <div class="card-color-bar" style="background: var(--accent-yellow);"></div>
+            <div class="card-header">
+              <span class="card-cert">CCNA</span>
+              <span>📝 12 Notes</span>
+            </div>
+            <h3 class="card-title">CH-03 Networking Fundamentals</h3>
+            <p class="card-desc">IP addressing, DNS, DHCP, VLANs, TCP/UDP, basic network troubleshooting.</p>
+            <div class="card-footer"><span class="card-tags">#networking #beginner</span></div>
+            <div class="btn-open" onclick="openChapter('ch-03')">Open Chapter ➔</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- UNIT 2 -->
+      <div id="unit-2" class="unit-section">
+        <h2 class="unit-title">UNIT 2 — OPERATING SYSTEMS</h2>
+        <div class="cards-grid">
+          
+          <div class="card" data-title="CH-04 Windows OS Administration" data-tags="windows, md-102, intermediate">
+            <div class="card-color-bar" style="background: var(--accent-blue);"></div>
+            <div class="card-header">
+              <span class="card-cert">MD-102</span>
+              <span>📝 9 Notes</span>
+            </div>
+            <h3 class="card-title">CH-04 Windows OS Administration</h3>
+            <p class="card-desc">Windows 10/11 administration tools jo har L1/L2 engineer ko aane chahiye — real tickets ke saath.</p>
+            <div class="card-footer"><span class="card-tags">#windows #md-102</span></div>
+            <div class="btn-open" onclick="openChapter('ch-04')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-05 Linux & RHEL Administration" data-tags="linux, rhcsa, advanced">
+            <div class="card-color-bar" style="background: var(--accent-green);"></div>
+            <div class="card-header">
+              <span class="card-cert">RHCSA</span>
+              <span>📝 20 Notes</span>
+            </div>
+            <h3 class="card-title">CH-05 Linux & RHEL Administration</h3>
+            <p class="card-desc">File systems, permissions, LVM, SELinux, and systemd services administration.</p>
+            <div class="card-footer"><span class="card-tags">#linux #rhcsa</span></div>
+            <div class="btn-open" onclick="openChapter('ch-05')">Open Chapter ➔</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- UNIT 3 -->
+      <div id="unit-3" class="unit-section">
+        <h2 class="unit-title">UNIT 3 — WINDOWS SERVER & AD</h2>
+        <div class="cards-grid">
+          
+          <div class="card" data-title="CH-06 Windows Server 2022" data-tags="windows-server, md-102, advanced, windows">
+            <div class="card-color-bar" style="background: var(--accent-blue);"></div>
+            <div class="card-header">
+              <span class="card-cert">MD-102</span>
+              <span>📝 14 Notes</span>
+            </div>
+            <h3 class="card-title">CH-06 Windows Server 2022</h3>
+            <p class="card-desc">DNS, DHCP, File Server, DFS, Storage, Hyper-V, VPN, IIS, and WSUS management.</p>
+            <div class="card-footer"><span class="card-tags">#windows-server #md-102</span></div>
+            <div class="btn-open" onclick="openChapter('ch-06')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-07 Active Directory & Identity" data-tags="active-directory, md-102, advanced">
+            <div class="card-color-bar" style="background: var(--accent-purple);"></div>
+            <div class="card-header">
+              <span class="card-cert">MD-102</span>
+              <span>📝 10 Notes</span>
+            </div>
+            <h3 class="card-title">CH-07 Active Directory & Identity</h3>
+            <p class="card-desc">AD DS Architecture, Group Policy, FSMO Roles, Replication, and AD CS.</p>
+            <div class="card-footer"><span class="card-tags">#active-directory #md-102</span></div>
+            <div class="btn-open" onclick="openChapter('ch-07')">Open Chapter ➔</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- UNIT 4 -->
+      <div id="unit-4" class="unit-section">
+        <h2 class="unit-title">UNIT 4 — CLOUD & M365</h2>
+        <div class="cards-grid">
+          
+          <div class="card" data-title="CH-08 Microsoft 365 & Intune" data-tags="m365, intune, md-102, intermediate">
+            <div class="card-color-bar" style="background: var(--accent-cyan);"></div>
+            <div class="card-header">
+              <span class="card-cert">MD-102</span>
+              <span>📝 21 Notes</span>
+            </div>
+            <h3 class="card-title">CH-08 Microsoft 365 & Intune</h3>
+            <p class="card-desc">M365 Admin Center, Exchange Online, Intune Device Enrollment, Conditional Access, and MFA.</p>
+            <div class="card-footer"><span class="card-tags">#m365 #intune</span></div>
+            <div class="btn-open" onclick="openChapter('ch-08')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-09 Microsoft Azure (AZ-104)" data-tags="azure, az-104, advanced">
+            <div class="card-color-bar" style="background: var(--accent-cyan);"></div>
+            <div class="card-header">
+              <span class="card-cert">AZ-104</span>
+              <span>📝 14 Notes</span>
+            </div>
+            <h3 class="card-title">CH-09 Microsoft Azure (AZ-104)</h3>
+            <p class="card-desc">Azure Compute, Storage, Virtual Networking, Load Balancing, and Azure Monitor.</p>
+            <div class="card-footer"><span class="card-tags">#azure #az-104</span></div>
+            <div class="btn-open" onclick="openChapter('ch-09')">Open Chapter ➔</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- UNIT 5-6 -->
+      <div id="unit-5" class="unit-section">
+        <h2 class="unit-title">UNIT 5-6 — SECURITY & AUTOMATION</h2>
+        <div class="cards-grid">
+          
+          <div class="card" data-title="CH-10 Enterprise Security" data-tags="security, az-104, md-102, advanced">
+            <div class="card-color-bar" style="background: var(--accent-red);"></div>
+            <div class="card-header">
+              <span class="card-cert">AZ-104 + MD-102</span>
+              <span>📝 9 Notes</span>
+            </div>
+            <h3 class="card-title">CH-10 Enterprise Security</h3>
+            <p class="card-desc">CIA Triad, Zero Trust, BitLocker Deep Dive, Sentinel SIEM, and Incident Response Playbook.</p>
+            <div class="card-footer"><span class="card-tags">#security #az-104</span></div>
+            <div class="btn-open" onclick="openChapter('ch-10')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-11 PowerShell Scripting" data-tags="powershell, automation, intermediate">
+            <div class="card-color-bar" style="background: var(--accent-purple);"></div>
+            <div class="card-header">
+              <span class="card-cert">None</span>
+              <span>📝 6 Notes</span>
+            </div>
+            <h3 class="card-title">CH-11 PowerShell Scripting</h3>
+            <p class="card-desc">PowerShell fundamentals, AD scripting, error handling, Az module, and DSC.</p>
+            <div class="card-footer"><span class="card-tags">#powershell #automation</span></div>
+            <div class="btn-open" onclick="openChapter('ch-11')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-12 Ansible Automation" data-tags="ansible, automation, linux, intermediate">
+            <div class="card-color-bar" style="background: var(--accent-orange);"></div>
+            <div class="card-header">
+              <span class="card-cert">RHCSA</span>
+              <span>📝 3 Notes</span>
+            </div>
+            <h3 class="card-title">CH-12 Ansible Automation</h3>
+            <p class="card-desc">Ansible for Windows/Linux Admins, Advanced Playbooks, and Roles.</p>
+            <div class="card-footer"><span class="card-tags">#ansible #automation</span></div>
+            <div class="btn-open" onclick="openChapter('ch-12')">Open Chapter ➔</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- UNIT 7-8 -->
+      <div id="unit-7" class="unit-section">
+        <h2 class="unit-title">UNIT 7-8 — ITSM & CAREER</h2>
+        <div class="cards-grid">
+          
+          <div class="card" data-title="CH-13 ITSM & ITIL v4" data-tags="itsm, itil, beginner, career">
+            <div class="card-color-bar" style="background: var(--accent-cyan);"></div>
+            <div class="card-header">
+              <span class="card-cert">None</span>
+              <span>📝 3 Notes</span>
+            </div>
+            <h3 class="card-title">CH-13 ITSM & ITIL v4</h3>
+            <p class="card-desc">ITIL v4 Framework, Incident, Problem, Change, and Asset Management.</p>
+            <div class="card-footer"><span class="card-tags">#itsm #itil</span></div>
+            <div class="btn-open" onclick="openChapter('ch-13')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-14 Monitoring & Backup" data-tags="monitoring, backup, az-104, intermediate">
+            <div class="card-color-bar" style="background: var(--accent-orange);"></div>
+            <div class="card-header">
+              <span class="card-cert">AZ-104</span>
+              <span>📝 4 Notes</span>
+            </div>
+            <h3 class="card-title">CH-14 Monitoring & Backup</h3>
+            <p class="card-desc">Windows Performance Monitor, Azure Monitor, Log Analytics, and Site Recovery.</p>
+            <div class="card-footer"><span class="card-tags">#monitoring #backup</span></div>
+            <div class="btn-open" onclick="openChapter('ch-14')">Open Chapter ➔</div>
+          </div>
+
+          <div class="card" data-title="CH-15 Career & Certifications" data-tags="interview, certifications, career">
+            <div class="card-color-bar" style="background: var(--accent-yellow);"></div>
+            <div class="card-header">
+              <span class="card-cert">All</span>
+              <span>📝 11 Notes</span>
+            </div>
+            <h3 class="card-title">CH-15 Career & Certifications</h3>
+            <p class="card-desc">Top Interview Questions, Salary Negotiation, 30-60-90 Day Plan, and Cert Roadmaps.</p>
+            <div class="card-footer"><span class="card-tags">#career #certifications</span></div>
+            <div class="btn-open" onclick="openChapter('ch-15')">Open Chapter ➔</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div> <!-- End Dashboard View -->
+
+    <div id="chapter-view">
+      <button class="back-btn" onclick="closeChapter()">← Back to Dashboard</button>
+      <div id="chapter-content-container"></div>
+    </div> <!-- End Chapter View -->
+
+  </div>
+</div>
+
+<!-- HIDDEN CHAPTER CONTENTS -->
+<div id="hidden-chapters" style="display:none">
+  
+  <!-- CH-01 -->
+  <div id="content-ch-01" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(255, 211, 42, 0.1); color: var(--accent-yellow); border-color: var(--accent-yellow);">UNIT 1: Foundations</span>
+      <h1>CH-01: Computer Hardware & Architecture</h1>
+      <div class="detail-tags"><span class="tag">#hardware</span><span class="tag">#beginner</span></div>
+    </div>
+    
+    <h2>Learning Objectives</h2>
+    <ul class="obj-list">
+      <li>Motherboard components identify karna</li>
+      <li>Storage types compare karna (HDD vs SSD vs NVMe)</li>
+      <li>BIOS/UEFI configure karna</li>
+      <li>Hardware ticket L1 level pe resolve karna</li>
+    </ul>
+
+    <h2>1.1 Motherboard Architecture</h2>
+    <div class="callout tip">
+      <strong>TIP</strong>
+      <p>Motherboard ek bada junction board hai jahan computer ka har ek part aakar connect hota hai.</p>
+    </div>
+    <p>Chipset, slots, aur form factors samajhna ek sysadmin ke liye pehli seedhi hai.</p>
+
+    <h2>1.2 Storage Deep Dive</h2>
+    <p>Interfaces, speeds, and RAID basics.</p>
+    <div class="callout info">
+      <strong>INFO</strong>
+      <p>HDD mechanical hoti hai, SSD chip based hoti hai. NVMe PCIe lanes use karti hai.</p>
+    </div>
+
+    <h2>1.6 Hardware Troubleshooting</h2>
+    <div class="callout danger">
+      <strong>DANGER</strong>
+      <p>Common Mistake: PC start nahi ho raha aur display cables motherboard mein lagi hain discrete GPU ki jagah.</p>
+    </div>
+
+    <h2>Commands Learned</h2>
+    <table>
+      <tr><th>Command</th><th>Description</th></tr>
+      <tr><td><code>wmic diskdrive get model,size</code></td><td>Get disk info (Windows)</td></tr>
+      <tr><td><code>chkdsk C: /f /r</code></td><td>Check disk errors</td></tr>
+      <tr><td><code>mdsched.exe</code></td><td>Memory diagnostic</td></tr>
+      <tr><td><code>msinfo32</code></td><td>System information</td></tr>
+    </table>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: HDD aur SSD mein kya fark hai performance wise? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>SSD uses flash memory resulting in much higher IOPS and sequential speeds compared to spinning magnetic disks in HDDs.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: BIOS aur UEFI mein kya difference hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>UEFI supports GUI, secure boot, drives larger than 2TB (GPT), while legacy BIOS uses MBR and is 16-bit text only.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: POST fail hone pe troubleshooting steps kya hain? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Check debug LEDs, listen to beep codes, reseat RAM, clear CMOS, check PSU connections.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: RAID 0, 1, 5 explain karo with use cases. <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>RAID 0 (speed, 0 redundancy). RAID 1 (mirror, 1 disk failure allowed). RAID 5 (striping+parity, 1 disk failure allowed, good balance of capacity and safety).</p></div>
+    </div>
+    
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="closeChapter()">Home</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-02')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-04 -->
+  <div id="content-ch-04" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(96, 165, 250, 0.1); color: var(--accent-blue); border-color: var(--accent-blue);">UNIT 2: Operating Systems</span>
+      <h1>CH-04: Windows OS Administration</h1>
+      <div class="detail-tags"><span class="tag">#windows</span><span class="tag">#md-102</span></div>
+    </div>
+    
+    <h2>Learning Objectives</h2>
+    <ul class="obj-list">
+      <li>Windows administration tools master karna</li>
+      <li>Registry and Group Policy manage karna</li>
+      <li>OS level troubleshooting commands perform karna</li>
+    </ul>
+
+    <h2>4.1 BitLocker & Event Viewer</h2>
+    <p>Windows 10/11 administration tools jo har L1/L2 engineer ko aane chahiye — real tickets ke saath.</p>
+    <div class="callout tip">
+      <strong>TIP</strong>
+      <p>Event Viewer is your best friend when diagnosing spontaneous reboots or application crashes.</p>
+    </div>
+
+    <h2>Commands Learned</h2>
+    <pre><code><span class="comment"># System file check</span>
+sfc /scannow
+
+<span class="comment"># Image repair</span>
+DISM /Online /Cleanup-Image /RestoreHealth
+
+<span class="comment"># BitLocker status</span>
+manage-bde -status</code></pre>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: TCP aur UDP mein kya fark hai? Use cases batao. <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>TCP is connection-oriented and reliable (Web, Email). UDP is connectionless and fast (Video streaming, DNS).</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: DNS resolution process explain karo step by step. <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Local cache -> Hosts file -> DNS Server -> Root Hint -> TLD -> Authoritative Server.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-03')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-05')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-05 -->
+  <div id="content-ch-05" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(0, 255, 136, 0.1); color: var(--accent-green); border-color: var(--accent-green);">UNIT 2: Operating Systems</span>
+      <h1>CH-05: Linux & RHEL Administration</h1>
+      <div class="detail-tags"><span class="tag">#linux</span><span class="tag">#rhcsa</span></div>
+    </div>
+    
+    <h2>5.1 Linux Administration Basics</h2>
+    <div class="callout success">
+      <strong>SUCCESS</strong>
+      <p>Linux is the backbone of modern cloud infrastructure.</p>
+    </div>
+
+    <h2>Commands Learned</h2>
+    <pre><code><span class="comment"># Live logs</span>
+journalctl -u service -f
+
+<span class="comment"># Open ports</span>
+ss -tulnp
+
+<span class="comment"># Disk usage</span>
+df -h && du -sh /*
+
+<span class="comment"># Permissions</span>
+chmod 755 file
+chown user:group file
+
+<span class="comment"># LVM volume</span>
+lvcreate -L 10G -n lv vg</code></pre>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: chmod 755 aur 644 mein kya fark hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>755 gives read/write/execute to owner, and read/execute to others. 644 gives read/write to owner, and read-only to others.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: Systemd aur SysVinit mein difference? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Systemd uses parallel startup and units, while SysVinit uses sequential shell scripts.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: SELinux enforcing mode mein kaise debug karein? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Use semanage, setsebool, and check /var/log/audit/audit.log or use audit2allow.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-04')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-06')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-06 -->
+  <div id="content-ch-06" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(96, 165, 250, 0.1); color: var(--accent-blue); border-color: var(--accent-blue);">UNIT 3: Windows Server & AD</span>
+      <h1>CH-06: Windows Server 2022</h1>
+      <div class="detail-tags"><span class="tag">#windows-server</span><span class="tag">#md-102</span></div>
+    </div>
+    
+    <h2>6.1 Windows Server Introduction & Roles</h2>
+    <p>Understanding DNS, DHCP, DFS, WSUS, and IIS roles.</p>
+    
+    <div class="callout warning">
+      <strong>WARNING</strong>
+      <p>Always configure static IP before promoting a server to a Domain Controller.</p>
+    </div>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: DHCP scope aur superscope mein kya fark hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>A scope is a single subnet. A superscope groups multiple scopes (subnets) together to provide IPs to a single physical network segment.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: DNS forward aur reverse lookup zone explain karo. <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Forward resolves Hostname to IP. Reverse resolves IP to Hostname (using PTR records).</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: WSUS mein computer groups kyun banate hain? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>To test patches on a small group first before deploying them to the entire production environment.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: RAID 5 ke liye minimum kitni drives chahiye? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Minimum 3 drives are required for RAID 5 to store data and distributed parity.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-05')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-07')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-07 -->
+  <div id="content-ch-07" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(168, 85, 247, 0.1); color: var(--accent-purple); border-color: var(--accent-purple);">UNIT 3: Windows Server & AD</span>
+      <h1>CH-07: Active Directory & Identity</h1>
+      <div class="detail-tags"><span class="tag">#active-directory</span></div>
+    </div>
+    
+    <h2>7.1 AD DS Architecture & Concepts</h2>
+    <p>Group Policy, OUs, AD Replication, FSMO roles.</p>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: FSMO roles kya hain aur kaun hold karta hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Flexible Single Master Operations. 5 roles: Schema Master, Domain Naming, RID, PDC Emulator, Infrastructure Master.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: GPO processing order kya hai? (LSDOU) <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Local -> Site -> Domain -> Organizational Unit.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-06')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-08')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-08 -->
+  <div id="content-ch-08" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(0, 212, 255, 0.1); color: var(--accent-cyan); border-color: var(--accent-cyan);">UNIT 4: Cloud & M365</span>
+      <h1>CH-08: Microsoft 365 & Intune</h1>
+      <div class="detail-tags"><span class="tag">#m365</span><span class="tag">#intune</span></div>
+    </div>
+    
+    <h2>8.1 M365 Admin Center Overview</h2>
+    <div class="callout tip">
+      <strong>TIP</strong>
+      <p>Conditional Access policies are the modern security perimeter.</p>
+    </div>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: Conditional Access policy kaise kaam karti hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>It evaluates signals (user, location, device) and enforces decisions (allow, block, require MFA).</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: Intune compliance vs configuration policy? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Compliance checks if device meets rules (BitLocker on). Configuration pushes settings (Wi-Fi profiles) to the device.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-07')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-09')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-09 -->
+  <div id="content-ch-09" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(0, 212, 255, 0.1); color: var(--accent-cyan); border-color: var(--accent-cyan);">UNIT 4: Cloud & M365</span>
+      <h1>CH-09: Microsoft Azure (AZ-104)</h1>
+      <div class="detail-tags"><span class="tag">#azure</span><span class="tag">#az-104</span></div>
+    </div>
+    
+    <h2>9.1 Cloud Computing Fundamentals</h2>
+    <div class="callout info">
+      <strong>INFO</strong>
+      <p>Azure is Microsoft's public cloud computing platform.</p>
+    </div>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: VNet peering aur VPN Gateway mein kya fark hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Peering connects VNets within Azure via backbone. VPN connects on-prem to Azure over public internet via encrypted tunnels.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-08')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-10')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- CH-10 -->
+  <div id="content-ch-10" class="detail-content">
+    <div class="detail-header">
+      <span class="live-badge" style="background: rgba(255, 71, 87, 0.1); color: var(--accent-red); border-color: var(--accent-red);">UNIT 5-6: Security & Automation</span>
+      <h1>CH-10: Enterprise Security</h1>
+      <div class="detail-tags"><span class="tag">#security</span><span class="tag">#az-104</span></div>
+    </div>
+    
+    <h2>10.1 CIA Triad & Zero Trust Model</h2>
+    <p>Security fundamentals for modern infrastructure.</p>
+    
+    <div class="callout question">
+      <strong>QUESTION</strong>
+      <p>Zero Trust model assumes breach. Verify explicitly, use least privilege access.</p>
+    </div>
+
+    <h2>Review Questions</h2>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: Zero Trust model ke 3 principles kya hain? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>Verify explicitly, Use least privilege access, Assume breach.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-btn">Q: SIEM aur SOAR mein kya fark hai? <span class="arrow">▼</span></button>
+      <div class="accordion-content"><p>SIEM collects and analyzes logs. SOAR automates responses to the alerts generated by SIEM.</p></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="#" class="b-btn" onclick="openChapter('ch-09')">⬅ Prev Chapter</a>
+      <a href="#" class="b-btn" onclick="openChapter('ch-11')">Next Chapter ➔</a>
+    </div>
+  </div>
+
+  <!-- Add basic placeholders for 11-15 just to show functionality per prompt requirements -->
+  <!-- CH-11 -->
+  <div id="content-ch-11" class="detail-content">
+    <div class="detail-header">
+      <h1>CH-11: PowerShell Scripting</h1>
+      <div class="detail-tags"><span class="tag">#powershell</span><span class="tag">#automation</span></div>
+    </div>
+    <h2>11.1 PowerShell Fundamentals</h2>
+    <pre><code>Get-ADUser -Filter *        <span class="comment"># All AD users</span>
+Connect-AzAccount           <span class="comment"># Azure login</span></code></pre>
+    <div class="bottom-nav"><a href="#" class="b-btn" onclick="openChapter('ch-10')">⬅ Prev Chapter</a><a href="#" class="b-btn" onclick="openChapter('ch-12')">Next Chapter ➔</a></div>
+  </div>
+
+  <!-- CH-12 -->
+  <div id="content-ch-12" class="detail-content">
+    <div class="detail-header">
+      <h1>CH-12: Ansible Automation</h1>
+      <div class="detail-tags"><span class="tag">#ansible</span></div>
+    </div>
+    <div class="bottom-nav"><a href="#" class="b-btn" onclick="openChapter('ch-11')">⬅ Prev Chapter</a><a href="#" class="b-btn" onclick="openChapter('ch-13')">Next Chapter ➔</a></div>
+  </div>
+
+  <!-- CH-13 -->
+  <div id="content-ch-13" class="detail-content">
+    <div class="detail-header">
+      <h1>CH-13: ITSM & ITIL v4</h1>
+    </div>
+    <div class="bottom-nav"><a href="#" class="b-btn" onclick="openChapter('ch-12')">⬅ Prev Chapter</a><a href="#" class="b-btn" onclick="openChapter('ch-14')">Next Chapter ➔</a></div>
+  </div>
+
+  <!-- CH-14 -->
+  <div id="content-ch-14" class="detail-content">
+    <div class="detail-header">
+      <h1>CH-14: Monitoring & Backup</h1>
+    </div>
+    <div class="bottom-nav"><a href="#" class="b-btn" onclick="openChapter('ch-13')">⬅ Prev Chapter</a><a href="#" class="b-btn" onclick="openChapter('ch-15')">Next Chapter ➔</a></div>
+  </div>
+
+  <!-- CH-15 -->
+  <div id="content-ch-15" class="detail-content">
+    <div class="detail-header">
+      <h1>CH-15: Career & Certifications</h1>
+    </div>
+    <div class="bottom-nav"><a href="#" class="b-btn" onclick="openChapter('ch-14')">⬅ Prev Chapter</a><a href="#" class="b-btn" onclick="closeChapter()">Home ➔</a></div>
+  </div>
+
+</div>
+
+<script>
+// Progress bar animation
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.progress-fill').forEach(bar => {
+      bar.style.width = bar.getAttribute('data-width');
+    });
+  }, 200);
+});
+
+// Sidebar scrolling
+function scrollToUnit(unitId) {
+  const el = document.getElementById(unitId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+}
+
+// Search filtering
+function filterChapters() {
+  const query = document.getElementById('search-input').value.toLowerCase();
+  document.querySelectorAll('.card').forEach(card => {
+    const title = card.getAttribute('data-title').toLowerCase();
+    const tags = card.getAttribute('data-tags').toLowerCase();
+    const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+    if (title.includes(query) || tags.includes(query) || desc.includes(query)) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+
+// Tag filtering
+function filterByTag(tag, element) {
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  element.classList.add('active');
+  
+  document.querySelectorAll('.card').forEach(card => {
+    const tags = card.getAttribute('data-tags');
+    if (tag === 'all' || tags.includes(tag)) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+
+// View switching
+function openChapter(chId) {
+  document.getElementById('dashboard-view').style.display = 'none';
+  const chapView = document.getElementById('chapter-view');
+  chapView.style.display = 'block';
+  window.scrollTo(0, 0);
+
+  const container = document.getElementById('chapter-content-container');
+  const source = document.getElementById('content-' + chId);
+  if (source) {
+    container.innerHTML = source.innerHTML;
+    // Re-attach accordion events to new HTML
+    attachAccordionEvents();
+  } else {
+    container.innerHTML = '<h2>Content Not Loaded</h2>';
+  }
+}
+
+function closeChapter() {
+  document.getElementById('chapter-view').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+// Accordion
+function attachAccordionEvents() {
+  document.querySelectorAll('#chapter-content-container .accordion-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const content = button.nextElementSibling;
+      button.classList.toggle('active');
+      if (content.classList.contains('active')) {
+        content.classList.remove('active');
+      } else {
+        content.classList.add('active');
+      }
+    });
+  });
+}
+</script>
+</body>
+</html>
