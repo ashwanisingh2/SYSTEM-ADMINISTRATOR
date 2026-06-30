@@ -130,5 +130,5 @@ Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber, ActiveUnits, ConsumedU
 ## 🔗 Related Notes
 
 - [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft Entra ID]] — The directory where groups and users are licensed.
-- [[04-Cloud-and-Security/07-Microsoft-365/Exchange-Online|Exchange Online]] — Relies on licenses to provision mailbox quotas.
-- [[06-Career-Growth/14-Certifications/MD-102|MD-102 Roadmap]] — Covers licensing objectives for modern endpoints.
+- [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online|M365-02 Exchange Online]] — Relies on licenses to provision mailbox quotas.
+- [[06-Career-Growth/14-Certifications/MD-102-Roadmap|MD-102-Roadmap]] — Covers licensing objectives for modern endpoints.

@@ -198,6 +198,6 @@ reg add "HKLM\Software\FSLogix\Profiles" /v SizeInMBs /t REG_DWORD /d 30720 /f
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/User-Profiles|User-Profiles]] — Traditional profile configurations in Windows.
+- [[02-Operating-Systems/03-Windows-OS/WIN-07 User Profiles|WIN-07 User Profiles]] — Traditional profile configurations in Windows.
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-09 File Server and FSRM|WS-09 File Server and FSRM]] — Hosting file shares and configuring quotas.
 - [[04-Cloud-and-Security/08-Azure/AZ104-02 Azure Storage Administration|AZ104-02 Azure Storage Administration]] — Utilizing Azure Files for profile hosting.

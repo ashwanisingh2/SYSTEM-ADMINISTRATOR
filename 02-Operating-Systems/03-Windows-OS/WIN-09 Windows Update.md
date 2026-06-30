@@ -156,6 +156,6 @@ usoclient StartScan
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows Services]] — Details update and transfer service control.
-- [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event Viewer]] — Details Event IDs used to audit updates.
-- [[02-Operating-Systems/03-Windows-OS/SFC-and-DISM|SFC and DISM]] — Details system store repair tools.
+- [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Details update and transfer service control.
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Details Event IDs used to audit updates.
+- [[02-Operating-Systems/03-Windows-OS/WIN-05 SFC and DISM|WIN-05 SFC and DISM]] — Details system store repair tools.

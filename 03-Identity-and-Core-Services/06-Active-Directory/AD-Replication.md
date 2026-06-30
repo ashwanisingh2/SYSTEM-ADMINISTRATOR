@@ -393,8 +393,8 @@ Active Directory Sites and Services (dssite.msc):
 
 ## 🔗 Related Notes
 
-- [[03-Identity-and-Core-Services/06-Active-Directory/FSMO-Roles|FSMO Roles]] — Single-master roles ka detail, including PDC Emulator time authority
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-08 FSMO Roles|WS-08 FSMO Roles]] — Single-master roles ka detail, including PDC Emulator time authority
 - [[01-Foundations/02-Networking/DNS|DNS]] — Resolution system jo DCs ko ek doosre ko find karne deta hai
-- [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — GPO replication via DFS-R alongside AD replication
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — GPO replication via DFS-R alongside AD replication
 
 ---

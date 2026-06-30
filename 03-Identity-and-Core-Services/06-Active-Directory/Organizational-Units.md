@@ -261,7 +261,7 @@ A: We had to migrate from a geographic to a functional tiering OU layout to simp
 ---
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users and Groups]] — Details objects stored inside OUs.
-- [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Details policies linked to OUs.
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Details policies linked to OUs.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Domain-Join|Domain Join]] — Details computer placement in target OUs.
 
 ---

@@ -164,5 +164,5 @@ Stop-AzVM -Name $vmName -ResourceGroupName $rg -Force -NoWait
 
 ## Related Notes
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines]]
-- [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Fundamentals]]
+- [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-01 PowerShell Fundamentals|PS-01 PowerShell Fundamentals]]
 - [[04-Cloud-and-Security/08-Azure/BAK-02 Azure Backup and Site Recovery]]

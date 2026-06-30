@@ -231,7 +231,7 @@ kubectl get pods
 ## Related Notes
 - [[05-Automation-and-Ticketing/14-DevOps-Basics/DEV-01 Docker-Fundamentals|DEV-01 Docker-Fundamentals]] — Core container packaging engines.
 - [[04-Cloud-and-Security/08-Azure/AZ104-08 Azure-Container-Instances|AZ104-08 Azure-Container-Instances]] — Serverless container hosting alternatives.
-- [[05-Automation-and-Ticketing/13-Monitoring/MON-03 Prometheus-and-Grafana|MON-03 Prometheus-and-Grafana]] — Monitoring Kubernetes clusters.
+- [[05-Automation-and-Ticketing/13-Monitoring/MON-03 Prometheus and Grafana|MON-03 Prometheus and Grafana]] — Monitoring Kubernetes clusters.
 
 ---
 *Tags: #desktop-support #devops #orchestration #kubernetes #L2*

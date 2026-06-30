@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, lab-setup, active-directory, windows-server, dns, dhcp, L1, L2, L3]
 aliases: [ad-lab, active-directory-setup]
 created: 2026-06-25
@@ -230,8 +230,8 @@ Set-DhcpServerv4OptionValue -DnsServer 192.168.10.10 -DnsDomain "corp.contoso.co
 
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/Domain-Join|Domain Join]]
-- [[03-Identity-and-Core-Services/05-Windows-Server/Windows-Server-2022-Introduction|Windows Server 2022 Introduction]]
-- [[03-Identity-and-Core-Services/06-Active-Directory/FSMO-Roles|FSMO Roles]]
+- [[03-Identity-and-Core-Services/05-Windows-Server/WS-01 Windows Server 2022 Introduction|WS-01 Windows Server 2022 Introduction]]
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-08 FSMO Roles|WS-08 FSMO Roles]]
 
 ---
 

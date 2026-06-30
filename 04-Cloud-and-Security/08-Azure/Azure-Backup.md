@@ -171,4 +171,4 @@ $backupJob = Backup-AzRecoveryServicesBackupItem -Item $item -ExpiryDateTimeUTC 
 
 - [[04-Cloud-and-Security/08-Azure/Azure-VMs|Azure VMs]] — Virtual machines protected by the recovery vaults.
 - [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker Deep Dive]] — Detail disk encryption key integrations.
-- [[01-Foundations/01-Hardware/Storage-Deep-Dive|Storage Deep Dive]] — Outlines the core raid and redundancy architectures.
+- [[01-Foundations/01-Hardware/H-02 Storage Deep Dive|H-02 Storage Deep Dive]] — Outlines the core raid and redundancy architectures.

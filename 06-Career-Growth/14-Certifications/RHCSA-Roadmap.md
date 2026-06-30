@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, career-roadmap, certification, linux, rhel, rhcsa, sysadmin, L1, L2, L3]
 aliases: [rhcsa-prep, redhat-roadmap]
 created: 2026-06-25
@@ -275,7 +275,7 @@ This displays if the service is active, running, stopped, or disabled, and shows
 ---
 
 ## Related Notes
-- [[02-Operating-Systems/04-Linux-RHEL/Filesystem|Linux Filesystem]]
+- [[02-Operating-Systems/04-Linux-RHEL/L-23 Filesystem|L-23 Filesystem]]
 - [[02-Operating-Systems/04-Linux-RHEL/Permissions|Linux Permissions]]
 - [[02-Operating-Systems/04-Linux-RHEL/Systemctl|Systemctl Services]]
 

@@ -258,7 +258,7 @@ pathping 8.8.8.8
 ## Related Notes
 - [[01-Foundations/02-Networking/OSI-Model|OSI Model]]
 - [[01-Foundations/02-Networking/Subnetting|Subnetting]]
-- [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Fundamentals|PowerShell Fundamentals]]
+- [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-01 PowerShell Fundamentals|PS-01 PowerShell Fundamentals]]
 
 ---
 

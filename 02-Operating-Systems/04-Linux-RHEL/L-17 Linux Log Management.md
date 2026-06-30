@@ -232,4 +232,4 @@ sudo systemctl restart rsyslog
 - [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]] — For managing the services that generate logs.
 - [[02-Operating-Systems/04-Linux-RHEL/L-14 Linux Security Hardening|L-14 Linux Security Hardening]] — For securing the `/var/log` directory.
 - [[02-Operating-Systems/04-Linux-RHEL/L-16 Cron Jobs and Task Scheduling|L-16 Cron Jobs and Task Scheduling]] — `logrotate` runs as a daily cron job.
-- [[04-Cloud-and-Security/10-Monitoring-and-Backup/MON-02 Azure Monitor and Log Analytics|MON-02 Azure Monitor and Log Analytics]] — Cloud equivalent of logging.
+- [[05-Automation-and-Ticketing/13-Monitoring/MON-05 Azure Monitor and Log Analytics|MON-05 Azure Monitor and Log Analytics]] — Cloud equivalent of logging.

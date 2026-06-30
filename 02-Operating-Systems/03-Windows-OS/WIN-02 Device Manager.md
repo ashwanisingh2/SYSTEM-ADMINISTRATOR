@@ -126,6 +126,6 @@ Export-WindowsDriver -Online -Destination "C:\Backups\Drivers"
 ---
 ## 🔗 Related Notes
 
-- [[01-Foundations/01-Hardware/Motherboard-Architecture|Motherboard Architecture]] — Connects physical interfaces under driver control.
-- [[01-Foundations/01-Hardware/Hardware-Troubleshooting-Masterclass|Hardware Troubleshooting Masterclass]] — Diagnostic flows for component failures.
-- [[02-Operating-Systems/03-Windows-OS/Registry|Registry]] — Details device class configuration keys.
+- [[01-Foundations/01-Hardware/H-01 Motherboard Architecture|H-01 Motherboard Architecture]] — Connects physical interfaces under driver control.
+- [[01-Foundations/01-Hardware/H-06 Hardware Troubleshooting Masterclass|H-06 Hardware Troubleshooting Masterclass]] — Diagnostic flows for component failures.
+- [[02-Operating-Systems/03-Windows-OS/WIN-04 Registry|WIN-04 Registry]] — Details device class configuration keys.

@@ -139,6 +139,6 @@ Get-WinEvent -FilterHashtable @{LogName='System'; Id=6008} -MaxEvents 10 |
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows Services]] — Logs service status transitions under Event ID 7036.
-- [[02-Operating-Systems/03-Windows-OS/Registry|Registry]] — Details logging configuration paths.
+- [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Logs service status transitions under Event ID 7036.
+- [[02-Operating-Systems/03-Windows-OS/WIN-04 Registry|WIN-04 Registry]] — Details logging configuration paths.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users and Groups]] — Auditing user login failures.

@@ -184,6 +184,6 @@ Set-RDSessionCollectionConfiguration -CollectionName "Finance-Apps" -ConnectionB
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows-Services]] — Managing system services like `TermService`.
-- [[02-Operating-Systems/03-Windows-OS/FSLogix|FSLogix]] — Redirection profile management for RDS environments.
+- [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Managing system services like `TermService`.
+- [[02-Operating-Systems/03-Windows-OS/WIN-10 FSLogix|WIN-10 FSLogix]] — Redirection profile management for RDS environments.
 - [[03-Identity-and-Core-Services/05-Windows-Server/WS-14 VPN and Remote Access (RRAS)|WS-14 VPN and Remote Access (RRAS)]] — Alternative remote access options.

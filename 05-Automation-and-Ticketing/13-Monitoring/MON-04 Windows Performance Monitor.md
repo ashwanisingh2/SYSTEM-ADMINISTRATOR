@@ -210,4 +210,4 @@ perfmon.exe
 - [[02-Operating-Systems/03-Windows-OS/WIN-02 Device Manager|WIN-02 Device Manager]] — Checking physical hardware status.
 - [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Managing background processes.
 - [[05-Automation-and-Ticketing/13-Monitoring/MON-04 Windows Performance Monitor|MON-04 Windows Performance Monitor]] — Alternate monitoring guide (legacy location).
-- [[04-Cloud-and-Security/10-Monitoring-and-Backup/MON-02 Azure Monitor and Log Analytics|MON-02 Azure Monitor and Log Analytics]] — Cloud equivalent of PerfMon.
+- [[05-Automation-and-Ticketing/13-Monitoring/MON-05 Azure Monitor and Log Analytics|MON-05 Azure Monitor and Log Analytics]] — Cloud equivalent of PerfMon.

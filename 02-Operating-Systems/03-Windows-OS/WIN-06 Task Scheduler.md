@@ -131,6 +131,6 @@ Register-ScheduledTask -TaskName "DailyCleanup" -Trigger $Trigger -Action $Actio
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Registry|Registry]] — Details task configurations database keys.
-- [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event Viewer]] — Details task event auditing.
+- [[02-Operating-Systems/03-Windows-OS/WIN-04 Registry|WIN-04 Registry]] — Details task configurations database keys.
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Details task event auditing.
 - [[05-Automation-and-Ticketing/10-Scripting-PowerShell/Basics|PowerShell Basics]] — Details scripting automation foundations.

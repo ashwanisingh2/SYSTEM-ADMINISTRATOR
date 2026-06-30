@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, lab-setup, virtualization, vmware, hyper-v, L1, L2]
 aliases: [home-lab, hypervisor-setup]
 created: 2026-06-25
@@ -227,8 +227,8 @@ REM Power on a target lab VM in headless (background) mode
 ---
 
 ## Related Notes
-- [[03-Identity-and-Core-Services/05-Windows-Server/Windows-Server-2022-Introduction|Windows Server 2022 Introduction]]
-- [[02-Operating-Systems/04-Linux-RHEL/Filesystem|Linux Filesystem]]
+- [[03-Identity-and-Core-Services/05-Windows-Server/WS-01 Windows Server 2022 Introduction|WS-01 Windows Server 2022 Introduction]]
+- [[02-Operating-Systems/04-Linux-RHEL/L-23 Filesystem|L-23 Filesystem]]
 - [[00-MOC/Master-Index|Master Index]]
 
 ---

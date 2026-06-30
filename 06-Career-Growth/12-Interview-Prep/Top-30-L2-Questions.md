@@ -205,7 +205,7 @@ This exports all active local security database configurations (password rules, 
 ---
 
 ## Related Notes
-- [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Focuses on GPO precedence and loopbacks (Q6, Q7, Q8).
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Focuses on GPO precedence and loopbacks (Q6, Q7, Q8).
 - [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft Entra ID]] — Explains hybrid sync operations (Q16, Q17, Q19).
 - [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker Deep Dive]] — Outlines boot screen recovery fixes (Q21).
 

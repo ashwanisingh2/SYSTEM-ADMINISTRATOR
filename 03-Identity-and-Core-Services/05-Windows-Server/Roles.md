@@ -261,8 +261,8 @@ Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
 
 ---
 ## Related Notes
-- [[03-Identity-and-Core-Services/05-Windows-Server/DNS-Server|DNS Server]] — Details the DNS role configuration.
-- [[03-Identity-and-Core-Services/05-Windows-Server/DHCP-Server|DHCP Server]] — Details the DHCP role configuration.
+- [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]] — Details the DNS role configuration.
+- [[03-Identity-and-Core-Services/05-Windows-Server/WS-04 DHCP Server — Install and Configure|WS-04 DHCP Server — Install and Configure]] — Details the DHCP role configuration.
 - [[03-Identity-and-Core-Services/05-Windows-Server/IIS|IIS]] — Details the Web Server role configuration.
 
 ---

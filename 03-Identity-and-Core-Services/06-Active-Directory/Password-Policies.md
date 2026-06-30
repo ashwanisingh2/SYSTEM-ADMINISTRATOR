@@ -257,7 +257,7 @@ A: We increased the minimum password length to 14 characters. Users complained a
 ---
 ## Related Notes
 - [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users and Groups]] — Target objects for password policies.
-- [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Details GPO deployments.
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Details GPO deployments.
 - [[04-Cloud-and-Security/09-Security/MFA-and-Identity-Protection|MFA and Identity Protection]] — Details integration with multi-factor authentication.
 
 ---

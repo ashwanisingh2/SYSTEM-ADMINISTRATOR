@@ -191,7 +191,7 @@ python log_parser.py
 
 ---
 ## Related Notes
-- [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event-Viewer]] — Windows built-in event logs interface.
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Windows built-in event logs interface.
 - [[02-Operating-Systems/04-Linux-RHEL/L-07 Systemd and Journalctl|L-07 Systemd and Journalctl]] — System daemon logging command.
 - [[05-Automation-and-Ticketing/15-Python-Scripting/PY-01 Python-for-Sysadmins|PY-01 Python-for-Sysadmins]] — Core Python automation library list.
 

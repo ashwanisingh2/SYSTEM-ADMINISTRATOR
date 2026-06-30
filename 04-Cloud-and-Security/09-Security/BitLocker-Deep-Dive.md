@@ -311,7 +311,7 @@ A: A user's laptop entered a recovery loop after an OEM firmware update, and the
 
 ---
 ## Related Notes
-- [[02-Operating-Systems/03-Windows-OS/BitLocker|BitLocker Basics]] — Outlines the beginner GUI configurations.
+- [[02-Operating-Systems/03-Windows-OS/WIN-01 BitLocker|WIN-01 BitLocker]] — Outlines the beginner GUI configurations.
 - [[04-Cloud-and-Security/08-Azure/Azure-Backup|Azure Backup]] — Details VM backup integration for encrypted volumes.
 - [[04-Cloud-and-Security/09-Security/Microsoft-Security-Best-Practices|Microsoft Security Best Practices]] — Covers baseline security configurations.
 

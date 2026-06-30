@@ -141,6 +141,6 @@ Start-Service -Name "Spooler"
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Registry|Registry]] — Details service configuration keys under HKLM.
-- [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event Viewer]] — Details Event IDs used to audit service starts.
+- [[02-Operating-Systems/03-Windows-OS/WIN-04 Registry|WIN-04 Registry]] — Details service configuration keys under HKLM.
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Details Event IDs used to audit service starts.
 - [[03-Identity-and-Core-Services/06-Active-Directory/Users-and-Groups|Users and Groups]] — Details service account configurations.

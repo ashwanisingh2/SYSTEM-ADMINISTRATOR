@@ -148,7 +148,7 @@ Get-ADSyncScheduler
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/M365-07 Azure-AD-Connect|M365-07 Azure-AD-Connect]] — Sync infrastructure deep dive.
 - [[03-Identity-and-Core-Services/06-Active-Directory/WS-02 AD DS Installation|WS-02 AD DS Installation]] — Local directory foundations.
-- [[04-Cloud-and-Security/08-Azure/AZ104-07 Azure-AD-Connect-and-Hybrid|AZ104-07 Azure-AD-Connect-and-Hybrid]] — Entra Hybrid identity models.
+- [[04-Cloud-and-Security/08-Azure/AZ104-15 Azure-AD-Connect-and-Hybrid|AZ104-15 Azure-AD-Connect-and-Hybrid]] — Entra Hybrid identity models.
 
 ---
 *Tags: #desktop-support #lab #active-directory #azure #L3*

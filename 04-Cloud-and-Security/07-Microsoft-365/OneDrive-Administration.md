@@ -126,5 +126,5 @@ start %localappdata%\Microsoft\OneDrive\onedrive.exe
 ---
 ## 🔗 Related Notes
 
-- [[04-Cloud-and-Security/07-Microsoft-365/SharePoint-Online|SharePoint Online]]
-- [[02-Operating-Systems/03-Windows-OS/User-Profiles|User Profiles]]
+- [[04-Cloud-and-Security/07-Microsoft-365/M365-04 SharePoint Online Administration|M365-04 SharePoint Online Administration]]
+- [[02-Operating-Systems/03-Windows-OS/WIN-07 User Profiles|WIN-07 User Profiles]]

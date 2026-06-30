@@ -135,6 +135,6 @@ reg export "HKLM\SOFTWARE\MyCustomApp" "C:\Backups\customapp.reg"
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/User-Profiles|User Profiles]] — Details registry file mappings (`NTUSER.DAT`).
-- [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows Services]] — Details service configuration keys under HKLM.
-- [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Details registry policy deployments.
+- [[02-Operating-Systems/03-Windows-OS/WIN-07 User Profiles|WIN-07 User Profiles]] — Details registry file mappings (`NTUSER.DAT`).
+- [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Details service configuration keys under HKLM.
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Details registry policy deployments.

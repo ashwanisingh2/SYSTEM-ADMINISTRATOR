@@ -232,4 +232,4 @@ Get-EventLog -LogName Security -InstanceId 4625 -Newest 5
 
 - [[04-Cloud-and-Security/09-Security/SEC-02 Windows Firewall Rules|SEC-02 Windows Firewall Rules]] — *Firewall concepts in detail*
 - [[02-Windows/03-Active-Directory/AD-05 Group Policy Basics|AD-05 Group Policy Basics]] — *How security policies are applied across domain*
-- [[04-Cloud-and-Security/09-Security/SEC-03 BitLocker Deep Dive|SEC-03 BitLocker Deep Dive]] — *Detailed note on disk encryption*
+- [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker-Deep-Dive]] — *Detailed note on disk encryption*

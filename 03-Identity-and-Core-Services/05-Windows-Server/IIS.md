@@ -271,9 +271,9 @@ Test-DFSNamespaceTarget -Path "\\corp.local\DFSRoot\Public"
 
 ---
 ## Related Notes
-- [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows Services]] — Details the World Wide Web Publishing Service (`W3SVC`).
+- [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Details the World Wide Web Publishing Service (`W3SVC`).
 - [[03-Identity-and-Core-Services/05-Windows-Server/Roles|Roles]] — Details server role deployment settings.
-- [[03-Identity-and-Core-Services/05-Windows-Server/DNS-Server|DNS Server]] — Details host header resolution setups.
+- [[03-Identity-and-Core-Services/05-Windows-Server/WS-03 DNS Server — Install and Configure|WS-03 DNS Server — Install and Configure]] — Details host header resolution setups.
 
 ---
 

@@ -264,7 +264,7 @@ We use the `Connect-MgGraph` module (formerly MSOnline / AzureAD) to manage M365
 ---
 ## 🔗 Related Notes
 
-- [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online Admin|M365-02 Exchange Online Admin]] — Deep dive into mail flow, transport rules, and routing.
+- [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online|M365-02 Exchange Online]] — Deep dive into mail flow, transport rules, and routing.
 - [[04-Cloud-and-Security/06-Azure/AZ-03 Azure Active Directory|AZ-03 Azure Active Directory (Entra ID)]] — Identity management, Conditional Access, and SSO foundation.
-- [[04-Cloud-and-Security/07-Microsoft-365/M365-05 SharePoint and OneDrive|M365-05 SharePoint and OneDrive]] — File sharing, permissions, and collaboration.
+- [[04-Cloud-and-Security/07-Microsoft-365/M365-08 SharePoint and OneDrive|M365-08 SharePoint and OneDrive]] — File sharing, permissions, and collaboration.
 - [[01-Windows-Server/WS-04 Active Directory Basics|WS-04 Active Directory Basics]] — On-premises AD for understanding hybrid setups.

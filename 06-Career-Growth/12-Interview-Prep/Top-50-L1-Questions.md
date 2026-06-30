@@ -221,8 +221,8 @@ This returns the exact date the password was set and its current expiration stat
 ---
 
 ## Related Notes
-- [[02-Operating-Systems/03-Windows-OS/User-Profiles|User Profiles]] — Focuses on profile corruption fixes (Q16).
-- [[02-Operating-Systems/03-Windows-OS/SFC-and-DISM|SFC and DISM]] — Details file repair utilities (Q17).
+- [[02-Operating-Systems/03-Windows-OS/WIN-07 User Profiles|WIN-07 User Profiles]] — Focuses on profile corruption fixes (Q16).
+- [[02-Operating-Systems/03-Windows-OS/WIN-05 SFC and DISM|WIN-05 SFC and DISM]] — Details file repair utilities (Q17).
 - [[01-Foundations/02-Networking/DNS|DNS]] — Explains name resolution flows (Q9, Q10).
 
 ---

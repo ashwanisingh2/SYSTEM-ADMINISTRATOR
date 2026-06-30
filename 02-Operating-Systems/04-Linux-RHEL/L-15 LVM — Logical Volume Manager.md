@@ -81,82 +81,20 @@ cert-relevant: #rhcsa
 > [!danger] Common Mistake
 > Trying to reduce an XFS filesystem. XFS does not support shrinking. You must back up data, destroy LV, recreate with smaller size, and restore data. *XFS file system ko kabhi chhota (shrink) nahi kiya jaa sakta! Aisa karna data corrupt kar dega.*
 
-### 3. Enterprise RHEL Service & Network Configurations (Bonus)
+### 3. LVM Snapshots
 
 > [!info] Key Concept
-> Miscellaneous standard system admin configurations often handled alongside storage tasks. *Baaki important cheezein jo saath me manage karni padti hain.*
+> A snapshot is a point-in-time, read-only (or read-write) copy of a Logical Volume. It is created instantly and only consumes space as the original data changes (copy-on-write). *Snapshot ek time-freeze copy hoti hai jo backup lene se pehle safe rollback point deti hai.*
 
-#### Custom Systemd Service Creation
-Create `/etc/systemd/system/myapp.service`:
-```ini
-[Unit]
-Description=My Custom Enterprise Application
-After=network.target
+- **Create a snapshot:** `lvcreate -L 1G -s -n lv_app_snap /dev/vg_data/lv_app`
+- **Use case:** Take a snapshot before a risky upgrade or a database backup, so you can restore the exact state if something breaks.
+- **Restore (merge) the snapshot back:** `lvconvert --merge /dev/vg_data/lv_app_snap`
 
-[Service]
-Type=simple
-User=sysadmin
-ExecStart=/usr/bin/python3 /opt/myapp/server.py
-Restart=on-failure
+> [!danger] Common Mistake
+> Allocating too little space to a snapshot. If the snapshot fills up (because the origin changed more than the reserved space), the snapshot becomes invalid and is dropped. *Snapshot ko itni space do ki origin ke changes usme samaa jayein.*
 
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start the service:
-```bash
-# Enable and start the service
-sudo systemctl daemon-reload
-sudo systemctl enable --now myapp.service
-```
-
-#### Log Rotation & Rsyslog Configuration
-Configure log rotation rule in `/etc/logrotate.d/myapp`:
-```text
-/var/log/myapp/*.log {
-    daily
-    rotate 7
-    compress
-    delaycompress
-    missingok
-    notifempty
-    create 0660 sysadmin sysadmin
-}
-```
-
-Define Rsyslog rule in `/etc/rsyslog.d/50-myapp.conf`:
-```text
-if $programname == 'myapp' then /var/log/myapp/syslog.log
-& stop
-```
-
-Restart Rsyslog service:
-```bash
-# Restart the logging daemon
-sudo systemctl restart rsyslog
-```
-
-#### Network Bonding & Teaming (LACP Link Aggregation)
-Create a network team interface config file `/etc/sysconfig/network-scripts/ifcfg-team0`:
-```text
-DEVICE=team0
-DEVICETYPE=Team
-BOOTPROTO=none
-IPADDR=192.168.1.100
-PREFIX=24
-GATEWAY=192.168.1.1
-ONBOOT=yes
-TEAM_CONFIG='{"runner": {"name": "lacp"}}'
-```
-
-Bind slave physical interfaces (e.g., `eth1`) to the team interface:
-```text
-# /etc/sysconfig/network-scripts/ifcfg-eth1
-DEVICE=eth1
-ONBOOT=yes
-TEAM_MASTER=team0
-DEVICETYPE=TeamPort
-```
+> [!tip] Related Topics
+> Systemd services, log rotation, and network teaming are storage-adjacent tasks but belong in their own notes — see [[02-Operating-Systems/04-Linux-RHEL/L-08 Services and Systemd|L-08 Services and Systemd]], [[02-Operating-Systems/04-Linux-RHEL/L-17 Linux Log Management|L-17 Linux Log Management]], and [[02-Operating-Systems/04-Linux-RHEL/L-12 Network Configuration in Linux|L-12 Network Configuration in Linux]].
 
 ---
 ## 🛠️ Step-by-Step Lab

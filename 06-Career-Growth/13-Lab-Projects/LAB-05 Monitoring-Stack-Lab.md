@@ -202,7 +202,7 @@ docker compose ps
 
 ---
 ## Related Notes
-- [[05-Automation-and-Ticketing/13-Monitoring/MON-03 Prometheus-and-Grafana|MON-03 Prometheus-and-Grafana]] — Advanced metrics configurations.
+- [[05-Automation-and-Ticketing/13-Monitoring/MON-03 Prometheus and Grafana|MON-03 Prometheus and Grafana]] — Advanced metrics configurations.
 - [[06-Career-Growth/13-Lab-Projects/LAB-04 Docker-Home-Lab|LAB-04 Docker-Home-Lab]] — Container deployment foundation.
 - [[05-Automation-and-Ticketing/13-Monitoring/MON-01 Nagios-Setup|MON-01 Nagios-Setup]] — Standard status check systems.
 

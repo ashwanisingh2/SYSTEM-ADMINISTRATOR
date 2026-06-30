@@ -267,7 +267,7 @@ A: We implemented an Intune Security Baseline that locked computers after 10 min
 ---
 ## Related Notes
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — The security principles behind baseline configurations.
-- [[03-Identity-and-Core-Services/06-Active-Directory/Group-Policy|Group Policy]] — Outlines the primary deployment engine for Windows baselines.
+- [[03-Identity-and-Core-Services/06-Active-Directory/WS-05 Group Policy — Complete Guide|WS-05 Group Policy — Complete Guide]] — Outlines the primary deployment engine for Windows baselines.
 - [[04-Cloud-and-Security/07-Microsoft-365/Conditional-Access|Conditional Access]] — The cloud policy gatekeeper enforcing compliance standards.
 
 ---

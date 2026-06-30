@@ -1,4 +1,4 @@
-﻿---
+---
 tags: [desktop-support, interview-prep, m365, azure, cloud, L2, L3]
 aliases: [m365-azure-interview, cloud-qa]
 created: 2026-06-25
@@ -280,7 +280,7 @@ This isolates the timestamp, resource details, and caller identity responsible f
 
 ## Related Notes
 - [[04-Cloud-and-Security/07-Microsoft-365/Microsoft-Entra-ID|Microsoft Entra ID]]
-- [[04-Cloud-and-Security/07-Microsoft-365/Exchange-Online|Exchange Online]]
+- [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online|M365-02 Exchange Online]]
 - [[04-Cloud-and-Security/08-Azure/Azure-Identity|Azure Identity]]
 - [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-for-M365-and-Azure|PowerShell for M365 and Azure]]
 

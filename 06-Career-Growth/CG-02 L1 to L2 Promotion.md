@@ -219,6 +219,6 @@ Career Troubleshooting: *Kyun promotion nahi mil raha ya growth ruki hui hai?*
 ## 🔗 Related Notes
 
 - [[../01-Linux/LX-01 Basic Commands|Linux Basic Commands]] — Foundation for L2 Linux Administration
-- [[../02-Windows/WIN-05 Event Viewer Guide|Windows Event Viewer]] — Essential for L2 Log Analysis
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Essential for L2 Log Analysis
 - [[../07-Soft-Skills/SS-01 ITIL Basics|ITIL Framework Basics]] — Understanding Incident vs Problem Management
 - [[../03-Networking/NW-01 OSI Model|OSI Model Demystified]] — Core concept for structured troubleshooting

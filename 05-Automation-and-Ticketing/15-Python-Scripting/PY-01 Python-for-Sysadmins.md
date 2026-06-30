@@ -207,6 +207,6 @@ Run: `python api_check.py`
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/04-Linux-RHEL/L-13 Bash Scripting|L-13 Bash Scripting]] — Scripting comparisons on Linux systems
+- [[02-Operating-Systems/04-Linux-RHEL/L-13 Bash Scripting for Sysadmins|L-13 Bash Scripting for Sysadmins]] — Scripting comparisons on Linux systems
 - [[05-Automation-and-Ticketing/15-Python-Scripting/PY-02 Python-AD-Automation|PY-02 Python-AD-Automation]] — Managing Active Directory using Python
 - [[05-Automation-and-Ticketing/15-Python-Scripting/PY-03 Python-Log-Analysis|PY-03 Python-Log-Analysis]] — Parsing system logs using Python regex

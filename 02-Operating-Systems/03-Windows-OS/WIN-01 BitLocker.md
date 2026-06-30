@@ -123,6 +123,6 @@ Get-BitLockerVolume -MountPoint "C:" | Format-List
 ---
 ## 🔗 Related Notes
 
-- [[01-Foundations/01-Hardware/Motherboard-Architecture|Motherboard Architecture]] — Connects the physical TPM chip.
-- [[02-Operating-Systems/03-Windows-OS/Windows-Update|Windows Update]] — Trigger for BIOS updates requiring BitLocker suspension.
+- [[01-Foundations/01-Hardware/H-01 Motherboard Architecture|H-01 Motherboard Architecture]] — Connects the physical TPM chip.
+- [[02-Operating-Systems/03-Windows-OS/WIN-09 Windows Update|WIN-09 Windows Update]] — Trigger for BIOS updates requiring BitLocker suspension.
 - [[04-Cloud-and-Security/09-Security/BitLocker-Deep-Dive|BitLocker Deep Dive]] — Advanced security settings and compliance controls.

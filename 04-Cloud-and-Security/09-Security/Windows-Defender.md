@@ -301,7 +301,7 @@ A: Our email filter missed a phishing campaign, and three users downloaded a fil
 
 ---
 ## Related Notes
-- [[02-Operating-Systems/03-Windows-OS/Windows-Services|Windows Services]] — Covers the base security service host daemons.
+- [[02-Operating-Systems/03-Windows-OS/WIN-08 Windows Services|WIN-08 Windows Services]] — Covers the base security service host daemons.
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — Outlines the security framework behind endpoint compliance.
 - [[04-Cloud-and-Security/09-Security/Microsoft-Security-Best-Practices|Microsoft Security Best Practices]] — Discusses baseline security settings.
 

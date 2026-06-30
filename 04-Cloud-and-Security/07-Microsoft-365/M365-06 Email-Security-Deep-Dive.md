@@ -127,5 +127,5 @@ nslookup -type=txt corp.com
 ---
 ## 🔗 Related Notes
 
-- [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online Administration|M365-02 Exchange Online Administration]] — Outbound routing
+- [[04-Cloud-and-Security/07-Microsoft-365/M365-02 Exchange Online|M365-02 Exchange Online]] — Outbound routing
 - [[01-Foundations/02-Networking/N-08 IP Services — DHCP DNS NAT|N-08 IP Services — DHCP DNS NAT]] — DNS records

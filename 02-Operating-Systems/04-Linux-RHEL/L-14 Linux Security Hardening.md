@@ -566,7 +566,7 @@ sudo systemctl restart httpd
 
 - [[02-Operating-Systems/04-Linux-RHEL/L-09 SSH Configuration and Security|L-09 SSH Configuration and Security]] — SSH ki complete deep dive
 - [[02-Operating-Systems/04-Linux-RHEL/L-06 File Permissions and Ownership|L-06 File Permissions and Ownership]] — DAC permissions ka foundation
-- [[02-Operating-Systems/04-Linux-RHEL/L-19 SELinux-and-AppArmor|L-19 SELinux and AppArmor]] — SELinux ka advanced deep dive
-- [[02-Operating-Systems/04-Linux-RHEL/L-20 Kernel-Tuning-and-sysctl|L-20 Kernel Tuning and sysctl]] — sysctl parameters ki complete guide
+- [[02-Operating-Systems/04-Linux-RHEL/L-24 SELinux-and-AppArmor|L-19 SELinux and AppArmor]] — SELinux ka advanced deep dive
+- [[02-Operating-Systems/04-Linux-RHEL/L-25 Kernel-Tuning-and-sysctl|L-20 Kernel Tuning and sysctl]] — sysctl parameters ki complete guide
 - [[02-Operating-Systems/04-Linux-RHEL/L-22 Firewalld|L-22 Firewalld]] — Firewall rules aur zones
 - [[04-Cloud-and-Security/09-Security/CIA-Triad-and-Zero-Trust|CIA Triad and Zero Trust]] — Security ke foundational principles

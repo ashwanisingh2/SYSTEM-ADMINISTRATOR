@@ -135,6 +135,6 @@ sfc /scannow
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Windows-Update|Windows Update]] — Utilizes the component store for updates.
-- [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event Viewer]] — Audits component store errors.
-- [[06-Career-Growth/13-Lab-Projects/Home-lab|Home lab]] — Setting up VM test environments.
+- [[02-Operating-Systems/03-Windows-OS/WIN-09 Windows Update|WIN-09 Windows Update]] — Utilizes the component store for updates.
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Audits component store errors.
+- [[06-Career-Growth/13-Lab-Projects/Home-Lab-Setup|Home-Lab-Setup]] — Setting up VM test environments.

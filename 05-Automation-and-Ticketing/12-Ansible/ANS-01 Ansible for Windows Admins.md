@@ -281,4 +281,4 @@ ansible-playbook iis_install.yml
 
 - [[03-Identity-and-Core-Services/05-Windows-Server/IIS]] — Core Web Server details
 - [[05-Automation-and-Ticketing/12-Ansible/ANS-02 Ansible for Linux Admins]] — Ansible for Linux target nodes
-- [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PowerShell-Automation-and-Scripting]] — Underlying scripting language for Windows
+- [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-09 PowerShell Automation and Scripting|PS-09 PowerShell Automation and Scripting]] — Underlying scripting language for Windows

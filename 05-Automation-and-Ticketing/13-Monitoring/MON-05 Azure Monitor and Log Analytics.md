@@ -243,7 +243,7 @@ VM Insights provides a pre-built, visually rich dashboard for your virtual machi
 ---
 ## 🔗 Related Notes
 
-- [[04-Cloud-and-Security/10-Monitoring-and-Backup/MON-01 Windows Performance Monitor|MON-01 Windows Performance Monitor]] — On-premises performance tracking.
+- [[05-Automation-and-Ticketing/13-Monitoring/MON-04 Windows Performance Monitor|MON-04 Windows Performance Monitor]] — On-premises performance tracking.
 - [[04-Cloud-and-Security/08-Azure/AZ104-03 Azure Virtual Machines|AZ104-03 Azure Virtual Machines]] — Core VM management in Azure.
 - [[04-Cloud-and-Security/08-Azure/AZ104-06 Azure Monitor and Backup|AZ104-06 Azure Monitor and Backup]] — Comprehensive cloud data protection.
 - [[05-Automation-and-Ticketing/10-Scripting-PowerShell/PS-05 PowerShell for Azure|PS-05 PowerShell for Azure]] — Automating workspace creation via Az module.

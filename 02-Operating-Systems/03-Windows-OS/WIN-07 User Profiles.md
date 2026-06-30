@@ -135,6 +135,6 @@ Get-CimInstance -ClassName Win32_UserProfile | Select-Object LocalPath, SID, Spe
 ---
 ## 🔗 Related Notes
 
-- [[02-Operating-Systems/03-Windows-OS/Registry|Registry]] — Details NTUSER.DAT registry hives.
-- [[02-Operating-Systems/03-Windows-OS/Event-Viewer|Event Viewer]] — Details Event IDs used to diagnose profile failures.
+- [[02-Operating-Systems/03-Windows-OS/WIN-04 Registry|WIN-04 Registry]] — Details NTUSER.DAT registry hives.
+- [[02-Operating-Systems/03-Windows-OS/WIN-03 Event Viewer|WIN-03 Event Viewer]] — Details Event IDs used to diagnose profile failures.
 - [[04-Cloud-and-Security/07-Microsoft-365/OneDrive-Administration|OneDrive Administration]] — Details folder backup synchronization.
